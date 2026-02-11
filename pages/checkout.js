@@ -61,6 +61,28 @@ const getCartSummary = () => {
   }
 };
 
+const getCartItems = () => {
+  if (typeof window === "undefined") return [];
+
+  const raw = window.localStorage.getItem(CART_STORAGE_KEY);
+  if (!raw) return [];
+
+  try {
+    const cart = JSON.parse(raw);
+    if (!Array.isArray(cart)) return [];
+
+    return cart
+      .map((item) => ({
+        productId: String(item?.id || "").trim(),
+        quantity: Number(item?.quantity || 0),
+        price: Number(item?.price || 0),
+      }))
+      .filter((item) => item.productId && item.quantity > 0);
+  } catch {
+    return [];
+  }
+};
+
 export default function Checkout() {
   const { user } = useAuth();
   const loggedInEmail = user?.email || "";
@@ -88,10 +110,11 @@ export default function Checkout() {
     try {
       setLoading(true);
       const latestCart = getCartSummary();
+      const latestItems = getCartItems();
       const payableAmount = Math.round(latestCart.total);
       const buyerEmail = (loggedInEmail || email).trim().toLowerCase();
 
-      if (payableAmount <= 0) {
+      if (payableAmount <= 0 || latestItems.length === 0) {
         alert("Your cart is empty. Please add items before checkout.");
         return;
       }
@@ -156,6 +179,7 @@ export default function Checkout() {
                   ...response,
                   email: buyerEmail,
                   userId: user?.uid || null,
+                  items: latestItems,
                 }),
               }
             );
@@ -171,7 +195,8 @@ export default function Checkout() {
               if (typeof window !== "undefined") {
                 window.sessionStorage.setItem("ds-last-checkout-email", buyerEmail);
               }
-              window.location.href = `/success?token=${result.token}&paymentId=${result.paymentId}&email=${encodeURIComponent(buyerEmail)}`;
+              const primaryProductId = encodeURIComponent(result.primaryProductId || "");
+              window.location.href = `/success?token=${result.token}&paymentId=${result.paymentId}&email=${encodeURIComponent(buyerEmail)}&productId=${primaryProductId}`;
             } else {
               alert(result.error || "Payment verification failed.");
             }

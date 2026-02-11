@@ -1,19 +1,38 @@
+import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Navbar from "../../components/Navbar";
 import products from "../../data/products";
 import { useAuth } from "../../context/AuthContext";
-import { savePurchase, hasPurchased } from "../../firebase/purchases";
+import { hasPurchased } from "../../firebase/purchases";
+
+const CART_STORAGE_KEY = "ds-workbook-cart-v1";
+
+const BENEFITS = [
+  "Builds confidence through short, focused activities",
+  "Screen-light format for home, class, and travel use",
+  "Teacher-ready worksheets with easy repetition patterns",
+];
+
+function humanize(value) {
+  return String(value || "")
+    .replace(/[-_]+/g, " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
 
 export default function ProductPage() {
-  const { query } = useRouter();
+  const router = useRouter();
+  const { query } = router;
   const { user } = useAuth();
 
   const [guestEmail, setGuestEmail] = useState("");
   const [purchased, setPurchased] = useState(false);
   const [checking, setChecking] = useState(true);
+  const [cartNotice, setCartNotice] = useState("");
 
-  const product = products.find(p => p.id === query.id);
+  const product = products.find((item) => item.id === query.id);
+  const typeLabel = useMemo(() => humanize(product?.type), [product?.type]);
+  const classLabel = useMemo(() => humanize(product?.class), [product?.class]);
 
   useEffect(() => {
     const checkPurchase = async () => {
@@ -25,7 +44,7 @@ export default function ProductPage() {
 
       const result = await hasPurchased({
         email,
-        productId: product.id
+        productId: product.id,
       });
 
       setPurchased(result);
@@ -44,87 +63,184 @@ export default function ProductPage() {
     );
   }
 
-  const handleSimulatePurchase = async () => {
-    const emailToSave = user?.email || guestEmail;
+  const addProductToCart = () => {
+    if (typeof window === "undefined") return;
 
-    if (!emailToSave) {
-      alert("Please enter email to continue");
-      return;
+    const raw = window.localStorage.getItem(CART_STORAGE_KEY);
+    let existingCart = [];
+    try {
+      const parsed = JSON.parse(raw || "[]");
+      existingCart = Array.isArray(parsed) ? parsed : [];
+    } catch {
+      existingCart = [];
     }
 
-    await savePurchase({
-      email: emailToSave,
-      userId: user?.uid || null,
-      productId: product.id
-    });
+    const existingItem = existingCart.find((item) => item.id === product.id);
+    const nextCart = existingItem
+      ? existingCart.map((item) =>
+          item.id === product.id
+            ? { ...item, quantity: Number(item.quantity || 0) + 1 }
+            : item
+        )
+      : [
+          ...existingCart,
+          {
+            id: product.id,
+            title: product.title,
+            price: product.price,
+            class: product.class,
+            type: product.type,
+            quantity: 1,
+          },
+        ];
 
-    alert("Purchase successful");
-    setPurchased(true);
+    window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(nextCart));
+    window.dispatchEvent(new CustomEvent("ds-cart-updated"));
+  };
+
+  const handleAddToCart = () => {
+    addProductToCart();
+    setCartNotice("Added to cart. You can checkout anytime.");
+  };
+
+  const handleBuyNow = () => {
+    addProductToCart();
+    router.push("/checkout");
+  };
+
+  const handleBuyAgain = () => {
+    addProductToCart();
+    router.push("/checkout");
   };
 
   return (
     <>
       <Navbar />
+      <main className="product-page">
+        <section className="container product-wrap">
+          <nav className="product-breadcrumb" aria-label="Breadcrumb">
+            <Link href="/">Home</Link>
+            <span aria-hidden="true">›</span>
+            <Link href="/workbooks">Workbooks</Link>
+            <span aria-hidden="true">›</span>
+            <span>{product.title}</span>
+          </nav>
 
-      <h1>{product.title}</h1>
-      <p><strong>Price:</strong> ₹{product.price}</p>
-
-      {/* PURCHASE CHECK */}
-      {checking && <p>Checking purchase status...</p>}
-
-      {!checking && purchased && (
-        <a
-          href={product.downloadUrl || product.pdf}
-          download
-          style={{
-            display: "inline-block",
-            marginTop: 16,
-            padding: "10px 16px",
-            background: "green",
-            color: "#fff",
-            textDecoration: "none"
-          }}
-        >
-          Download PDF
-        </a>
-      )}
-
-      {!checking && !purchased && (
-        <>
-          {!user && (
-            <div style={{ marginTop: 16 }}>
-              <p>
-                Enter your email to receive this worksheet and access it later.
+          <section className="product-hero">
+            <div className="product-preview-card">
+              <div className="product-preview-card__header">
+                <p>Worksheet Peek</p>
+              </div>
+              <div className="product-preview-card__frame">
+                <iframe
+                  src={`${product.pdf}#page=1&view=FitH,95&toolbar=0&navpanes=0`}
+                  title={`${product.title} preview`}
+                />
+              </div>
+              <p className="product-preview-card__hint">
+                Starts at page 1. You can scroll inside the preview.
               </p>
-              <input
-                type="email"
-                placeholder="Email address"
-                value={guestEmail}
-                onChange={e => setGuestEmail(e.target.value)}
-              />
             </div>
-          )}
 
-          <button
-            onClick={handleSimulatePurchase}
-            style={{
-              marginTop: 16,
-              padding: "10px 16px",
-              cursor: "pointer"
-            }}
-          >
-            Buy Now (Simulated)
-          </button>
-        </>
-      )}
+            <div className="product-info-card">
+              <div className="product-info-card__eyebrow-row">
+                <span>{classLabel}</span>
+                <span>{typeLabel}</span>
+                <span>{product.ageLabel || "AGE 3+"}</span>
+              </div>
+              <h1>{product.title}</h1>
+              <p className="product-info-card__subtitle">
+                A playful printable set to build early confidence with structured,
+                repeatable activities.
+              </p>
 
-      <div style={{ marginTop: 30 }}>
-        {user ? (
-          <p>Logged in as <strong>{user.email}</strong></p>
-        ) : (
-          <p>You can login later to access your purchases.</p>
-        )}
-      </div>
+              <div className="product-info-card__price-row">
+                <strong>INR {product.price}</strong>
+                <p>{product.pages || 0} printable pages • Instant digital access</p>
+              </div>
+
+              <ul className="product-info-card__benefits">
+                {BENEFITS.map((benefit) => (
+                  <li key={benefit}>{benefit}</li>
+                ))}
+              </ul>
+
+              {checking && (
+                <p className="product-info-card__status">Checking your library access...</p>
+              )}
+
+              {!checking && purchased && (
+                <div className="product-info-card__owned">
+                  <p>This workbook is already in your library.</p>
+                  <div className="product-info-card__cta-row">
+                    <Link href="/my-purchases" className="btn btn-primary">
+                      Open My Purchases
+                    </Link>
+                    <button type="button" className="btn btn-secondary" onClick={handleBuyAgain}>
+                      Buy Again
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {!checking && !purchased && (
+                <>
+                  {!user && (
+                    <div className="product-info-card__guest">
+                      <label htmlFor="guest-email">Email for purchase receipts</label>
+                      <input
+                        id="guest-email"
+                        type="email"
+                        placeholder="parent@school.com"
+                        value={guestEmail}
+                        onChange={(event) => setGuestEmail(event.target.value)}
+                      />
+                      <p>
+                        Guest checkout is supported. You can create/login later and keep all
+                        purchases in one place.
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="product-info-card__cta-row">
+                    <button type="button" className="btn btn-primary" onClick={handleBuyNow}>
+                      Buy Now
+                    </button>
+                    <button type="button" className="btn btn-secondary" onClick={handleAddToCart}>
+                      Add to Cart
+                    </button>
+                  </div>
+
+                  {cartNotice && <p className="product-info-card__status">{cartNotice}</p>}
+                </>
+              )}
+            </div>
+          </section>
+
+          <section className="product-details-grid">
+            <article className="product-detail-panel">
+              <h2>What Teachers Love</h2>
+              <p>
+                Ready-to-print pages with clear progression. Easy to use in class warmups,
+                revision rounds, and home assignments.
+              </p>
+            </article>
+            <article className="product-detail-panel">
+              <h2>Parent Friendly</h2>
+              <p>
+                Simple instructions, engaging activity flow, and no extra setup. Just print,
+                guide, and celebrate progress.
+              </p>
+            </article>
+            <article className="product-detail-panel">
+              <h2>Format</h2>
+              <p>
+                PDF workbook • {product.pages || 0} pages • Reusable for revision cycles.
+              </p>
+            </article>
+          </section>
+        </section>
+      </main>
     </>
   );
 }

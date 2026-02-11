@@ -3,13 +3,26 @@ import { useRouter } from "next/router";
 import Navbar from "../components/Navbar";
 import Link from "next/link";
 import { useAuth } from "../context/AuthContext";
+import products from "../data/products";
 
 export default function Success() {
   const router = useRouter();
   const { user } = useAuth();
   const paymentId =
     typeof router.query.paymentId === "string" ? router.query.paymentId : "";
+  const productId =
+    typeof router.query.productId === "string" ? router.query.productId : "";
   const queryEmail = typeof router.query.email === "string" ? router.query.email : "";
+  const productTitle = useMemo(() => {
+    const product = products.find((item) => item.id === productId);
+    return product?.title || "Workbook";
+  }, [productId]);
+  const fileName = useMemo(() => {
+    const product = products.find((item) => item.id === productId);
+    if (!product?.pdf) return "worksheet.pdf";
+    const fileParam = product.pdf.match(/file=([^&]+)/);
+    return fileParam ? decodeURIComponent(fileParam[1]) : "worksheet.pdf";
+  }, [productId]);
   const checkoutEmail = useMemo(() => {
     if (queryEmail) return queryEmail;
     if (typeof window === "undefined") return "";
@@ -24,8 +37,9 @@ export default function Success() {
 
     // Trigger browser download.
     const link = document.createElement("a");
-    link.href = `/api/download?paymentId=${paymentId}`;
-    link.download = "nursery-english.pdf";
+    const productQuery = productId ? `&productId=${encodeURIComponent(productId)}` : "";
+    link.href = `/api/download?paymentId=${paymentId}${productQuery}`;
+    link.download = fileName;
     document.body.appendChild(link);
     link.click();
     link.remove();
@@ -43,7 +57,7 @@ export default function Success() {
           style={{ marginRight: 12, padding: "10px 16px", cursor: "pointer" }}
           disabled={!paymentId}
         >
-          Download English Workbook
+          Download {productTitle}
         </button>
         <button
           type="button"
