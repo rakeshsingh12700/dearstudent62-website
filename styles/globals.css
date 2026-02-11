@@ -349,29 +349,46 @@ button {
 
 .workbooks-filter-pane {
   margin-left: auto;
-  min-width: 380px;
+  min-width: min(760px, 56vw);
   display: grid;
   gap: 10px;
-  grid-template-columns: 1fr 1fr;
 }
 
-.workbooks-filter-pane label {
-  display: grid;
-  gap: 6px;
-  color: var(--ds-text-muted);
-  font-size: 0.78rem;
+.workbooks-segment {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 2px solid #f1ddc2;
+  border-radius: 999px;
+  background: #f6efe3;
+  padding: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.workbooks-segment::-webkit-scrollbar {
+  display: none;
+}
+
+.workbooks-segment button {
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: #64748b;
+  padding: 8px 16px;
+  font-size: 1rem;
   font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  white-space: nowrap;
 }
 
-.workbooks-filter-pane select {
-  border: 2px solid #fed7aa;
-  border-radius: 12px;
+.workbooks-segment button.active {
   background: #fff;
-  color: var(--ds-text);
-  padding: 10px 12px;
-  font-weight: 700;
+  color: var(--ds-primary-dark);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.1);
+}
+
+.workbooks-segment--type button {
+  font-size: 0.92rem;
 }
 
 .workbooks-toolbar {
@@ -574,9 +591,71 @@ button {
   flex-wrap: wrap;
 }
 
-.workbook-card__actions .btn {
-  padding: 9px 12px;
-  font-size: 0.88rem;
+.cart-stepper {
+  display: inline-flex;
+  align-items: center;
+  border: 4px solid #f1c40f;
+  border-radius: 999px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.cart-stepper__btn {
+  width: 46px;
+  height: 42px;
+  border: none;
+  background: transparent;
+  color: #111827;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.cart-stepper__btn:hover {
+  background: #fff9df;
+}
+
+.cart-stepper__count {
+  min-width: 52px;
+  text-align: center;
+  color: #111827;
+  font-size: 2rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.cart-stepper--empty {
+  border: 4px solid #f1c40f;
+  border-radius: 999px;
+  background: #fff;
+  color: #111827;
+  min-height: 42px;
+  min-width: 180px;
+  padding: 0 0 0 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cart-stepper--empty:hover {
+  background: #fff9df;
+}
+
+.cart-stepper__label {
+  font-weight: 800;
+  font-size: 0.95rem;
+}
+
+.cart-stepper__plus {
+  width: 42px;
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 900;
+  line-height: 1;
 }
 
 .workbook-preview-modal {
@@ -618,25 +697,11 @@ button {
   font-size: 1.2rem;
 }
 
-.workbook-preview-modal__tabs {
-  display: inline-flex;
-  gap: 8px;
-  margin-bottom: 12px;
-}
-
-.workbook-preview-modal__tabs button {
-  border: 1px solid var(--ds-border);
-  background: #fff;
-  color: var(--ds-text);
-  border-radius: 999px;
-  padding: 7px 12px;
+.workbook-preview-modal__hint {
+  margin: 0 0 10px;
+  color: var(--ds-text-muted);
+  font-size: 0.92rem;
   font-weight: 700;
-}
-
-.workbook-preview-modal__tabs button.active {
-  background: var(--ds-primary);
-  border-color: var(--ds-primary);
-  color: #fff;
 }
 
 .workbook-preview-modal__frame {
@@ -800,7 +865,6 @@ button {
   .workbooks-filter-pane {
     width: 100%;
     min-width: 0;
-    grid-template-columns: 1fr;
   }
 
   .workbooks-grid {
@@ -813,6 +877,17 @@ button {
 
   .workbook-preview-modal__frame {
     height: 52vh;
+  }
+
+  .cart-stepper__btn {
+    width: 42px;
+    height: 38px;
+    font-size: 1.7rem;
+  }
+
+  .cart-stepper__count {
+    min-width: 44px;
+    font-size: 1.6rem;
   }
 }
 

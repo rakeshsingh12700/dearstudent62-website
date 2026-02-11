@@ -123,6 +123,11 @@ export default function WorkbookShop({
     setThumbnailPages((prev) => ({ ...prev, [productId]: page }));
   };
 
+  const getItemQuantity = (productId) => {
+    const item = cart.find((cartItem) => cartItem.id === productId);
+    return item ? item.quantity : 0;
+  };
+
   return (
     <main className="workbooks-page">
       <section className="workbooks-wrap container workbooks-wrap--wide">
@@ -135,33 +140,30 @@ export default function WorkbookShop({
           </div>
 
           <div className="workbooks-filter-pane">
-            <label>
-              Class
-              <select
-                value={selectedClass}
-                onChange={(event) => setSelectedClass(event.target.value)}
-              >
-                {CLASS_OPTIONS.map((option) => (
-                  <option value={option.value} key={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label>
-              Asset
-              <select
-                value={selectedType}
-                onChange={(event) => setSelectedType(event.target.value)}
-              >
-                {TYPE_OPTIONS.map((option) => (
-                  <option value={option.value} key={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <div className="workbooks-segment">
+              {CLASS_OPTIONS.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  className={selectedClass === option.value ? "active" : ""}
+                  onClick={() => setSelectedClass(option.value)}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+            <div className="workbooks-segment workbooks-segment--type">
+              {TYPE_OPTIONS.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  className={selectedType === option.value ? "active" : ""}
+                  onClick={() => setSelectedType(option.value)}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -194,6 +196,7 @@ export default function WorkbookShop({
         <div className="workbooks-grid">
           {visibleProducts.map((product) => {
             const currentPage = thumbnailPages[product.id] || 1;
+            const quantity = getItemQuantity(product.id);
 
             return (
               <article className="workbook-card" key={product.id}>
@@ -226,7 +229,7 @@ export default function WorkbookShop({
                     type="button"
                     className="workbook-card__preview-btn"
                     aria-label={`Quick preview ${product.title}`}
-                    onClick={() => setPreviewState({ product, page: currentPage })}
+                    onClick={() => setPreviewState(product)}
                   >
                     <EyeIcon />
                   </button>
@@ -242,13 +245,48 @@ export default function WorkbookShop({
                 </p>
                 <p className="workbook-card__price">INR {product.price}</p>
                 <div className="workbook-card__actions">
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    onClick={() => updateCartItem(product, 1)}
-                  >
-                    Add to Cart
-                  </button>
+                  {quantity === 0 ? (
+                    <button
+                      type="button"
+                      className="cart-stepper cart-stepper--empty"
+                      onClick={() => updateCartItem(product, 1)}
+                    >
+                      <span className="cart-stepper__label">Add to Cart</span>
+                      <span className="cart-stepper__plus">+</span>
+                    </button>
+                  ) : (
+                    <div className="cart-stepper">
+                      <button
+                        type="button"
+                        className="cart-stepper__btn"
+                        aria-label={`Decrease quantity for ${product.title}`}
+                        onClick={() => updateCartItem(product, -1)}
+                      >
+                        {quantity === 1 ? (
+                          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                            <path
+                              d="M6 7h12M9 7V5h6v2m-7 3v8m4-8v8m4-8v8M8 7l1 12h6l1-12"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                            />
+                          </svg>
+                        ) : (
+                          "-"
+                        )}
+                      </button>
+                      <span className="cart-stepper__count">{quantity}</span>
+                      <button
+                        type="button"
+                        className="cart-stepper__btn"
+                        aria-label={`Increase quantity for ${product.title}`}
+                        onClick={() => updateCartItem(product, 1)}
+                      >
+                        +
+                      </button>
+                    </div>
+                  )}
                 </div>
               </article>
             );
@@ -266,7 +304,7 @@ export default function WorkbookShop({
           />
           <section className="workbook-preview-modal__panel">
             <header className="workbook-preview-modal__header">
-              <h2>{previewState.product.title} - Quick Preview</h2>
+              <h2>{previewState.title} - Quick Preview</h2>
               <button
                 type="button"
                 className="btn-link"
@@ -275,32 +313,13 @@ export default function WorkbookShop({
                 Close
               </button>
             </header>
-
-            <div className="workbook-preview-modal__tabs">
-              <button
-                type="button"
-                className={previewState.page === 1 ? "active" : ""}
-                onClick={() =>
-                  setPreviewState((prev) => (prev ? { ...prev, page: 1 } : prev))
-                }
-              >
-                Page 1
-              </button>
-              <button
-                type="button"
-                className={previewState.page === 2 ? "active" : ""}
-                onClick={() =>
-                  setPreviewState((prev) => (prev ? { ...prev, page: 2 } : prev))
-                }
-              >
-                Page 2
-              </button>
-            </div>
-
+            <p className="workbook-preview-modal__hint">
+              Scroll inside preview to browse worksheet pages.
+            </p>
             <iframe
               className="workbook-preview-modal__frame"
-              src={`${previewState.product.pdf}#page=${previewState.page}&view=FitH,110&toolbar=0&navpanes=0`}
-              title={`${previewState.product.title} page ${previewState.page}`}
+              src={`${previewState.pdf}#page=1&view=FitH,110&toolbar=0&navpanes=0`}
+              title={`${previewState.title} preview`}
             />
           </section>
         </div>
