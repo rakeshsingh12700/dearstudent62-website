@@ -1,3 +1,5 @@
+import Script from "next/script";
+
 export default function Checkout() {
   const payNow = async () => {
     const res = await fetch("/api/razorpay/create-order", {
@@ -33,9 +35,22 @@ export default function Checkout() {
       theme: { color: "#3399cc" },
     };
 
+    if (!window.Razorpay) {
+      alert("Payment SDK failed to load. Please refresh and try again.");
+      return;
+    }
+
     const rzp = new window.Razorpay(options);
     rzp.open();
   };
 
-  return <button onClick={payNow}>Pay ₹499</button>;
+  return (
+    <>
+      <Script
+        src="https://checkout.razorpay.com/v1/checkout.js"
+        strategy="afterInteractive"
+      />
+      <button onClick={payNow}>Pay ₹499</button>
+    </>
+  );
 }

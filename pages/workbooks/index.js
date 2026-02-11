@@ -1,20 +1,24 @@
-import Link from "next/link";
+import { useRouter } from "next/router";
 import Navbar from "../../components/Navbar";
+import WorkbookShop from "../../components/WorkbookShop";
 
 export default function Workbooks() {
-  const classes = ["pre-nursery", "nursery", "lkg", "ukg"];
+  const router = useRouter();
+  const classFromQuery =
+    typeof router.query.class === "string" ? router.query.class : "all";
+  const typeFromQuery =
+    typeof router.query.type === "string" ? router.query.type : "all";
+  const openCartFromQuery = router.query.openCart === "1";
 
   return (
     <>
       <Navbar />
-      <h1>Select Class</h1>
-      <ul>
-        {classes.map(c => (
-          <li key={c}>
-            <Link href={`/workbooks/${c}`}>{c.toUpperCase()}</Link>
-          </li>
-        ))}
-      </ul>
+      <WorkbookShop
+        key={`${classFromQuery}-${typeFromQuery}-${openCartFromQuery ? "cart" : "list"}`}
+        initialClass={classFromQuery}
+        initialType={typeFromQuery}
+        initialOpenCart={openCartFromQuery}
+      />
     </>
   );
 }
