@@ -11,8 +11,10 @@ import {
 
 // Save purchase (used later after payment)
 export async function savePurchase({ email, userId, productId }) {
+  const normalizedEmail = String(email || "").trim().toLowerCase();
+
   return addDoc(collection(db, "purchases"), {
-    email,
+    email: normalizedEmail,
     userId: userId || null,
     productId,
     purchasedAt: new Date()
@@ -23,9 +25,16 @@ export async function savePurchase({ email, userId, productId }) {
 export async function getUserPurchases(user) {
   if (!user) return [];
 
+  return getPurchasesByEmail(user.email);
+}
+
+export async function getPurchasesByEmail(email) {
+  const normalizedEmail = String(email || "").trim().toLowerCase();
+  if (!normalizedEmail) return [];
+
   const q = query(
     collection(db, "purchases"),
-    where("email", "==", user.email)
+    where("email", "==", normalizedEmail)
   );
 
   const snapshot = await getDocs(q);
@@ -34,18 +43,23 @@ export async function getUserPurchases(user) {
 
 // Link guest purchases after login
 export async function linkGuestPurchases(user) {
+  const normalizedEmail = String(user?.email || "").trim().toLowerCase();
+  if (!normalizedEmail || !user?.uid) return;
+
   const q = query(
     collection(db, "purchases"),
-    where("email", "==", user.email),
+    where("email", "==", normalizedEmail),
     where("userId", "==", null)
   );
 
   const snapshot = await getDocs(q);
 
-  snapshot.docs.forEach(d =>
-    updateDoc(doc(db, "purchases", d.id), {
-      userId: user.uid
-    })
+  await Promise.all(
+    snapshot.docs.map((d) =>
+      updateDoc(doc(db, "purchases", d.id), {
+        userId: user.uid
+      })
+    )
   );
 }
 

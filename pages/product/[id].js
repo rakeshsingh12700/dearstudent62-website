@@ -74,7 +74,7 @@ export default function ProductPage() {
 
       {!checking && purchased && (
         <a
-          href={product.pdf}
+          href={product.downloadUrl || product.pdf}
           download
           style={{
             display: "inline-block",

@@ -752,6 +752,16 @@ button {
   font-size: 1.4rem;
 }
 
+.workbook-cart__header-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.workbook-cart__clear-btn {
+  color: #dc2626;
+}
+
 .workbook-cart__items {
   flex: 1;
   overflow-y: auto;

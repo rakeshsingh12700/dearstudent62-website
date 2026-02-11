@@ -77,6 +77,15 @@ export default function WorkbookShop({
     window.dispatchEvent(new CustomEvent("ds-cart-updated"));
   }, [cart]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const openCart = () => setIsCartOpen(true);
+    window.addEventListener("ds-open-cart", openCart);
+    return () => {
+      window.removeEventListener("ds-open-cart", openCart);
+    };
+  }, []);
+
   const visibleProducts = useMemo(() => {
     const filtered = products.filter((item) => {
       const classMatch = selectedClass === "all" || item.class === selectedClass;
@@ -117,6 +126,10 @@ export default function WorkbookShop({
         item.id === product.id ? { ...item, quantity: nextQty } : item
       );
     });
+  };
+
+  const clearCart = () => {
+    setCart([]);
   };
 
   const setThumbnailPage = (productId, page) => {
@@ -336,13 +349,24 @@ export default function WorkbookShop({
           <aside className="workbook-cart__panel">
             <div className="workbook-cart__header">
               <h2>My Cart</h2>
-              <button
-                type="button"
-                className="btn-link"
-                onClick={() => setIsCartOpen(false)}
-              >
-                Close
-              </button>
+              <div className="workbook-cart__header-actions">
+                {cart.length > 0 && (
+                  <button
+                    type="button"
+                    className="btn-link workbook-cart__clear-btn"
+                    onClick={clearCart}
+                  >
+                    Clear cart
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className="btn-link"
+                  onClick={() => setIsCartOpen(false)}
+                >
+                  Close
+                </button>
+              </div>
             </div>
 
             <div className="workbook-cart__items">

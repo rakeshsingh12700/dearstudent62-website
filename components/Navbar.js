@@ -73,6 +73,10 @@ export default function Navbar() {
   const [cartCount, setCartCount] = useState(0);
 
   const handleLogout = async () => {
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem(CART_STORAGE_KEY);
+      window.dispatchEvent(new CustomEvent("ds-cart-updated"));
+    }
     await signOut(auth);
     router.push("/");
   };
@@ -108,6 +112,18 @@ export default function Navbar() {
 
   const cartLabel = useMemo(() => `Cart (${cartCount})`, [cartCount]);
 
+  const handleCartClick = () => {
+    const isWorkbookRoute =
+      router.pathname === "/workbooks" || router.pathname === "/workbooks/[class]";
+
+    if (isWorkbookRoute && typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("ds-open-cart"));
+      return;
+    }
+
+    router.push("/workbooks?openCart=1");
+  };
+
   return (
     <nav className="navbar">
       <div className="container navbar__inner">
@@ -142,9 +158,13 @@ export default function Navbar() {
         </div>
 
         <div className="navbar__actions">
-          <Link href="/workbooks?openCart=1" className="navbar__cart-link">
+          <button
+            type="button"
+            className="navbar__cart-link"
+            onClick={handleCartClick}
+          >
             {cartLabel}
-          </Link>
+          </button>
           {!user && (
             <>
               <Link href="/login">Login</Link>

@@ -8,7 +8,8 @@ export default function Workbooks() {
     typeof router.query.class === "string" ? router.query.class : "all";
   const typeFromQuery =
     typeof router.query.type === "string" ? router.query.type : "all";
-  const openCartFromQuery = router.query.openCart === "1";
+  const openCartFromQuery =
+    router.query.openCart === "1" || router.asPath.includes("openCart=1");
 
   return (
     <>
