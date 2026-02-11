@@ -36,6 +36,7 @@ export default async function handler(req, res) {
       doc(db, "purchases", razorpay_payment_id),
       {
         email: normalizedEmail,
+        userId: null,
         productId: "nursery-english",
         paymentId: razorpay_payment_id,
         purchasedAt: new Date(),
