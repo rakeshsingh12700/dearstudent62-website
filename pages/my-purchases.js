@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useAuth } from "../context/AuthContext";
 import { getUserPurchases } from "../firebase/purchases";
 import Navbar from "../components/Navbar";
@@ -34,7 +35,10 @@ export default function MyPurchases() {
       <h1>My Purchases</h1>
 
       {!user?.email && (
-        <p>Please login to see purchases linked to your account email.</p>
+        <p>
+          Please <Link href="/auth?next=/my-purchases">login</Link> to see purchases
+          linked to your account email.
+        </p>
       )}
 
       {user?.email && (

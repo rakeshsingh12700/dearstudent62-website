@@ -27,7 +27,7 @@ export default function Home() {
             <Link href="/workbooks" className="btn btn-primary">
               Shop Workbooks
             </Link>
-            <Link href="/signup" className="btn btn-secondary">
+            <Link href="/auth" className="btn btn-secondary">
               Get Started
             </Link>
           </div>

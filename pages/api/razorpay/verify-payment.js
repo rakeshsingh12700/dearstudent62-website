@@ -14,6 +14,7 @@ export default async function handler(req, res) {
     razorpay_payment_id,
     razorpay_signature,
     email,
+    userId,
   } = req.body;
 
   const normalizedEmail = String(email || "").trim().toLowerCase();
@@ -36,7 +37,7 @@ export default async function handler(req, res) {
       doc(db, "purchases", razorpay_payment_id),
       {
         email: normalizedEmail,
-        userId: null,
+        userId: typeof userId === "string" && userId ? userId : null,
         productId: "nursery-english",
         paymentId: razorpay_payment_id,
         purchasedAt: new Date(),

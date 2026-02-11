@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useAuth } from "../context/AuthContext";
 
 const RAZORPAY_SDK_SRC = "https://checkout.razorpay.com/v1/checkout.js";
@@ -154,6 +155,7 @@ export default function Checkout() {
                 body: JSON.stringify({
                   ...response,
                   email: buyerEmail,
+                  userId: user?.uid || null,
                 }),
               }
             );
@@ -166,7 +168,10 @@ export default function Checkout() {
                 window.dispatchEvent(new CustomEvent("ds-cart-updated"));
               }
               setCartSummary({ count: 0, total: 0 });
-              window.location.href = `/success?token=${result.token}&paymentId=${result.paymentId}`;
+              if (typeof window !== "undefined") {
+                window.sessionStorage.setItem("ds-last-checkout-email", buyerEmail);
+              }
+              window.location.href = `/success?token=${result.token}&paymentId=${result.paymentId}&email=${encodeURIComponent(buyerEmail)}`;
             } else {
               alert(result.error || "Payment verification failed.");
             }
@@ -206,14 +211,22 @@ export default function Checkout() {
           Using account email: <strong>{loggedInEmail}</strong>
         </p>
       ) : (
-        <input
-          type="email"
-          placeholder="Enter your email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          style={{ padding: 8, marginBottom: 12, display: "block" }}
-        />
+        <>
+          <input
+            type="email"
+            placeholder="Enter your email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            style={{ padding: 8, marginBottom: 12, display: "block" }}
+          />
+          <p style={{ marginTop: 0, marginBottom: 16, color: "#6b7280" }}>
+            Already have an account?{" "}
+            <Link href={`/auth?next=/checkout&email=${encodeURIComponent(email || "")}`}>
+              Login / Sign Up
+            </Link>
+          </p>
+        </>
       )}
       <button onClick={payNow} disabled={loading || Math.round(cartSummary.total) <= 0}>
         {loading ? "Processing..." : `Pay ₹${Math.round(cartSummary.total)}`}

@@ -111,6 +111,16 @@ export default function Navbar() {
   }, []);
 
   const cartLabel = useMemo(() => `Cart (${cartCount})`, [cartCount]);
+  const userLabel = useMemo(() => {
+    const displayName = String(user?.displayName || "").trim();
+    if (displayName) return displayName;
+
+    const email = String(user?.email || "").trim();
+    if (!email) return "Account";
+
+    const [emailPrefix] = email.split("@");
+    return emailPrefix || email;
+  }, [user?.displayName, user?.email]);
 
   const handleCartClick = () => {
     const isWorkbookRoute =
@@ -166,15 +176,12 @@ export default function Navbar() {
             {cartLabel}
           </button>
           {!user && (
-            <>
-              <Link href="/login">Login</Link>
-              <Link href="/signup">Signup</Link>
-            </>
+            <Link href="/auth">Login / Sign Up</Link>
           )}
 
           {user && (
             <>
-              <span className="navbar__email">{user.email}</span>
+              <span className="navbar__email">{userLabel}</span>
               <Link href="/my-purchases">My Purchases</Link>
               <button onClick={handleLogout} className="btn-link" type="button">
                 Logout
