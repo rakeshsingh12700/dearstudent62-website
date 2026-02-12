@@ -17,14 +17,23 @@ function toDate(value) {
   return parsed;
 }
 
-function formatDate(value) {
+function formatDateTime(value) {
   const date = toDate(value);
   if (!date) return "Date unavailable";
-  return date.toLocaleDateString("en-IN", {
+
+  const datePart = date.toLocaleDateString("en-IN", {
     day: "numeric",
     month: "short",
     year: "numeric",
   });
+
+  const timePart = date.toLocaleTimeString("en-IN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
+
+  return `${datePart}, ${timePart}`;
 }
 
 function humanizeId(id) {
@@ -84,7 +93,7 @@ export default function OrderDetailsPage() {
             pages: product?.pages || null,
             category: product?.category || "Digital Workbook",
             classLabel: product?.class ? humanizeId(product.class) : "Early Learning",
-            purchasedAtLabel: formatDate(purchase.purchasedAt),
+            purchasedAtLabel: formatDateTime(purchase.purchasedAt),
             downloadHref: `/api/download?paymentId=${encodeURIComponent(
               purchase.paymentId || purchase.id
             )}&productId=${encodeURIComponent(String(purchase.productId || ""))}`,
@@ -180,7 +189,7 @@ export default function OrderDetailsPage() {
                   <strong>INR {orderTotal}</strong>
                 </article>
                 <article>
-                  <span>Order Date</span>
+                  <span>Order Date & Time</span>
                   <strong>{orderItems[0]?.purchasedAtLabel || "N/A"}</strong>
                 </article>
               </section>

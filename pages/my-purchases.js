@@ -39,15 +39,23 @@ function toDate(value) {
   return parsed;
 }
 
-function formatDate(value) {
+function formatDateTime(value) {
   const date = toDate(value);
   if (!date) return "Date unavailable";
 
-  return new Intl.DateTimeFormat("en-US", {
+  const datePart = new Intl.DateTimeFormat("en-IN", {
     day: "numeric",
     month: "short",
     year: "numeric",
   }).format(date);
+
+  const timePart = new Intl.DateTimeFormat("en-IN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  }).format(date);
+
+  return `${datePart}, ${timePart}`;
 }
 
 function humanizeId(id) {
@@ -110,7 +118,7 @@ export default function MyPurchases() {
               ? Number(purchase.quantity)
               : 1,
           purchasedAtMs: purchasedDate ? purchasedDate.getTime() : 0,
-          purchasedAtLabel: formatDate(purchase.purchasedAt),
+          purchasedAtLabel: formatDateTime(purchase.purchasedAt),
           paymentId: fallbackId,
           downloadHref: `/api/download?paymentId=${encodeURIComponent(
             fallbackId

@@ -3,15 +3,25 @@ import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../../firebase/config";
 import products from "../../data/products";
 
-function formatDate(value) {
+function formatDateTime(value) {
   if (!value) return "N/A";
-  if (typeof value?.toDate === "function") {
-    return value.toDate().toLocaleDateString("en-IN");
-  }
+  const date =
+    typeof value?.toDate === "function" ? value.toDate() : new Date(value);
+  if (Number.isNaN(date.getTime())) return "N/A";
 
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return "N/A";
-  return parsed.toLocaleDateString("en-IN");
+  const datePart = date.toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+
+  const timePart = date.toLocaleTimeString("en-IN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
+
+  return `${datePart}, ${timePart}`;
 }
 
 function escapePdfText(text) {
@@ -135,7 +145,7 @@ export default async function handler(req, res) {
     "",
     `Invoice Number: ${invoiceNumber}`,
     `Order ID: ${paymentId}`,
-    `Order Date: ${formatDate(invoiceDate)}`,
+    `Order Date & Time: ${formatDateTime(invoiceDate)}`,
     "",
     `Bill To: ${email}`,
     "",

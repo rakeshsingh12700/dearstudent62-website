@@ -6,6 +6,7 @@ import {
   sendEmailVerification,
   signInWithEmailAndPassword,
   signInWithPopup,
+  signInWithRedirect,
   signOut,
   updateProfile,
 } from "firebase/auth";
@@ -34,6 +35,14 @@ function getAuthErrorMessage(error) {
       return "Google sign-in was closed before completion.";
     case "auth/popup-blocked":
       return "Popup blocked. Allow popups and try Google sign-in again.";
+    case "auth/operation-not-supported-in-this-environment":
+      return "This browser blocked popup sign-in. Use redirect sign-in.";
+    case "auth/unauthorized-domain":
+      return "This domain is not authorized in Firebase Auth settings.";
+    case "auth/operation-not-allowed":
+      return "Google sign-in is not enabled in Firebase Authentication.";
+    case "auth/network-request-failed":
+      return "Network issue while signing in. Check connection and retry.";
     case "auth/too-many-requests":
       return "Too many attempts. Please wait and try again.";
     case "auth/wrong-password":
@@ -48,6 +57,25 @@ function getAuthErrorMessage(error) {
   }
 }
 
+function shouldFallbackToRedirect(error) {
+  const code = String(error?.code || "").toLowerCase();
+  const message = String(error?.message || "").toLowerCase();
+
+  if (
+    code === "auth/popup-blocked" ||
+    code === "auth/popup-closed-by-user" ||
+    code === "auth/operation-not-supported-in-this-environment"
+  ) {
+    return true;
+  }
+
+  return (
+    message.includes("popup") ||
+    message.includes("cross-origin-opener-policy") ||
+    message.includes("opener")
+  );
+}
+
 export default function AuthPage() {
   const router = useRouter();
   const { user } = useAuth();
@@ -55,6 +83,7 @@ export default function AuthPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [busyAction, setBusyAction] = useState("");
@@ -129,12 +158,34 @@ export default function AuthPage() {
     setError("");
     setMessage("");
     setBusyAction("google");
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: "select_account" });
+
+    const isLikelyMobile =
+      typeof window !== "undefined" &&
+      /android|iphone|ipad|ipod|mobile/i.test(window.navigator.userAgent);
+
     try {
-      const provider = new GoogleAuthProvider();
-      provider.setCustomParameters({ prompt: "select_account" });
+      if (isLikelyMobile) {
+        setMessage("Redirecting to Google...");
+        await signInWithRedirect(auth, provider);
+        return;
+      }
+
       await signInWithPopup(auth, provider);
       router.push(safeNext);
     } catch (authError) {
+      if (shouldFallbackToRedirect(authError)) {
+        try {
+          setMessage("Switching to redirect sign-in...");
+          await signInWithRedirect(auth, provider);
+          return;
+        } catch (redirectError) {
+          setError(getAuthErrorMessage(redirectError));
+          return;
+        }
+      }
+
       setError(getAuthErrorMessage(authError));
     } finally {
       setBusyAction("");
@@ -294,15 +345,26 @@ export default function AuthPage() {
             />
 
             <label htmlFor="auth-password">Password</label>
-            <input
-              id="auth-password"
-              type="password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              placeholder="Enter password"
-              autoComplete="current-password"
-              required
-            />
+            <div className="auth-password-field">
+              <input
+                id="auth-password"
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                placeholder="Enter password"
+                autoComplete={mode === "signup" ? "new-password" : "current-password"}
+                required
+              />
+              <button
+                type="button"
+                className="auth-password-toggle"
+                onClick={() => setShowPassword((previous) => !previous)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                aria-pressed={showPassword}
+              >
+                {showPassword ? "Hide" : "Show"}
+              </button>
+            </div>
 
             {mode === "signup" && (
               <p className="auth-password-hint">
