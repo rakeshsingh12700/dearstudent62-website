@@ -146,7 +146,8 @@ export default function Checkout() {
       });
 
       if (!res.ok) {
-        alert("Order creation failed. Please try again.");
+        const errorPayload = await res.json().catch(() => ({}));
+        alert(errorPayload.error || "Order creation failed. Please try again.");
         return;
       }
 
