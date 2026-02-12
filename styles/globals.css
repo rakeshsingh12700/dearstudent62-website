@@ -1,4 +1,6 @@
 :root {
+  --font-body: "Nunito", "Avenir Next", "Segoe UI", sans-serif;
+  --font-display: "Baloo 2", "Nunito", "Avenir Next", sans-serif;
   --ds-bg: #fffaf0;
   --ds-surface: #ffffff;
   --ds-surface-soft: #fff3e6;
@@ -21,18 +23,28 @@ body {
 }
 
 body {
-  font-family: "Avenir Next", "Nunito", "Segoe UI", sans-serif;
+  font-family: var(--font-body);
   color: var(--ds-text);
   background:
     radial-gradient(circle at top right, #ffedd5 0%, transparent 40%),
     radial-gradient(circle at bottom left, #fef3c7 0%, transparent 35%),
     var(--ds-bg);
   min-height: 100vh;
+  letter-spacing: 0.004em;
+  -webkit-font-smoothing: antialiased;
 }
 
 a {
   color: inherit;
   text-decoration: none;
+}
+
+h1,
+h2,
+h3,
+.navbar__brand {
+  font-family: var(--font-display);
+  letter-spacing: 0.01em;
 }
 
 button {
@@ -63,7 +75,6 @@ button {
 }
 
 .navbar__brand {
-  font-family: "Trebuchet MS", "Avenir Next", sans-serif;
   font-size: 1.15rem;
   font-weight: 800;
   color: #111827;
@@ -230,7 +241,6 @@ button {
 
 .hero__title {
   margin: 18px 0 10px;
-  font-family: "Trebuchet MS", "Avenir Next", sans-serif;
   font-size: clamp(2.1rem, 5vw, 4rem);
   line-height: 1.03;
   letter-spacing: -0.02em;
@@ -335,7 +345,6 @@ button {
 
 .workbooks-title {
   margin: 0;
-  font-family: "Trebuchet MS", "Avenir Next", sans-serif;
   font-size: clamp(2rem, 6vw, 3.7rem);
   line-height: 1.06;
 }
@@ -352,6 +361,10 @@ button {
   min-width: min(760px, 56vw);
   display: grid;
   gap: 10px;
+}
+
+.workbooks-filter-mobile {
+  display: none;
 }
 
 .workbooks-segment {
@@ -1772,23 +1785,45 @@ button {
   }
 
   .navbar__inner {
-    align-items: flex-start;
+    align-items: stretch;
     min-height: unset;
     padding: 14px 0;
     flex-direction: column;
   }
 
+  .navbar__brand {
+    font-size: 1.02rem;
+    line-height: 1.2;
+  }
+
+  .navbar__links a,
+  .navbar__actions a,
+  .navbar__email {
+    font-size: 0.92rem;
+  }
+
+  .navbar__links,
+  .navbar__actions {
+    width: 100%;
+    gap: 12px;
+  }
+
+  .navbar__actions {
+    padding-top: 4px;
+  }
+
+  .navbar__dropdown {
+    padding-bottom: 0;
+    margin-bottom: 0;
+  }
+
+  /* Prevent touch-screen overlay bugs by disabling desktop hover menus on mobile. */
   .navbar__dropdown-menu,
   .navbar__flyout {
-    position: static;
-    box-shadow: none;
-    border-radius: 8px;
-    margin-top: 8px;
-    width: 100%;
-    opacity: 1;
-    visibility: visible;
-    pointer-events: auto;
-    transform: none;
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
   }
 
   .workbooks-wrap {
@@ -1803,8 +1838,37 @@ button {
   }
 
   .workbooks-filter-pane {
+    display: none;
+  }
+
+  .workbooks-filter-mobile {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
     width: 100%;
-    min-width: 0;
+    margin-top: 4px;
+  }
+
+  .workbooks-filter-mobile label {
+    display: grid;
+    gap: 6px;
+    color: #475569;
+    font-size: 0.8rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .workbooks-filter-mobile select {
+    min-height: 40px;
+    width: 100%;
+    border: 1px solid #f3d9bf;
+    border-radius: 10px;
+    background: #fff;
+    color: #1f2937;
+    font-size: 0.9rem;
+    font-weight: 700;
+    padding: 0 10px;
   }
 
   .workbooks-grid {
@@ -1833,6 +1897,13 @@ button {
   .auth-card {
     padding: 24px 18px;
     border-radius: 18px;
+  }
+
+  .hero__copy,
+  .workbooks-subtitle,
+  .product-info-card__subtitle {
+    font-size: 0.98rem;
+    line-height: 1.55;
   }
 
   .product-wrap {

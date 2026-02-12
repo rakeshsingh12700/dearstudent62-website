@@ -152,6 +152,35 @@ export default function WorkbookShop({
             </p>
           </div>
 
+          <div className="workbooks-filter-mobile">
+            <label>
+              Class
+              <select
+                value={selectedClass}
+                onChange={(event) => setSelectedClass(event.target.value)}
+              >
+                {CLASS_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Asset Type
+              <select
+                value={selectedType}
+                onChange={(event) => setSelectedType(event.target.value)}
+              >
+                {TYPE_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+
           <div className="workbooks-filter-pane">
             <div className="workbooks-segment">
               {CLASS_OPTIONS.map((option) => (
