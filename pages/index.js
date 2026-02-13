@@ -1,8 +1,11 @@
 import Navbar from "../components/Navbar";
 import Link from "next/link";
 import Head from "next/head";
+import { useAuth } from "../context/AuthContext";
 
 export default function Home() {
+  const { user } = useAuth();
+
   return (
     <>
       <Head>
@@ -27,9 +30,11 @@ export default function Home() {
             <Link href="/workbooks" className="btn btn-primary">
               Shop Workbooks
             </Link>
-            <Link href="/auth" className="btn btn-secondary">
-              Get Started
-            </Link>
+            {!user && (
+              <Link href="/auth" className="btn btn-secondary">
+                Get Started
+              </Link>
+            )}
           </div>
         </section>
       </main>

@@ -58,7 +58,6 @@ export default function WorkbookShop({
   const [sortBy, setSortBy] = useState("default");
   const [isCartOpen, setIsCartOpen] = useState(initialOpenCart);
   const [previewState, setPreviewState] = useState(null);
-  const [thumbnailPages, setThumbnailPages] = useState({});
   const [cart, setCart] = useState(() => {
     if (typeof window === "undefined") return [];
     const savedCart = window.localStorage.getItem(CART_STORAGE_KEY);
@@ -130,10 +129,6 @@ export default function WorkbookShop({
 
   const clearCart = () => {
     setCart([]);
-  };
-
-  const setThumbnailPage = (productId, page) => {
-    setThumbnailPages((prev) => ({ ...prev, [productId]: page }));
   };
 
   const getItemQuantity = (productId) => {
@@ -237,7 +232,6 @@ export default function WorkbookShop({
 
         <div className="workbooks-grid">
           {visibleProducts.map((product) => {
-            const currentPage = thumbnailPages[product.id] || 1;
             const quantity = getItemQuantity(product.id);
 
             return (
@@ -248,25 +242,12 @@ export default function WorkbookShop({
                     className="workbook-card__media-click"
                     aria-label={`Open ${product.title}`}
                   >
-                    <span className="workbook-card__badge">Sale!</span>
                     <iframe
-                      src={`${product.pdf}#page=${currentPage}&view=FitH,88&toolbar=0&navpanes=0`}
-                      title={`${product.title} page ${currentPage} thumbnail`}
+                      src={`${product.pdf}#page=1&view=FitH,88&toolbar=0&navpanes=0&scrollbar=0`}
+                      title={`${product.title} page 1 thumbnail`}
                       loading="lazy"
                     />
                   </Link>
-                  <div className="workbook-card__dots" aria-hidden="true">
-                    <button
-                      type="button"
-                      className={currentPage === 1 ? "active" : ""}
-                      onClick={() => setThumbnailPage(product.id, 1)}
-                    />
-                    <button
-                      type="button"
-                      className={currentPage === 2 ? "active" : ""}
-                      onClick={() => setThumbnailPage(product.id, 2)}
-                    />
-                  </div>
                   <button
                     type="button"
                     className="workbook-card__preview-btn"
@@ -356,11 +337,11 @@ export default function WorkbookShop({
               </button>
             </header>
             <p className="workbook-preview-modal__hint">
-              Scroll inside preview to browse worksheet pages.
+              Preview shows page 1 only.
             </p>
             <iframe
               className="workbook-preview-modal__frame"
-              src={`${previewState.pdf}#page=1&view=FitH,110&toolbar=0&navpanes=0`}
+              src={`${previewState.pdf}#page=1&view=FitH,110&toolbar=0&navpanes=0&scrollbar=0`}
               title={`${previewState.title} preview`}
             />
           </section>

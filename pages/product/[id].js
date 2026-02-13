@@ -133,12 +133,12 @@ export default function ProductPage() {
               </div>
               <div className="product-preview-card__frame">
                 <iframe
-                  src={`${product.pdf}#page=1&view=FitH,95&toolbar=0&navpanes=0`}
+                  src={`${product.pdf}#page=1&view=FitH,95&toolbar=0&navpanes=0&scrollbar=0`}
                   title={`${product.title} preview`}
                 />
               </div>
               <p className="product-preview-card__hint">
-                Starts at page 1. You can scroll inside the preview.
+                Preview shows page 1 only.
               </p>
             </div>
 
