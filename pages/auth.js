@@ -192,34 +192,25 @@ export default function AuthPage() {
     }
   };
 
-  const handleLogin = async (normalizedEmail) => {
-    const credential = await signInWithEmailAndPassword(
+  const handleLogin = async (normalizedEmail, loginPassword) => {
+    await signInWithEmailAndPassword(
       auth,
       normalizedEmail,
-      password
+      loginPassword
     );
-
-    if (!credential.user.emailVerified) {
-      await sendEmailVerification(credential.user);
-      await signOut(auth);
-      setMessage(
-        "Please verify your email before login. A new verification link has been sent."
-      );
-      return;
-    }
 
     router.push(safeNext);
   };
 
-  const handleSignup = async (normalizedEmail) => {
-    const normalizedName = name.trim().replace(/\s+/g, " ");
+  const handleSignup = async (normalizedEmail, signupPassword, signupName) => {
+    const normalizedName = signupName.trim().replace(/\s+/g, " ");
 
     if (!normalizedName) {
       setError("Please enter your name.");
       return;
     }
 
-    if (password.length < MIN_PASSWORD_LENGTH) {
+    if (signupPassword.length < MIN_PASSWORD_LENGTH) {
       setError("Password must be at least 6 characters.");
       return;
     }
@@ -227,7 +218,7 @@ export default function AuthPage() {
     const newUserCredential = await createUserWithEmailAndPassword(
       auth,
       normalizedEmail,
-      password
+      signupPassword
     );
 
     await updateProfile(newUserCredential.user, { displayName: normalizedName });
@@ -241,7 +232,21 @@ export default function AuthPage() {
 
   const handleEmailSubmit = async (event) => {
     event.preventDefault();
-    const normalizedEmail = email.trim().toLowerCase();
+    const formData = new FormData(event.currentTarget);
+    const normalizedEmail = String(formData.get("email") || "")
+      .trim()
+      .toLowerCase();
+    const enteredPassword = String(formData.get("password") || "");
+    const normalizedName = String(formData.get("name") || "").replace(
+      /\s+/g,
+      " "
+    ).trim();
+
+    setEmail(normalizedEmail);
+    setPassword(enteredPassword);
+    if (mode === "signup") {
+      setName(normalizedName);
+    }
 
     setError("");
     setMessage("");
@@ -251,7 +256,7 @@ export default function AuthPage() {
       return;
     }
 
-    if (!password) {
+    if (!enteredPassword) {
       setError("Password is required.");
       return;
     }
@@ -259,9 +264,9 @@ export default function AuthPage() {
     setBusyAction("email");
     try {
       if (mode === "signup") {
-        await handleSignup(normalizedEmail);
+        await handleSignup(normalizedEmail, enteredPassword, normalizedName);
       } else {
-        await handleLogin(normalizedEmail);
+        await handleLogin(normalizedEmail, enteredPassword);
       }
     } catch (authError) {
       if (authError?.code === "auth/email-already-in-use") {
@@ -323,6 +328,7 @@ export default function AuthPage() {
                 <label htmlFor="auth-name">Your name</label>
                 <input
                   id="auth-name"
+                  name="name"
                   type="text"
                   value={name}
                   onChange={(event) => setName(event.target.value)}
@@ -336,6 +342,7 @@ export default function AuthPage() {
             <label htmlFor="auth-email">Email</label>
             <input
               id="auth-email"
+              name="email"
               type="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
@@ -348,6 +355,7 @@ export default function AuthPage() {
             <div className="auth-password-field">
               <input
                 id="auth-password"
+                name="password"
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
