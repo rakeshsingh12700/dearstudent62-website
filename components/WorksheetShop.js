@@ -28,6 +28,12 @@ const SORT_OPTIONS = [
 
 const CART_STORAGE_KEY = "ds-worksheet-cart-v1";
 
+function withPreviewPageLimit(url, pageCount = 1) {
+  if (!url) return "";
+  const separator = url.includes("?") ? "&" : "?";
+  return `${url}${separator}pages=${pageCount}`;
+}
+
 function EyeIcon() {
   return (
     <svg
@@ -233,6 +239,7 @@ export default function WorksheetShop({
         <div className="worksheets-grid">
           {visibleProducts.map((product) => {
             const quantity = getItemQuantity(product.id);
+            const singlePagePreviewUrl = withPreviewPageLimit(product.pdf, 1);
 
             return (
               <article className="worksheet-card" key={product.id}>
@@ -243,7 +250,7 @@ export default function WorksheetShop({
                     aria-label={`Open ${product.title}`}
                   >
                     <iframe
-                      src={`${product.pdf}#page=1&view=FitH,88&toolbar=0&navpanes=0&scrollbar=0`}
+                      src={`${singlePagePreviewUrl}#page=1&view=FitH,88&toolbar=0&navpanes=0&scrollbar=0`}
                       title={`${product.title} page 1 thumbnail`}
                       loading="lazy"
                     />
@@ -341,7 +348,7 @@ export default function WorksheetShop({
             </p>
             <iframe
               className="worksheet-preview-modal__frame"
-              src={`${previewState.pdf}#page=1&view=FitH,110&toolbar=0&navpanes=0&scrollbar=0`}
+              src={`${withPreviewPageLimit(previewState.pdf, 1)}#page=1&view=FitH,110&toolbar=0&navpanes=0&scrollbar=0`}
               title={`${previewState.title} preview`}
             />
           </section>

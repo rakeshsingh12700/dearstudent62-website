@@ -1,5 +1,6 @@
 import fs from "fs/promises";
 import path from "path";
+import { PDFDocument } from "pdf-lib/dist/pdf-lib.esm.js";
 
 const ROOT_DIR = process.cwd();
 const PDF_DIR = path.join(ROOT_DIR, "private", "pdfs");
@@ -68,6 +69,13 @@ function parseProductFromFilename(fileName) {
   };
 }
 
+async function getPdfPageCount(fileName) {
+  const filePath = path.join(PDF_DIR, fileName);
+  const bytes = await fs.readFile(filePath);
+  const pdf = await PDFDocument.load(bytes);
+  return pdf.getPageCount();
+}
+
 async function generateProducts() {
   const entries = await fs.readdir(PDF_DIR, { withFileTypes: true });
   const files = entries
@@ -75,7 +83,16 @@ async function generateProducts() {
     .map((entry) => entry.name)
     .sort((a, b) => a.localeCompare(b));
 
-  const products = files.map(parseProductFromFilename);
+  const products = await Promise.all(
+    files.map(async (fileName) => {
+      const product = parseProductFromFilename(fileName);
+      const pages = await getPdfPageCount(fileName);
+      return {
+        ...product,
+        pages,
+      };
+    })
+  );
   await fs.writeFile(OUTPUT_FILE, `${JSON.stringify(products, null, 2)}\n`, "utf8");
   console.log(`Generated ${products.length} products -> data/products.generated.json`);
 }

@@ -10,7 +10,8 @@
     "ageLabel": "AGE 3+",
     "pdf": "/api/preview?file=Nursery-Worksheets-Nursery%20EVS%20Worksheet-199.pdf",
     "downloadUrl": "/api/download?file=Nursery-Worksheets-Nursery%20EVS%20Worksheet-199.pdf",
-    "imageUrl": ""
+    "imageUrl": "",
+    "pages": 2
   },
   {
     "id": "nursery-pre-english-writing-worksheet",
@@ -23,6 +24,7 @@
     "ageLabel": "AGE 3+",
     "pdf": "/api/preview?file=Nursery-Worksheets-Pre%20English%20Writing%20Worksheet-149.pdf",
     "downloadUrl": "/api/download?file=Nursery-Worksheets-Pre%20English%20Writing%20Worksheet-149.pdf",
-    "imageUrl": ""
+    "imageUrl": "",
+    "pages": 2
   }
 ]

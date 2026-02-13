@@ -14,6 +14,12 @@ const BENEFITS = [
   "Teacher-ready worksheets with easy repetition patterns",
 ];
 
+function withPreviewPageLimit(url, pageCount = 1) {
+  if (!url) return "";
+  const separator = url.includes("?") ? "&" : "?";
+  return `${url}${separator}pages=${pageCount}`;
+}
+
 function humanize(value) {
   return String(value || "")
     .replace(/[-_]+/g, " ")
@@ -33,6 +39,10 @@ export default function ProductPage() {
   const product = products.find((item) => item.id === query.id);
   const typeLabel = useMemo(() => humanize(product?.type), [product?.type]);
   const classLabel = useMemo(() => humanize(product?.class), [product?.class]);
+  const singlePagePreviewUrl = useMemo(
+    () => withPreviewPageLimit(product?.pdf, 1),
+    [product?.pdf]
+  );
 
   useEffect(() => {
     const checkPurchase = async () => {
@@ -133,7 +143,7 @@ export default function ProductPage() {
               </div>
               <div className="product-preview-card__frame">
                 <iframe
-                  src={`${product.pdf}#page=1&view=FitH,95&toolbar=0&navpanes=0&scrollbar=0`}
+                  src={`${singlePagePreviewUrl}#page=1&view=FitH,95&toolbar=0&navpanes=0&scrollbar=0`}
                   title={`${product.title} preview`}
                 />
               </div>
