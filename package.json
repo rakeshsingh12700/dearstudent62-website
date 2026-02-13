@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "generate:products": "node scripts/generate-products.mjs",
+    "predev": "npm run generate:products",
+    "prebuild": "npm run generate:products",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
@@ -11,6 +14,7 @@
   "dependencies": {
     "firebase": "^12.9.0",
     "next": "16.1.6",
+    "pdf-lib": "^1.17.1",
     "razorpay": "^2.9.6",
     "react": "19.2.3",
     "react-dom": "19.2.3",
