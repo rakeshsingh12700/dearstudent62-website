@@ -2,12 +2,12 @@ const products = [
   {
     id: "nursery-evs",
     class: "nursery",
-    type: "workbook",
-    title: "Nursery EVS Workbook",
+    type: "worksheet",
+    title: "Nursery EVS Worksheet",
     price: 199,
     pdf: "/api/preview?file=nursery-evs.pdf",
     downloadUrl: "/api/download?file=nursery-evs.pdf",
-    category: "Workbook",
+    category: "Worksheet",
     ageLabel: "AGE 3+",
     pages: 24,
     imageUrl:
@@ -16,12 +16,12 @@ const products = [
   {
     id: "nursery-english",
     class: "nursery",
-    type: "workbook",
-    title: "Pre English Writing Workbook",
+    type: "worksheet",
+    title: "Pre English Writing Worksheet",
     price: 149,
     pdf: "/api/preview?file=nursery-english.pdf",
     downloadUrl: "/api/download?file=nursery-english.pdf",
-    category: "Workbook",
+    category: "Worksheet",
     ageLabel: "AGE 3+",
     pages: 20,
     imageUrl:

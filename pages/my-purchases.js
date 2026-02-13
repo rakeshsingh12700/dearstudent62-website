@@ -6,7 +6,7 @@ import { getUserPurchases } from "../firebase/purchases";
 import Navbar from "../components/Navbar";
 import products from "../data/products";
 
-const CART_STORAGE_KEY = "ds-workbook-cart-v1";
+const CART_STORAGE_KEY = "ds-worksheet-cart-v1";
 const ACCENT_PALETTE = [
   { soft: "#ffedd5", strong: "#f97316" },
   { soft: "#dcfce7", strong: "#16a34a" },
@@ -59,7 +59,7 @@ function formatDateTime(value) {
 }
 
 function humanizeId(id) {
-  return String(id || "Workbook purchase")
+  return String(id || "Worksheet purchase")
     .replace(/[-_]+/g, " ")
     .replace(/\b\w/g, (char) => char.toUpperCase());
 }
@@ -103,12 +103,12 @@ export default function MyPurchases() {
           id: purchase.id,
           productId: productId || "unknown",
           title: product?.title || humanizeId(productId),
-          category: product?.category || "Digital Workbook",
+          category: product?.category || "Digital Worksheet",
           classLabel: product?.class
             ? humanizeId(product.class)
             : "Early Learning",
           pages: product?.pages || null,
-          type: product?.type || "workbook",
+          type: product?.type || "worksheet",
           price: typeof product?.price === "number" ? product.price : null,
           imageUrl: product?.imageUrl || "",
           pdfPreviewUrl: product?.pdf || "",
@@ -182,13 +182,13 @@ export default function MyPurchases() {
 
   const stats = useMemo(() => {
     const totalPurchases = orders.length;
-    const uniqueWorkbooks = new Set(
+    const uniqueWorksheets = new Set(
       enrichedPurchases.map((purchase) => purchase.productId)
     ).size;
     const latestPurchaseDate =
       orders[0]?.placedAtLabel || "No purchases yet";
 
-    return { totalPurchases, uniqueWorkbooks, latestPurchaseDate };
+    return { totalPurchases, uniqueWorksheets, latestPurchaseDate };
   }, [enrichedPurchases, orders]);
 
   const userLabel = useMemo(() => {
@@ -270,7 +270,7 @@ export default function MyPurchases() {
     const nextCart = Array.from(byId.values());
     window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(nextCart));
     window.dispatchEvent(new CustomEvent("ds-cart-updated"));
-    router.push("/workbooks?openCart=1");
+    router.push("/worksheets?openCart=1");
   };
 
   return (
@@ -283,7 +283,7 @@ export default function MyPurchases() {
               <h1>My Purchases</h1>
               <p>Your personal worksheet vault with instant downloads.</p>
             </div>
-            <Link href="/workbooks" className="btn btn-secondary">
+            <Link href="/worksheets" className="btn btn-secondary">
               Browse Library
             </Link>
           </header>
@@ -317,8 +317,8 @@ export default function MyPurchases() {
                     <strong>{stats.totalPurchases}</strong>
                   </article>
                   <article>
-                    <span>Unique Workbooks</span>
-                    <strong>{stats.uniqueWorkbooks}</strong>
+                    <span>Unique Worksheets</span>
+                    <strong>{stats.uniqueWorksheets}</strong>
                   </article>
                   <article>
                     <span>Latest Purchase</span>
@@ -355,9 +355,9 @@ export default function MyPurchases() {
               {orders.length === 0 ? (
                 <>
                   <h3>No purchases yet</h3>
-                  <p>Pick a workbook from the library and it will appear here.</p>
-                  <Link href="/workbooks" className="btn btn-primary">
-                    Explore Workbooks
+                  <p>Pick a worksheet from the library and it will appear here.</p>
+                  <Link href="/worksheets" className="btn btn-primary">
+                    Explore Worksheets
                   </Link>
                 </>
               ) : (

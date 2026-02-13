@@ -15,7 +15,7 @@ export default function Success() {
   const queryEmail = typeof router.query.email === "string" ? router.query.email : "";
   const productTitle = useMemo(() => {
     const product = products.find((item) => item.id === productId);
-    return product?.title || "Workbook";
+    return product?.title || "Worksheet";
   }, [productId]);
   const fileName = useMemo(() => {
     const product = products.find((item) => item.id === productId);
@@ -50,7 +50,7 @@ export default function Success() {
       <Navbar />
       <div style={{ padding: "40px" }}>
         <h2>Payment successful 🎉</h2>
-        <p>Your workbook is ready.</p>
+        <p>Your worksheet is ready.</p>
         <button
           type="button"
           onClick={handleDownload}
@@ -61,7 +61,7 @@ export default function Success() {
         </button>
         <button
           type="button"
-          onClick={() => router.push("/workbooks")}
+          onClick={() => router.push("/worksheets")}
           style={{ padding: "10px 16px", cursor: "pointer" }}
         >
           Continue to Library

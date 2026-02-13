@@ -126,7 +126,7 @@ export default async function handler(req, res) {
       const amount = Number(product?.price || 0);
       return {
         productId,
-        title: product?.title || productId || "Workbook",
+        title: product?.title || productId || "Worksheet",
         quantity,
         amount,
         lineTotal: amount * quantity,

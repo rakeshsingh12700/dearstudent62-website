@@ -5,20 +5,20 @@ import { signOut } from "firebase/auth";
 import { auth } from "../firebase/config";
 import { useRouter } from "next/router";
 
-const workbookMenu = [
+const worksheetMenu = [
   {
     key: "pre-nursery",
     label: "Pre Nursery",
     submenu: [
-      { label: "Workbook", href: "/workbooks?class=pre-nursery&type=workbook" },
-      { label: "Exams", href: "/workbooks?class=pre-nursery&type=exams" },
+      { label: "Worksheet", href: "/worksheets?class=pre-nursery&type=worksheet" },
+      { label: "Exams", href: "/worksheets?class=pre-nursery&type=exams" },
       {
         label: "Half Year Exam",
-        href: "/workbooks?class=pre-nursery&type=half-year-exam"
+        href: "/worksheets?class=pre-nursery&type=half-year-exam"
       },
       {
         label: "Final Year Exam",
-        href: "/workbooks?class=pre-nursery&type=final-year-exam"
+        href: "/worksheets?class=pre-nursery&type=final-year-exam"
       }
     ]
   },
@@ -26,15 +26,15 @@ const workbookMenu = [
     key: "nursery",
     label: "Nursery",
     submenu: [
-      { label: "Workbook", href: "/workbooks?class=nursery&type=workbook" },
-      { label: "Exams", href: "/workbooks?class=nursery&type=exams" },
+      { label: "Worksheet", href: "/worksheets?class=nursery&type=worksheet" },
+      { label: "Exams", href: "/worksheets?class=nursery&type=exams" },
       {
         label: "Half Year Exam",
-        href: "/workbooks?class=nursery&type=half-year-exam"
+        href: "/worksheets?class=nursery&type=half-year-exam"
       },
       {
         label: "Final Year Exam",
-        href: "/workbooks?class=nursery&type=final-year-exam"
+        href: "/worksheets?class=nursery&type=final-year-exam"
       }
     ]
   },
@@ -42,12 +42,12 @@ const workbookMenu = [
     key: "lkg",
     label: "LKG",
     submenu: [
-      { label: "Workbook", href: "/workbooks?class=lkg&type=workbook" },
-      { label: "Exams", href: "/workbooks?class=lkg&type=exams" },
-      { label: "Half Year Exam", href: "/workbooks?class=lkg&type=half-year-exam" },
+      { label: "Worksheet", href: "/worksheets?class=lkg&type=worksheet" },
+      { label: "Exams", href: "/worksheets?class=lkg&type=exams" },
+      { label: "Half Year Exam", href: "/worksheets?class=lkg&type=half-year-exam" },
       {
         label: "Final Year Exam",
-        href: "/workbooks?class=lkg&type=final-year-exam"
+        href: "/worksheets?class=lkg&type=final-year-exam"
       }
     ]
   },
@@ -55,17 +55,17 @@ const workbookMenu = [
     key: "ukg",
     label: "UKG",
     submenu: [
-      { label: "Workbook", href: "/workbooks?class=ukg&type=workbook" },
-      { label: "Exams", href: "/workbooks?class=ukg&type=exams" },
-      { label: "Half Year Exam", href: "/workbooks?class=ukg&type=half-year-exam" },
+      { label: "Worksheet", href: "/worksheets?class=ukg&type=worksheet" },
+      { label: "Exams", href: "/worksheets?class=ukg&type=exams" },
+      { label: "Half Year Exam", href: "/worksheets?class=ukg&type=half-year-exam" },
       {
         label: "Final Year Exam",
-        href: "/workbooks?class=ukg&type=final-year-exam"
+        href: "/worksheets?class=ukg&type=final-year-exam"
       }
     ]
   }
 ];
-const CART_STORAGE_KEY = "ds-workbook-cart-v1";
+const CART_STORAGE_KEY = "ds-worksheet-cart-v1";
 
 export default function Navbar() {
   const { user } = useAuth();
@@ -123,15 +123,15 @@ export default function Navbar() {
   }, [user?.displayName, user?.email]);
 
   const handleCartClick = () => {
-    const isWorkbookRoute =
-      router.pathname === "/workbooks" || router.pathname === "/workbooks/[class]";
+    const isWorksheetRoute =
+      router.pathname === "/worksheets" || router.pathname === "/worksheets/[class]";
 
-    if (isWorkbookRoute && typeof window !== "undefined") {
+    if (isWorksheetRoute && typeof window !== "undefined") {
       window.dispatchEvent(new CustomEvent("ds-open-cart"));
       return;
     }
 
-    router.push("/workbooks?openCart=1");
+    router.push("/worksheets?openCart=1");
   };
 
   return (
@@ -144,15 +144,15 @@ export default function Navbar() {
           <Link href="/">Home</Link>
           <div className="navbar__dropdown">
             <div className="navbar__dropdown-trigger">
-              <Link href="/workbooks">Workbooks</Link>
+              <Link href="/worksheets">Worksheets</Link>
               <span className="navbar__caret" aria-hidden="true">
                 ▾
               </span>
             </div>
             <div className="navbar__dropdown-menu">
-              {workbookMenu.map((item) => (
+              {worksheetMenu.map((item) => (
                 <div className="navbar__dropdown-item" key={item.key}>
-                  <Link href={`/workbooks?class=${item.key}`}>{item.label}</Link>
+                  <Link href={`/worksheets?class=${item.key}`}>{item.label}</Link>
                   <span aria-hidden="true">›</span>
                   <div className="navbar__flyout">
                     {item.submenu.map((subItem) => (

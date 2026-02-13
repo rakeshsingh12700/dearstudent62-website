@@ -315,15 +315,15 @@ button {
   text-decoration: underline;
 }
 
-.workbooks-page {
+.worksheets-page {
   padding: 28px 0 72px;
 }
 
-.workbooks-wrap--wide {
+.worksheets-wrap--wide {
   width: min(1360px, 96%);
 }
 
-.workbooks-wrap {
+.worksheets-wrap {
   background: #fff;
   border: 2px solid #ffedd5;
   border-radius: 28px;
@@ -331,7 +331,7 @@ button {
   padding: 28px;
 }
 
-.workbooks-top-row {
+.worksheets-top-row {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -339,35 +339,35 @@ button {
   margin-bottom: 18px;
 }
 
-.workbooks-heading {
+.worksheets-heading {
   max-width: 620px;
 }
 
-.workbooks-title {
+.worksheets-title {
   margin: 0;
   font-size: clamp(2rem, 6vw, 3.7rem);
   line-height: 1.06;
 }
 
-.workbooks-subtitle {
+.worksheets-subtitle {
   margin: 8px 0 0;
   color: var(--ds-text-muted);
   font-size: 1.05rem;
   font-weight: 700;
 }
 
-.workbooks-filter-pane {
+.worksheets-filter-pane {
   margin-left: auto;
   min-width: min(760px, 56vw);
   display: grid;
   gap: 10px;
 }
 
-.workbooks-filter-mobile {
+.worksheets-filter-mobile {
   display: none;
 }
 
-.workbooks-segment {
+.worksheets-segment {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -379,11 +379,11 @@ button {
   scrollbar-width: none;
 }
 
-.workbooks-segment::-webkit-scrollbar {
+.worksheets-segment::-webkit-scrollbar {
   display: none;
 }
 
-.workbooks-segment button {
+.worksheets-segment button {
   border: none;
   border-radius: 999px;
   background: transparent;
@@ -394,17 +394,17 @@ button {
   white-space: nowrap;
 }
 
-.workbooks-segment button.active {
+.worksheets-segment button.active {
   background: #fff;
   color: var(--ds-primary-dark);
   box-shadow: 0 4px 12px rgba(15, 23, 42, 0.1);
 }
 
-.workbooks-segment--type button {
+.worksheets-segment--type button {
   font-size: 0.92rem;
 }
 
-.workbooks-toolbar {
+.worksheets-toolbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -412,13 +412,13 @@ button {
   margin-bottom: 20px;
 }
 
-.workbooks-toolbar p {
+.worksheets-toolbar p {
   margin: 0;
   color: var(--ds-text-muted);
   font-weight: 700;
 }
 
-.workbooks-sort {
+.worksheets-sort {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -427,7 +427,7 @@ button {
   font-weight: 700;
 }
 
-.workbooks-sort select {
+.worksheets-sort select {
   border: 1px solid var(--ds-border);
   border-radius: 8px;
   background: #fff;
@@ -435,13 +435,13 @@ button {
   padding: 8px 10px;
 }
 
-.workbooks-grid {
+.worksheets-grid {
   display: grid;
   gap: 22px;
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
-.workbooks-empty {
+.worksheets-empty {
   border: 1px dashed var(--ds-border);
   border-radius: 14px;
   padding: 14px;
@@ -450,7 +450,7 @@ button {
   font-weight: 700;
 }
 
-.workbook-card {
+.worksheet-card {
   border-radius: 16px;
   border: 1px solid #f3d9bf;
   background: #fff;
@@ -460,33 +460,33 @@ button {
   transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 
-.workbook-card:hover {
+.worksheet-card:hover {
   box-shadow: 0 16px 34px rgba(15, 23, 42, 0.1);
   transform: translateY(-2px);
 }
 
-.workbook-card__media-click {
+.worksheet-card__media-click {
   color: inherit;
   display: block;
   width: 100%;
   height: 100%;
 }
 
-.workbook-card__media {
+.worksheet-card__media {
   position: relative;
   margin-bottom: 12px;
   border-radius: 10px;
   overflow: hidden;
 }
 
-.workbook-card__media--pdf {
+.worksheet-card__media--pdf {
   height: 240px;
   background: #f8fafc;
   border: 1px solid #e5e7eb;
   transition: border-color 0.2s ease;
 }
 
-.workbook-card__media--pdf iframe {
+.worksheet-card__media--pdf iframe {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -497,15 +497,15 @@ button {
   transition: transform 0.2s ease;
 }
 
-.workbook-card:hover .workbook-card__media--pdf {
+.worksheet-card:hover .worksheet-card__media--pdf {
   border-color: #f97316;
 }
 
-.workbook-card:hover .workbook-card__media--pdf iframe {
+.worksheet-card:hover .worksheet-card__media--pdf iframe {
   transform: scale(1.01);
 }
 
-.workbook-card__badge {
+.worksheet-card__badge {
   position: absolute;
   left: 10px;
   top: 10px;
@@ -518,7 +518,7 @@ button {
   font-weight: 800;
 }
 
-.workbook-card__preview-btn {
+.worksheet-card__preview-btn {
   position: absolute;
   right: 10px;
   top: 10px;
@@ -534,11 +534,11 @@ button {
   justify-content: center;
 }
 
-.workbook-card__preview-btn:hover {
+.worksheet-card__preview-btn:hover {
   background: #fff7ed;
 }
 
-.workbook-card__dots {
+.worksheet-card__dots {
   position: absolute;
   z-index: 3;
   left: 50%;
@@ -548,7 +548,7 @@ button {
   gap: 6px;
 }
 
-.workbook-card__dots button {
+.worksheet-card__dots button {
   width: 8px;
   height: 8px;
   border: none;
@@ -557,48 +557,48 @@ button {
   padding: 0;
 }
 
-.workbook-card__dots button.active {
+.worksheet-card__dots button.active {
   background: var(--ds-primary);
 }
 
-.workbook-card__age {
+.worksheet-card__age {
   margin: 0 0 8px;
   color: #6b7280;
   font-size: 0.94rem;
   font-weight: 700;
 }
 
-.workbook-card__title {
+.worksheet-card__title {
   margin: 0;
   font-size: 1.22rem;
   line-height: 1.3;
 }
 
-.workbook-card__title a {
+.worksheet-card__title a {
   color: #111827;
   transition: color 0.2s ease;
 }
 
-.workbook-card:hover .workbook-card__title a,
-.workbook-card__title a:hover {
+.worksheet-card:hover .worksheet-card__title a,
+.worksheet-card__title a:hover {
   color: var(--ds-primary-dark);
 }
 
-.workbook-card__meta {
+.worksheet-card__meta {
   margin: 8px 0 0;
   color: #6b7280;
   font-size: 0.88rem;
   font-weight: 700;
 }
 
-.workbook-card__price {
+.worksheet-card__price {
   margin: 10px 0;
   color: var(--ds-primary-dark);
   font-size: 1.1rem;
   font-weight: 900;
 }
 
-.workbook-card__actions {
+.worksheet-card__actions {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
@@ -671,20 +671,20 @@ button {
   line-height: 1;
 }
 
-.workbook-preview-modal {
+.worksheet-preview-modal {
   position: fixed;
   inset: 0;
   z-index: 45;
 }
 
-.workbook-preview-modal__overlay {
+.worksheet-preview-modal__overlay {
   position: absolute;
   inset: 0;
   border: none;
   background: rgba(0, 0, 0, 0.35);
 }
 
-.workbook-preview-modal__panel {
+.worksheet-preview-modal__panel {
   position: relative;
   z-index: 1;
   margin: 4vh auto;
@@ -697,7 +697,7 @@ button {
   padding: 14px;
 }
 
-.workbook-preview-modal__header {
+.worksheet-preview-modal__header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -705,19 +705,19 @@ button {
   margin-bottom: 10px;
 }
 
-.workbook-preview-modal__header h2 {
+.worksheet-preview-modal__header h2 {
   margin: 0;
   font-size: 1.2rem;
 }
 
-.workbook-preview-modal__hint {
+.worksheet-preview-modal__hint {
   margin: 0 0 10px;
   color: var(--ds-text-muted);
   font-size: 0.92rem;
   font-weight: 700;
 }
 
-.workbook-preview-modal__frame {
+.worksheet-preview-modal__frame {
   width: 100%;
   height: 72vh;
   border: 1px solid #e5e7eb;
@@ -725,7 +725,7 @@ button {
   background: #fff;
 }
 
-.workbook-cart {
+.worksheet-cart {
   position: fixed;
   inset: 0;
   z-index: 40;
@@ -733,14 +733,14 @@ button {
   justify-content: flex-end;
 }
 
-.workbook-cart__overlay {
+.worksheet-cart__overlay {
   position: absolute;
   inset: 0;
   border: none;
   background: rgba(0, 0, 0, 0.28);
 }
 
-.workbook-cart__panel {
+.worksheet-cart__panel {
   position: relative;
   z-index: 1;
   width: min(430px, 100%);
@@ -752,7 +752,7 @@ button {
   flex-direction: column;
 }
 
-.workbook-cart__header {
+.worksheet-cart__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -760,34 +760,34 @@ button {
   padding-bottom: 12px;
 }
 
-.workbook-cart__header h2 {
+.worksheet-cart__header h2 {
   margin: 0;
   font-size: 1.4rem;
 }
 
-.workbook-cart__header-actions {
+.worksheet-cart__header-actions {
   display: inline-flex;
   align-items: center;
   gap: 12px;
 }
 
-.workbook-cart__clear-btn {
+.worksheet-cart__clear-btn {
   color: #dc2626;
 }
 
-.workbook-cart__items {
+.worksheet-cart__items {
   flex: 1;
   overflow-y: auto;
   padding: 14px 0;
 }
 
-.workbook-cart__empty {
+.worksheet-cart__empty {
   margin: 0;
   color: var(--ds-text-muted);
   font-weight: 700;
 }
 
-.workbook-cart__item {
+.worksheet-cart__item {
   padding: 12px 0;
   border-bottom: 1px solid #ffedd5;
   display: flex;
@@ -795,28 +795,28 @@ button {
   gap: 10px;
 }
 
-.workbook-cart__item-title,
-.workbook-cart__item-price {
+.worksheet-cart__item-title,
+.worksheet-cart__item-price {
   margin: 0;
 }
 
-.workbook-cart__item-title {
+.worksheet-cart__item-title {
   font-weight: 800;
 }
 
-.workbook-cart__item-price {
+.worksheet-cart__item-price {
   color: var(--ds-text-muted);
   font-size: 0.9rem;
 }
 
-.workbook-cart__qty {
+.worksheet-cart__qty {
   display: inline-flex;
   align-items: center;
   border: 1px solid var(--ds-border);
   border-radius: 999px;
 }
 
-.workbook-cart__qty button {
+.worksheet-cart__qty button {
   border: none;
   background: #fff;
   width: 28px;
@@ -825,20 +825,20 @@ button {
   color: #4b5563;
 }
 
-.workbook-cart__qty span {
+.worksheet-cart__qty span {
   min-width: 20px;
   text-align: center;
   font-weight: 700;
 }
 
-.workbook-cart__footer {
+.worksheet-cart__footer {
   border-top: 1px solid #ffedd5;
   padding-top: 16px;
   display: grid;
   gap: 10px;
 }
 
-.workbook-cart__footer p {
+.worksheet-cart__footer p {
   margin: 0;
   color: var(--ds-text-muted);
   font-weight: 700;
@@ -2190,22 +2190,22 @@ button {
     pointer-events: none !important;
   }
 
-  .workbooks-wrap {
+  .worksheets-wrap {
     border-radius: 22px;
     padding: 20px 16px;
   }
 
-  .workbooks-top-row,
-  .workbooks-toolbar {
+  .worksheets-top-row,
+  .worksheets-toolbar {
     flex-direction: column;
     align-items: flex-start;
   }
 
-  .workbooks-filter-pane {
+  .worksheets-filter-pane {
     display: none;
   }
 
-  .workbooks-filter-mobile {
+  .worksheets-filter-mobile {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 10px;
@@ -2213,7 +2213,7 @@ button {
     margin-top: 4px;
   }
 
-  .workbooks-filter-mobile label {
+  .worksheets-filter-mobile label {
     display: grid;
     gap: 6px;
     color: #475569;
@@ -2223,7 +2223,7 @@ button {
     letter-spacing: 0.05em;
   }
 
-  .workbooks-filter-mobile select {
+  .worksheets-filter-mobile select {
     min-height: 40px;
     width: 100%;
     border: 1px solid #f3d9bf;
@@ -2235,15 +2235,15 @@ button {
     padding: 0 10px;
   }
 
-  .workbooks-grid {
+  .worksheets-grid {
     grid-template-columns: 1fr;
   }
 
-  .workbook-card__media--pdf {
+  .worksheet-card__media--pdf {
     height: 220px;
   }
 
-  .workbook-preview-modal__frame {
+  .worksheet-preview-modal__frame {
     height: 52vh;
   }
 
@@ -2264,7 +2264,7 @@ button {
   }
 
   .hero__copy,
-  .workbooks-subtitle,
+  .worksheets-subtitle,
   .product-info-card__subtitle {
     font-size: 0.98rem;
     line-height: 1.55;
@@ -2383,7 +2383,7 @@ button {
 }
 
 @media (min-width: 761px) and (max-width: 1200px) {
-  .workbooks-grid {
+  .worksheets-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 

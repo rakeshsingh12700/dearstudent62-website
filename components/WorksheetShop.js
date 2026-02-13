@@ -13,7 +13,7 @@ const CLASS_OPTIONS = [
 
 const TYPE_OPTIONS = [
   { value: "all", label: "All Assets" },
-  { value: "workbook", label: "Workbooks" },
+  { value: "worksheet", label: "Worksheets" },
   { value: "exams", label: "Exams" },
   { value: "half-year-exam", label: "Half Year Exam" },
   { value: "final-year-exam", label: "Final Year Exam" }
@@ -26,7 +26,7 @@ const SORT_OPTIONS = [
   { value: "title", label: "Title: A-Z" }
 ];
 
-const CART_STORAGE_KEY = "ds-workbook-cart-v1";
+const CART_STORAGE_KEY = "ds-worksheet-cart-v1";
 
 function EyeIcon() {
   return (
@@ -48,7 +48,7 @@ function EyeIcon() {
   );
 }
 
-export default function WorkbookShop({
+export default function WorksheetShop({
   initialClass = "all",
   initialType = "all",
   initialOpenCart = false
@@ -137,17 +137,17 @@ export default function WorkbookShop({
   };
 
   return (
-    <main className="workbooks-page">
-      <section className="workbooks-wrap container workbooks-wrap--wide">
-        <div className="workbooks-top-row">
-          <div className="workbooks-heading">
-            <h1 className="workbooks-title">The Library</h1>
-            <p className="workbooks-subtitle">
+    <main className="worksheets-page">
+      <section className="worksheets-wrap container worksheets-wrap--wide">
+        <div className="worksheets-top-row">
+          <div className="worksheets-heading">
+            <h1 className="worksheets-title">The Library</h1>
+            <p className="worksheets-subtitle">
               Hand-picked worksheet sets for early learners.
             </p>
           </div>
 
-          <div className="workbooks-filter-mobile">
+          <div className="worksheets-filter-mobile">
             <label>
               Class
               <select
@@ -176,8 +176,8 @@ export default function WorkbookShop({
             </label>
           </div>
 
-          <div className="workbooks-filter-pane">
-            <div className="workbooks-segment">
+          <div className="worksheets-filter-pane">
+            <div className="worksheets-segment">
               {CLASS_OPTIONS.map((option) => (
                 <button
                   key={option.value}
@@ -189,7 +189,7 @@ export default function WorkbookShop({
                 </button>
               ))}
             </div>
-            <div className="workbooks-segment workbooks-segment--type">
+            <div className="worksheets-segment worksheets-segment--type">
               {TYPE_OPTIONS.map((option) => (
                 <button
                   key={option.value}
@@ -204,12 +204,12 @@ export default function WorkbookShop({
           </div>
         </div>
 
-        <div className="workbooks-toolbar">
+        <div className="worksheets-toolbar">
           <p>
             Showing {visibleProducts.length === 0 ? 0 : 1}-{visibleProducts.length}{" "}
             of {visibleProducts.length} results
           </p>
-          <label className="workbooks-sort">
+          <label className="worksheets-sort">
             <span>Sort:</span>
             <select
               value={sortBy}
@@ -225,21 +225,21 @@ export default function WorkbookShop({
         </div>
 
         {visibleProducts.length === 0 && (
-          <div className="workbooks-empty">
+          <div className="worksheets-empty">
             No assets found for selected filters. Try another class or asset type.
           </div>
         )}
 
-        <div className="workbooks-grid">
+        <div className="worksheets-grid">
           {visibleProducts.map((product) => {
             const quantity = getItemQuantity(product.id);
 
             return (
-              <article className="workbook-card" key={product.id}>
-                <div className="workbook-card__media workbook-card__media--pdf">
+              <article className="worksheet-card" key={product.id}>
+                <div className="worksheet-card__media worksheet-card__media--pdf">
                   <Link
                     href={`/product/${product.id}`}
-                    className="workbook-card__media-click"
+                    className="worksheet-card__media-click"
                     aria-label={`Open ${product.title}`}
                   >
                     <iframe
@@ -250,7 +250,7 @@ export default function WorkbookShop({
                   </Link>
                   <button
                     type="button"
-                    className="workbook-card__preview-btn"
+                    className="worksheet-card__preview-btn"
                     aria-label={`Quick preview ${product.title}`}
                     onClick={() => setPreviewState(product)}
                   >
@@ -258,16 +258,16 @@ export default function WorkbookShop({
                   </button>
                 </div>
 
-                <p className="workbook-card__age">{product.ageLabel || "AGE 3+"}</p>
-                <h3 className="workbook-card__title">
+                <p className="worksheet-card__age">{product.ageLabel || "AGE 3+"}</p>
+                <h3 className="worksheet-card__title">
                   <Link href={`/product/${product.id}`}>{product.title}</Link>
                 </h3>
-                <p className="workbook-card__meta">
-                  {(product.type || "workbook").replaceAll("-", " ")} |{" "}
+                <p className="worksheet-card__meta">
+                  {(product.type || "worksheet").replaceAll("-", " ")} |{" "}
                   {product.pages || 0} Pages | Digital PDF
                 </p>
-                <p className="workbook-card__price">INR {product.price}</p>
-                <div className="workbook-card__actions">
+                <p className="worksheet-card__price">INR {product.price}</p>
+                <div className="worksheet-card__actions">
                   {quantity === 0 ? (
                     <button
                       type="button"
@@ -318,15 +318,15 @@ export default function WorkbookShop({
       </section>
 
       {previewState && (
-        <div className="workbook-preview-modal">
+        <div className="worksheet-preview-modal">
           <button
-            className="workbook-preview-modal__overlay"
+            className="worksheet-preview-modal__overlay"
             onClick={() => setPreviewState(null)}
             type="button"
             aria-label="Close preview"
           />
-          <section className="workbook-preview-modal__panel">
-            <header className="workbook-preview-modal__header">
+          <section className="worksheet-preview-modal__panel">
+            <header className="worksheet-preview-modal__header">
               <h2>{previewState.title} - Quick Preview</h2>
               <button
                 type="button"
@@ -336,11 +336,11 @@ export default function WorkbookShop({
                 Close
               </button>
             </header>
-            <p className="workbook-preview-modal__hint">
+            <p className="worksheet-preview-modal__hint">
               Preview shows page 1 only.
             </p>
             <iframe
-              className="workbook-preview-modal__frame"
+              className="worksheet-preview-modal__frame"
               src={`${previewState.pdf}#page=1&view=FitH,110&toolbar=0&navpanes=0&scrollbar=0`}
               title={`${previewState.title} preview`}
             />
@@ -349,21 +349,21 @@ export default function WorkbookShop({
       )}
 
       {isCartOpen && (
-        <div className="workbook-cart">
+        <div className="worksheet-cart">
           <button
-            className="workbook-cart__overlay"
+            className="worksheet-cart__overlay"
             onClick={() => setIsCartOpen(false)}
             type="button"
             aria-label="Close cart"
           />
-          <aside className="workbook-cart__panel">
-            <div className="workbook-cart__header">
+          <aside className="worksheet-cart__panel">
+            <div className="worksheet-cart__header">
               <h2>My Cart</h2>
-              <div className="workbook-cart__header-actions">
+              <div className="worksheet-cart__header-actions">
                 {cart.length > 0 && (
                   <button
                     type="button"
-                    className="btn-link workbook-cart__clear-btn"
+                    className="btn-link worksheet-cart__clear-btn"
                     onClick={clearCart}
                   >
                     Clear cart
@@ -379,17 +379,17 @@ export default function WorkbookShop({
               </div>
             </div>
 
-            <div className="workbook-cart__items">
+            <div className="worksheet-cart__items">
               {cart.length === 0 && (
-                <p className="workbook-cart__empty">Your cart is empty.</p>
+                <p className="worksheet-cart__empty">Your cart is empty.</p>
               )}
               {cart.map((item) => (
-                <div className="workbook-cart__item" key={item.id}>
+                <div className="worksheet-cart__item" key={item.id}>
                   <div>
-                    <p className="workbook-cart__item-title">{item.title}</p>
-                    <p className="workbook-cart__item-price">INR {item.price}</p>
+                    <p className="worksheet-cart__item-title">{item.title}</p>
+                    <p className="worksheet-cart__item-price">INR {item.price}</p>
                   </div>
-                  <div className="workbook-cart__qty">
+                  <div className="worksheet-cart__qty">
                     <button
                       type="button"
                       onClick={() => updateCartItem(item, -1)}
@@ -410,7 +410,7 @@ export default function WorkbookShop({
               ))}
             </div>
 
-            <div className="workbook-cart__footer">
+            <div className="worksheet-cart__footer">
               <p>
                 Total <strong>INR {cartTotal}</strong>
               </p>

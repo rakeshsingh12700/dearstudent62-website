@@ -6,7 +6,7 @@ import products from "../../data/products";
 import { useAuth } from "../../context/AuthContext";
 import { hasPurchased } from "../../firebase/purchases";
 
-const CART_STORAGE_KEY = "ds-workbook-cart-v1";
+const CART_STORAGE_KEY = "ds-worksheet-cart-v1";
 
 const BENEFITS = [
   "Builds confidence through short, focused activities",
@@ -121,7 +121,7 @@ export default function ProductPage() {
           <nav className="product-breadcrumb" aria-label="Breadcrumb">
             <Link href="/">Home</Link>
             <span aria-hidden="true">›</span>
-            <Link href="/workbooks">Workbooks</Link>
+            <Link href="/worksheets">Worksheets</Link>
             <span aria-hidden="true">›</span>
             <span>{product.title}</span>
           </nav>
@@ -171,7 +171,7 @@ export default function ProductPage() {
 
               {!checking && purchased && (
                 <div className="product-info-card__owned">
-                  <p>This workbook is already in your library.</p>
+                  <p>This worksheet is already in your library.</p>
                   <div className="product-info-card__cta-row">
                     <Link href="/my-purchases" className="btn btn-primary">
                       Open My Purchases
@@ -235,7 +235,7 @@ export default function ProductPage() {
             <article className="product-detail-panel">
               <h2>Format</h2>
               <p>
-                PDF workbook • {product.pages || 0} pages • Reusable for revision cycles.
+                PDF worksheet • {product.pages || 0} pages • Reusable for revision cycles.
               </p>
             </article>
           </section>

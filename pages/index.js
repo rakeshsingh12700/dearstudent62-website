@@ -24,11 +24,11 @@ export default function Home() {
           </h1>
           <p className="hero__copy">
             dearstudent62 makes early learning exciting with premium printable
-            workbooks for your little ones.
+            worksheets for your little ones.
           </p>
           <div className="hero__actions">
-            <Link href="/workbooks" className="btn btn-primary">
-              Shop Workbooks
+            <Link href="/worksheets" className="btn btn-primary">
+              Shop Worksheets
             </Link>
             {!user && (
               <Link href="/auth" className="btn btn-secondary">

@@ -6,7 +6,7 @@ import { useAuth } from "../context/AuthContext";
 import products from "../data/products";
 
 const RAZORPAY_SDK_SRC = "https://checkout.razorpay.com/v1/checkout.js";
-const CART_STORAGE_KEY = "ds-workbook-cart-v1";
+const CART_STORAGE_KEY = "ds-worksheet-cart-v1";
 const PRODUCTS_BY_ID = products.reduce((acc, product) => {
   acc[product.id] = product;
   return acc;
@@ -98,9 +98,9 @@ const getCartPreviewItems = () => {
 
       return {
         productId,
-        title: product?.title || String(item?.title || "Workbook"),
+        title: product?.title || String(item?.title || "Worksheet"),
         classLabel: humanizeLabel(product?.class || item?.class || "Early Learning"),
-        typeLabel: humanizeLabel(product?.type || item?.type || "Workbook"),
+        typeLabel: humanizeLabel(product?.type || item?.type || "Worksheet"),
         pages: Number(product?.pages || 0) || null,
         quantity,
         price,
@@ -280,7 +280,7 @@ export default function Checkout() {
               {cartPreviewItems.length === 0 ? (
                 <div className="checkout-empty-state">
                   <p>Your cart is empty right now.</p>
-                  <Link href="/workbooks" className="btn btn-secondary">
+                  <Link href="/worksheets" className="btn btn-secondary">
                     Browse Library
                   </Link>
                 </div>
@@ -381,7 +381,7 @@ export default function Checkout() {
 
               {!hasItems && (
                 <p className="checkout-note">
-                  Add at least one workbook to continue with payment.
+                  Add at least one worksheet to continue with payment.
                 </p>
               )}
 

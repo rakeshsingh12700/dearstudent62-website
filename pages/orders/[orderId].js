@@ -37,7 +37,7 @@ function formatDateTime(value) {
 }
 
 function humanizeId(id) {
-  return String(id || "Workbook purchase")
+  return String(id || "Worksheet purchase")
     .replace(/[-_]+/g, " ")
     .replace(/\b\w/g, (char) => char.toUpperCase());
 }
@@ -91,7 +91,7 @@ export default function OrderDetailsPage() {
                 ? Number(purchase.quantity)
                 : 1,
             pages: product?.pages || null,
-            category: product?.category || "Digital Workbook",
+            category: product?.category || "Digital Worksheet",
             classLabel: product?.class ? humanizeId(product.class) : "Early Learning",
             purchasedAtLabel: formatDateTime(purchase.purchasedAt),
             downloadHref: `/api/download?paymentId=${encodeURIComponent(

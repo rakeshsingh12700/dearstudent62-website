@@ -1,6 +1,6 @@
 import { useRouter } from "next/router";
 import Navbar from "../../components/Navbar";
-import WorkbookShop from "../../components/WorkbookShop";
+import WorksheetShop from "../../components/WorksheetShop";
 
 export default function ClassPage() {
   const router = useRouter();
@@ -15,7 +15,7 @@ export default function ClassPage() {
   return (
     <>
       <Navbar />
-      <WorkbookShop
+      <WorksheetShop
         key={`${classFromRoute}-${typeFromQuery}-${openCartFromQuery ? "cart" : "list"}`}
         initialClass={classFromRoute}
         initialType={typeFromQuery}
