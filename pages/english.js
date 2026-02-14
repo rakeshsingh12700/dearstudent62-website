@@ -35,7 +35,6 @@ export default function EnglishPage() {
       <main className="browse-page">
         <section className="container browse-wrap">
           <h1>English</h1>
-          <p>Subject-first browsing with topic and grammar subtopic paths.</p>
 
           <div className="browse-grid">
             {ENGLISH_TOPICS.map((item) => (
@@ -45,7 +44,6 @@ export default function EnglishPage() {
                 className="browse-tile"
               >
                 <span>{item.label}</span>
-                <strong>Recommended for: Class 1, Class 2</strong>
               </Link>
             ))}
           </div>
@@ -59,7 +57,6 @@ export default function EnglishPage() {
                 className="browse-tile"
               >
                 <span>{toLabel(item)}</span>
-                <strong>Open</strong>
               </Link>
             ))}
           </div>

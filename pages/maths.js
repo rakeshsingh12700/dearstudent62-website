@@ -16,7 +16,6 @@ export default function MathsPage() {
       <main className="browse-page">
         <section className="container browse-wrap">
           <h1>Maths</h1>
-          <p>Fast topic shortcuts for parents arriving from mobile traffic.</p>
 
           <div className="browse-grid">
             {MATHS_TOPICS.map((item) => (
@@ -26,7 +25,6 @@ export default function MathsPage() {
                 className="browse-tile"
               >
                 <span>{toLabel(item)}</span>
-                <strong>Recommended for: Class 1, Class 2</strong>
               </Link>
             ))}
           </div>

@@ -74,7 +74,7 @@ button {
 }
 
 .navbar__brand {
-  font-size: 1.15rem;
+  font-size: 1.5rem;
   font-weight: 800;
   color: #111827;
 }
@@ -469,6 +469,67 @@ button {
   background: #fff;
   color: var(--ds-text);
   padding: 8px 10px;
+}
+
+.ds-select {
+  position: relative;
+}
+
+.ds-select__trigger {
+  width: 100%;
+  border: 1px solid #f3d9bf;
+  border-radius: 8px;
+  background: #fff;
+  color: #1f2937;
+  min-height: 34px;
+  padding: 0 10px;
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1.2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  text-align: left;
+}
+
+.ds-select__trigger span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ds-select__menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  border: 1px solid #f3d9bf;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.16);
+  padding: 4px;
+  z-index: 40;
+  max-height: 240px;
+  overflow: auto;
+}
+
+.ds-select__option {
+  width: 100%;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: #334155;
+  text-align: left;
+  min-height: 34px;
+  padding: 0 8px;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.ds-select__option.active {
+  background: #ffedd5;
+  color: #9a3412;
 }
 
 .worksheets-grid {
@@ -2236,6 +2297,10 @@ button {
 }
 
 @media (max-width: 760px) {
+  .worksheets-page {
+    padding: 14px 0 52px;
+  }
+
   .hero {
     padding: 56px 0;
   }
@@ -2253,7 +2318,7 @@ button {
   }
 
   .navbar__brand {
-    font-size: 1.02rem;
+    font-size: 1.24rem;
     line-height: 1.2;
     flex: 0 0 100%;
   }
@@ -2302,13 +2367,30 @@ button {
 
   .worksheets-wrap {
     border-radius: 22px;
-    padding: 20px 16px;
+    padding: 14px 12px;
   }
 
-  .worksheets-top-row,
+  .worksheets-top-row {
+    margin-bottom: 8px;
+  }
+
+  .worksheets-title {
+    font-size: clamp(1.9rem, 8vw, 2.2rem);
+  }
+
   .worksheets-toolbar {
-    flex-direction: column;
-    align-items: flex-start;
+    margin-bottom: 8px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .worksheets-path {
+    display: none;
+  }
+
+  .worksheets-toolbar p {
+    font-size: 0.9rem;
   }
 
   .worksheets-step p {
@@ -2847,6 +2929,10 @@ button {
   display: none;
 }
 
+.worksheets-mobile-pane {
+  display: none;
+}
+
 .worksheets-mobile-filter-modal {
   position: fixed;
   inset: 0;
@@ -2983,7 +3069,7 @@ button {
   }
 
   .navbar__mobile-top .navbar__brand {
-    font-size: 0.95rem;
+    font-size: 1.28rem;
     text-align: center;
     flex: initial;
   }
@@ -3000,7 +3086,7 @@ button {
     display: none;
   }
 
-  .worksheets-sort span {
+  .worksheets-sort > span {
     display: none;
   }
 
@@ -3008,31 +3094,106 @@ button {
     min-height: 38px;
   }
 
+  .worksheets-sort__mobile {
+    display: block;
+    min-width: 154px;
+  }
+
+  .worksheets-sort__mobile .ds-select__trigger {
+    min-height: 38px;
+  }
+
+  .worksheets-sort__mobile .ds-select__menu {
+    left: auto;
+    right: 0;
+    min-width: 210px;
+  }
+
   .worksheets-mobile-quick-filters {
     display: grid;
-    grid-template-columns: 1fr 1fr;
     gap: 8px;
-    margin: 8px 0 12px;
+    margin: 4px 0 10px;
+    align-items: end;
+  }
+
+  .worksheets-mobile-quick-filters--count-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .worksheets-mobile-quick-filters--count-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .worksheets-mobile-pane {
+    --mobile-filter-text-size: 1rem;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0;
+    margin: 6px 0 10px;
+    border: 1px solid #f3d9bf;
+    border-radius: 999px;
+    overflow: hidden;
+    background: #fff;
+  }
+
+  .worksheets-mobile-pane button {
+    border: none;
+    border-right: 1px solid #f3d9bf;
+    min-height: 34px;
+    background: transparent;
+    color: #6b7280;
+    font-weight: 800;
+    font-size: var(--mobile-filter-text-size);
+    padding: 0 6px;
+    white-space: nowrap;
+  }
+
+  .worksheets-mobile-pane button:last-child {
+    border-right: none;
+  }
+
+  .worksheets-mobile-pane button.active {
+    background: #ffedd5;
+    color: #9a3412;
   }
 
   .worksheets-mobile-quick-filters label {
     display: grid;
     gap: 4px;
+  }
+
+  .worksheets-mobile-quick-filters label span {
     color: #6b7280;
-    font-size: 0.75rem;
+    font-size: 0.73rem;
     font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.03em;
   }
 
   .worksheets-mobile-quick-filters select {
-    min-height: 38px;
+    min-height: 34px;
     border: 1px solid #f3d9bf;
-    border-radius: 10px;
+    border-radius: 8px;
     background: #fff;
     color: #1f2937;
+    padding: 0 6px;
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 1.2;
+  }
+
+  .worksheets-mobile-quick-filters select option {
+    font-size: 16px;
+  }
+
+  .worksheets-mobile-quick-filters .ds-select__trigger {
+    min-height: 34px;
     padding: 0 8px;
-    font-weight: 700;
+  }
+
+  .worksheets-mobile-quick-filters .ds-select__menu {
+    left: 0;
+    right: 0;
   }
 
   .browse-wrap {
@@ -3049,6 +3210,16 @@ button {
 @media (min-width: 761px) {
   .navbar__mobile-menu,
   .navbar__mobile-top {
+    display: none;
+  }
+
+  .worksheets-sort__mobile {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .worksheets-sort__native {
     display: none;
   }
 }

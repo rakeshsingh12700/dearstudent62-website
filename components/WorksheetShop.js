@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import products from "../data/products";
 
@@ -144,6 +144,15 @@ function normalizeType(value) {
   return TYPE_ALIASES[toSlug(value)] || toSlug(value);
 }
 
+function normalizeMobileView(value) {
+  const slug = toSlug(value);
+  if (slug === "class" || slug === "classes") return "classes";
+  if (slug === "english") return "english";
+  if (slug === "maths") return "maths";
+  if (slug === "exam" || slug === "exams") return "exams";
+  return "library";
+}
+
 function withPreviewPageLimit(url, pageCount = 1) {
   if (!url) return "";
   const separator = url.includes("?") ? "&" : "?";
@@ -220,19 +229,91 @@ function EyeIcon() {
   );
 }
 
+function DropdownSelect({ value, options, onChange, className = "", ariaLabel }) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef(null);
+
+  const selectedLabel =
+    options.find((option) => option.value === value)?.label ||
+    options.find((option) => option.value === String(value))?.label ||
+    "Select";
+
+  useEffect(() => {
+    if (!open) return undefined;
+
+    const handleOutside = (event) => {
+      if (!rootRef.current || rootRef.current.contains(event.target)) return;
+      setOpen(false);
+    };
+
+    document.addEventListener("mousedown", handleOutside);
+    document.addEventListener("touchstart", handleOutside, { passive: true });
+    return () => {
+      document.removeEventListener("mousedown", handleOutside);
+      document.removeEventListener("touchstart", handleOutside);
+    };
+  }, [open]);
+
+  return (
+    <div className={`ds-select ${className}`.trim()} ref={rootRef}>
+      <button
+        type="button"
+        className="ds-select__trigger"
+        onClick={() => setOpen((prev) => !prev)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label={ariaLabel || selectedLabel}
+      >
+        <span>{selectedLabel}</span>
+        <span aria-hidden="true">▾</span>
+      </button>
+      {open && (
+        <div className="ds-select__menu" role="listbox" aria-label={ariaLabel || "Select option"}>
+          {options.map((option) => (
+            <button
+              key={`dd-${option.value}`}
+              type="button"
+              className={`ds-select__option ${String(option.value) === String(value) ? "active" : ""}`}
+              onClick={() => {
+                onChange(option.value);
+                setOpen(false);
+              }}
+              role="option"
+              aria-selected={String(option.value) === String(value)}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function WorksheetShop({
   initialClass = "all",
   initialType = "all",
   initialSubject = "all",
   initialTopic = "all",
   initialSubtopic = "all",
-  initialOpenCart = false
+  initialOpenCart = false,
+  initialMobileView = "library"
 }) {
   const [selectedClass, setSelectedClass] = useState(toSlug(initialClass) || "all");
   const [selectedType, setSelectedType] = useState(normalizeType(initialType) || "all");
   const [selectedSubject, setSelectedSubject] = useState(toSlug(initialSubject) || "all");
   const [selectedTopic, setSelectedTopic] = useState(toSlug(initialTopic) || "all");
   const [selectedSubtopic, setSelectedSubtopic] = useState(toSlug(initialSubtopic) || "all");
+  const [mobileView, setMobileView] = useState(() => {
+    const explicit = normalizeMobileView(initialMobileView);
+    if (explicit !== "library") return explicit;
+    if (selectedType !== "all" && selectedType !== "worksheet" && selectedType !== "bundle") {
+      return "exams";
+    }
+    if (selectedSubject === "english") return "english";
+    if (selectedSubject === "maths") return "maths";
+    return "classes";
+  });
   const [sortBy, setSortBy] = useState("default");
   const [isCartOpen, setIsCartOpen] = useState(initialOpenCart);
   const [desktopOpen, setDesktopOpen] = useState({
@@ -416,6 +497,106 @@ export default function WorksheetShop({
     setSelectedSubtopic("all");
   };
 
+  const mobileFilterMode = useMemo(() => {
+    const mode = normalizeMobileView(mobileView);
+    return mode === "library" ? "classes" : mode;
+  }, [mobileView]);
+
+  const mobileFilters = useMemo(() => {
+    if (mobileFilterMode === "english") {
+      return [
+        {
+          key: "topic",
+          label: "Topics",
+          value: selectedTopic,
+          onChange: (value) => resetAfterTopicChange(value),
+          options: topicOptions,
+        },
+        {
+          key: "type",
+          label: "Type",
+          value: selectedType,
+          onChange: (value) => setSelectedType(value),
+          options: [{ value: "all", label: "All" }, ...TYPE_OPTIONS],
+        },
+      ];
+    }
+
+    if (mobileFilterMode === "maths") {
+      return [
+        {
+          key: "topic",
+          label: "Topics",
+          value: selectedTopic,
+          onChange: (value) => resetAfterTopicChange(value),
+          options: topicOptions,
+        },
+        {
+          key: "type",
+          label: "Type",
+          value: selectedType,
+          onChange: (value) => setSelectedType(value),
+          options: [{ value: "all", label: "All" }, ...TYPE_OPTIONS],
+        },
+      ];
+    }
+
+    if (mobileFilterMode === "exams") {
+      return [
+        {
+          key: "class",
+          label: "Class",
+          value: selectedClass,
+          onChange: (value) => setSelectedClass(value),
+          options: CLASS_OPTIONS,
+        },
+        {
+          key: "subject",
+          label: "Subject",
+          value: selectedSubject,
+          onChange: (value) => resetAfterSubjectChange(value),
+          options: dynamicSubjectOptions,
+        },
+        {
+          key: "type",
+          label: "Type",
+          value: selectedType,
+          onChange: (value) => setSelectedType(value),
+          options: [{ value: "all", label: "All" }, ...TYPE_OPTIONS],
+        },
+      ];
+    }
+
+    return [
+      {
+        key: "class",
+        label: "Class",
+        value: selectedClass,
+        onChange: (value) => {
+          setSelectedClass(value);
+          if (value !== "all") {
+            resetAfterSubjectChange("all");
+          }
+        },
+        options: CLASS_OPTIONS,
+      },
+      {
+        key: "subject",
+        label: "Subject",
+        value: selectedSubject,
+        onChange: (value) => resetAfterSubjectChange(value),
+        options: dynamicSubjectOptions,
+      },
+      {
+        key: "type",
+        label: "Type",
+        value: selectedType,
+        onChange: (value) => setSelectedType(value),
+        options: [{ value: "all", label: "All" }, ...TYPE_OPTIONS],
+      },
+    ];
+  }, [dynamicSubjectOptions, mobileFilterMode, selectedClass, selectedSubject, selectedTopic, selectedType, topicOptions]);
+
   const toggleDesktopSection = (section) => {
     setDesktopOpen((prev) => ({
       ...prev,
@@ -445,9 +626,6 @@ export default function WorksheetShop({
         <div className="worksheets-top-row">
           <div className="worksheets-heading">
             <h1 className="worksheets-title">The Library</h1>
-            <p className="worksheets-subtitle">
-              Fast class-first browsing for mobile and desktop.
-            </p>
           </div>
         </div>
 
@@ -573,62 +751,88 @@ export default function WorksheetShop({
               </div>
               <label className="worksheets-sort">
                 <span>Sort:</span>
-                <select value={sortBy} onChange={(event) => setSortBy(event.target.value)}>
+                <select
+                  className="worksheets-sort__native"
+                  value={sortBy}
+                  onChange={(event) => setSortBy(event.target.value)}
+                >
                   {SORT_OPTIONS.map((option) => (
                     <option value={option.value} key={option.value}>
                       {option.label}
                     </option>
                   ))}
                 </select>
+                <DropdownSelect
+                  className="worksheets-sort__mobile"
+                  value={sortBy}
+                  options={SORT_OPTIONS}
+                  onChange={setSortBy}
+                  ariaLabel="Sort options"
+                />
               </label>
             </div>
 
-            <div className="worksheets-mobile-quick-filters">
-              {selectedSubject !== "all" && (
-                <label>
-                  Topic
-                  <select
-                    value={selectedTopic}
-                    onChange={(event) => resetAfterTopicChange(event.target.value)}
-                  >
-                    {topicOptions.map((option) => (
-                      <option key={`mq-topic-${option.value}`} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
+            <div className="worksheets-mobile-pane">
+              <button
+                type="button"
+                className={mobileFilterMode === "classes" ? "active" : ""}
+                onClick={() => {
+                  setMobileView("classes");
+                  setSelectedType("all");
+                  resetAfterSubjectChange("all");
+                }}
+              >
+                Classes
+              </button>
+              <button
+                type="button"
+                className={mobileFilterMode === "english" ? "active" : ""}
+                onClick={() => {
+                  setMobileView("english");
+                  setSelectedType("all");
+                  resetAfterSubjectChange("english");
+                }}
+              >
+                English
+              </button>
+              <button
+                type="button"
+                className={mobileFilterMode === "maths" ? "active" : ""}
+                onClick={() => {
+                  setMobileView("maths");
+                  setSelectedType("all");
+                  resetAfterSubjectChange("maths");
+                }}
+              >
+                Maths
+              </button>
+              <button
+                type="button"
+                className={mobileFilterMode === "exams" ? "active" : ""}
+                onClick={() => {
+                  setMobileView("exams");
+                  setSelectedType("exams");
+                  resetAfterSubjectChange("all");
+                }}
+              >
+                Exams
+              </button>
+            </div>
+
+            <div
+              className={`worksheets-mobile-quick-filters worksheets-mobile-quick-filters--count-${mobileFilters.length}`}
+            >
+              {mobileFilters.map((filterItem) => (
+                <label key={`mq-filter-${filterItem.key}`}>
+                  <span>{filterItem.label}</span>
+                  <DropdownSelect
+                    value={filterItem.value}
+                    options={filterItem.options}
+                    onChange={filterItem.onChange}
+                    ariaLabel={filterItem.label}
+                  />
                 </label>
-              )}
-              {selectedTopic === "grammar" && (
-                <label>
-                  SubTopic
-                  <select
-                    value={selectedSubtopic}
-                    onChange={(event) => setSelectedSubtopic(event.target.value)}
-                  >
-                    <option value="all">All</option>
-                    {GRAMMAR_SUBTOPIC_OPTIONS.map((option) => (
-                      <option key={`mq-subtopic-${option.value}`} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              )}
-              <label>
-                Type
-                <select
-                  value={selectedType}
-                  onChange={(event) => setSelectedType(event.target.value)}
-                >
-                  <option value="all">All</option>
-                  {TYPE_OPTIONS.map((option) => (
-                    <option key={`mq-type-${option.value}`} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              ))}
             </div>
 
             {visibleProducts.length === 0 && (

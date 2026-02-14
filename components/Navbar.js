@@ -9,11 +9,11 @@ const CART_STORAGE_KEY = "ds-worksheet-cart-v1";
 
 const NAV_LINKS = [
   { label: "Home", href: "/" },
-  { label: "Library", href: "/worksheets" },
-  { label: "Classes", href: "/classes" },
-  { label: "English", href: "/english" },
-  { label: "Maths", href: "/maths" },
-  { label: "Exams", href: "/exams" }
+  { label: "Library", href: "/worksheets?view=library" },
+  { label: "Classes", href: "/worksheets?view=classes" },
+  { label: "English", href: "/worksheets?view=english&subject=english" },
+  { label: "Maths", href: "/worksheets?view=library&subject=maths" },
+  { label: "Exams", href: "/worksheets?view=library&type=exams" }
 ];
 
 export default function Navbar() {
