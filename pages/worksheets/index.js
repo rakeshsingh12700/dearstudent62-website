@@ -8,6 +8,12 @@ export default function Worksheets() {
     typeof router.query.class === "string" ? router.query.class : "all";
   const typeFromQuery =
     typeof router.query.type === "string" ? router.query.type : "all";
+  const subjectFromQuery =
+    typeof router.query.subject === "string" ? router.query.subject : "all";
+  const topicFromQuery =
+    typeof router.query.topic === "string" ? router.query.topic : "all";
+  const subtopicFromQuery =
+    typeof router.query.subtopic === "string" ? router.query.subtopic : "all";
   const openCartFromQuery =
     router.query.openCart === "1" || router.asPath.includes("openCart=1");
 
@@ -15,9 +21,12 @@ export default function Worksheets() {
     <>
       <Navbar />
       <WorksheetShop
-        key={`${classFromQuery}-${typeFromQuery}-${openCartFromQuery ? "cart" : "list"}`}
+        key={`${classFromQuery}-${typeFromQuery}-${subjectFromQuery}-${topicFromQuery}-${subtopicFromQuery}-${openCartFromQuery ? "cart" : "list"}`}
         initialClass={classFromQuery}
         initialType={typeFromQuery}
+        initialSubject={subjectFromQuery}
+        initialTopic={topicFromQuery}
+        initialSubtopic={subtopicFromQuery}
         initialOpenCart={openCartFromQuery}
       />
     </>

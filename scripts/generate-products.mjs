@@ -51,7 +51,9 @@ function parseProductFromFilename(fileName) {
 
   const category = toTitleCase(categoryPart);
   const classValue = slugify(classPart);
-  const typeValue = slugify(categoryPart).replace(/s$/, "") || "worksheet";
+  const categorySlug = slugify(categoryPart);
+  const typeValue =
+    categorySlug === "worksheets" ? "worksheet" : categorySlug || "worksheet";
   const title = subcategory;
 
   return {

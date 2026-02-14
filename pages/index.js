@@ -9,7 +9,7 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>dearstudent62 Learning Hub</title>
+        <title>Dear Student</title>
         <meta
           name="description"
           content="Printable worksheets for young learners with playful, engaging activities."
@@ -23,13 +23,10 @@ export default function Home() {
             Learning is <span className="hero__title-accent">Playtime!</span>
           </h1>
           <p className="hero__copy">
-            dearstudent62 makes early learning exciting with premium printable
+            Dear Student makes early learning exciting with premium printable
             worksheets for your little ones.
           </p>
           <div className="hero__actions">
-            <Link href="/worksheets" className="btn btn-primary">
-              Shop Worksheets
-            </Link>
             {!user && (
               <Link href="/auth" className="btn btn-secondary">
                 Get Started

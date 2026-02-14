@@ -9,6 +9,12 @@ export default function ClassPage() {
     typeof query.class === "string" ? query.class.toLowerCase() : "all";
   const typeFromQuery =
     typeof query.type === "string" ? query.type.toLowerCase() : "all";
+  const subjectFromQuery =
+    typeof query.subject === "string" ? query.subject.toLowerCase() : "all";
+  const topicFromQuery =
+    typeof query.topic === "string" ? query.topic.toLowerCase() : "all";
+  const subtopicFromQuery =
+    typeof query.subtopic === "string" ? query.subtopic.toLowerCase() : "all";
   const openCartFromQuery =
     query.openCart === "1" || router.asPath.includes("openCart=1");
 
@@ -16,9 +22,12 @@ export default function ClassPage() {
     <>
       <Navbar />
       <WorksheetShop
-        key={`${classFromRoute}-${typeFromQuery}-${openCartFromQuery ? "cart" : "list"}`}
+        key={`${classFromRoute}-${typeFromQuery}-${subjectFromQuery}-${topicFromQuery}-${subtopicFromQuery}-${openCartFromQuery ? "cart" : "list"}`}
         initialClass={classFromRoute}
         initialType={typeFromQuery}
+        initialSubject={subjectFromQuery}
+        initialTopic={topicFromQuery}
+        initialSubtopic={subtopicFromQuery}
         initialOpenCart={openCartFromQuery}
       />
     </>

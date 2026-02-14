@@ -5,18 +5,28 @@ import products from "../data/products";
 
 const CLASS_OPTIONS = [
   { value: "all", label: "All" },
-  { value: "pre-nursery", label: "Pre Nursery" },
+  { value: "pre-nursery", label: "PreN" },
   { value: "nursery", label: "Nursery" },
   { value: "lkg", label: "LKG" },
-  { value: "ukg", label: "UKG" }
+  { value: "ukg", label: "UKG" },
+  { value: "class-1", label: "C1" },
+  { value: "class-2", label: "C2" },
+  { value: "class-3", label: "C3" }
+];
+
+const SUBJECT_OPTIONS = [
+  { value: "all", label: "All" },
+  { value: "english", label: "English" },
+  { value: "maths", label: "Maths" },
+  { value: "evs", label: "EVS" }
 ];
 
 const TYPE_OPTIONS = [
-  { value: "all", label: "All Assets" },
-  { value: "worksheet", label: "Worksheets" },
-  { value: "exams", label: "Exams" },
-  { value: "half-year-exam", label: "Half Year Exam" },
-  { value: "final-year-exam", label: "Final Year Exam" }
+  { value: "worksheet", label: "Worksheet" },
+  { value: "exams", label: "UnitTest" },
+  { value: "half-year-exam", label: "HalfYear" },
+  { value: "final-year-exam", label: "Final" },
+  { value: "bundle", label: "Bundle" }
 ];
 
 const SORT_OPTIONS = [
@@ -26,12 +36,168 @@ const SORT_OPTIONS = [
   { value: "title", label: "Title: A-Z" }
 ];
 
+const TOPIC_OPTIONS_BY_SUBJECT = {
+  english: [
+    { value: "reading", label: "Reading" },
+    { value: "writing", label: "Writing" },
+    { value: "grammar", label: "Grammar" },
+    { value: "poems", label: "Poems" },
+    { value: "sight-words", label: "Sight Words" }
+  ],
+  maths: [
+    { value: "numbers", label: "Numbers" },
+    { value: "addition", label: "Addition" },
+    { value: "subtraction", label: "Subtraction" },
+    { value: "shapes", label: "Shapes" },
+    { value: "measurement", label: "Measurement" }
+  ],
+  evs: [
+    { value: "environment", label: "Environment" },
+    { value: "plants", label: "Plants" },
+    { value: "animals", label: "Animals" },
+    { value: "water", label: "Water" },
+    { value: "food", label: "Food" }
+  ]
+};
+
+const GRAMMAR_SUBTOPIC_OPTIONS = [
+  { value: "noun", label: "Noun" },
+  { value: "pronoun", label: "Pronoun" },
+  { value: "verb", label: "Verb" },
+  { value: "articles", label: "Articles" },
+  { value: "opposites", label: "Opposites" },
+  { value: "singular-plural", label: "Singular/Plural" },
+  { value: "is-am-are", label: "Is/Am/Are" },
+  { value: "prepositions", label: "Prepositions" },
+  { value: "adjectives", label: "Adjectives" },
+  { value: "have-has-had", label: "Have/Has/Had" }
+];
+
+const SUBJECT_PATTERNS = {
+  english: [/\benglish\b/i],
+  maths: [/\bmaths?\b/i, /\bmathematics\b/i, /\baddition\b/i, /\bsubtraction\b/i],
+  evs: [/\bevs\b/i, /\benvironment(al)? studies\b/i, /\benvironment\b/i]
+};
+
+const TOPIC_PATTERNS = {
+  reading: [/\breading\b/i],
+  writing: [/\bwriting\b/i],
+  grammar: [/\bgrammar\b/i],
+  poems: [/\bpoems?\b/i, /\bpoetry\b/i],
+  "sight-words": [/\bsight\s*words?\b/i],
+  numbers: [/\bnumbers?\b/i],
+  addition: [/\baddition\b/i],
+  subtraction: [/\bsubtraction\b/i],
+  shapes: [/\bshapes?\b/i],
+  measurement: [/\bmeasurement\b/i],
+  environment: [/\benvironment\b/i],
+  plants: [/\bplants?\b/i],
+  animals: [/\banimals?\b/i],
+  water: [/\bwater\b/i],
+  food: [/\bfood\b/i]
+};
+
+const SUBTOPIC_PATTERNS = {
+  noun: [/\bnouns?\b/i],
+  pronoun: [/\bpronouns?\b/i],
+  verb: [/\bverbs?\b/i],
+  articles: [/\barticles?\b/i],
+  opposites: [/\bopposites?\b/i],
+  "singular-plural": [/\bsingular\b/i, /\bplural\b/i],
+  "is-am-are": [/\bis\s*\/\s*am\s*\/\s*are\b/i],
+  prepositions: [/\bprepositions?\b/i],
+  adjectives: [/\badjectives?\b/i],
+  "have-has-had": [/\bhave\b/i, /\bhas\b/i, /\bhad\b/i]
+};
+
+const TYPE_ALIASES = {
+  worksheet: "worksheet",
+  worksheets: "worksheet",
+  exams: "exams",
+  "unit-test": "exams",
+  unittest: "exams",
+  "half-year-exam": "half-year-exam",
+  "half-year": "half-year-exam",
+  "final-year-exam": "final-year-exam",
+  final: "final-year-exam",
+  bundle: "bundle",
+  all: "all"
+};
+
 const CART_STORAGE_KEY = "ds-worksheet-cart-v1";
+
+function toSlug(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function toLabel(slug) {
+  return String(slug || "")
+    .replace(/[-_]+/g, " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function normalizeType(value) {
+  return TYPE_ALIASES[toSlug(value)] || toSlug(value);
+}
 
 function withPreviewPageLimit(url, pageCount = 1) {
   if (!url) return "";
   const separator = url.includes("?") ? "&" : "?";
   return `${url}${separator}pages=${pageCount}`;
+}
+
+function matchFirstKey(patternMap, sourceText) {
+  return Object.keys(patternMap).find((key) =>
+    patternMap[key].some((pattern) => pattern.test(sourceText))
+  );
+}
+
+function inferTaxonomy(product) {
+  const sourceText = [
+    product?.subject,
+    product?.topic,
+    product?.subcategory,
+    product?.title,
+    product?.category,
+    product?.type
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  const explicitSubject = toSlug(product?.subject);
+  const inferredSubject = explicitSubject || matchFirstKey(SUBJECT_PATTERNS, sourceText) || "evs";
+
+  const explicitTopic = toSlug(product?.topic);
+  const inferredTopic = explicitTopic || matchFirstKey(TOPIC_PATTERNS, sourceText);
+
+  const subtopics = Object.keys(SUBTOPIC_PATTERNS).filter((key) =>
+    SUBTOPIC_PATTERNS[key].some((pattern) => pattern.test(sourceText))
+  );
+
+  let finalTopic = inferredTopic;
+  if (!finalTopic && subtopics.length > 0) {
+    finalTopic = "grammar";
+  }
+
+  if (!finalTopic) {
+    if (inferredSubject === "english") finalTopic = "reading";
+    else if (inferredSubject === "maths") finalTopic = "numbers";
+    else finalTopic = "environment";
+  }
+
+  return {
+    subject: inferredSubject,
+    topic: finalTopic,
+    subtopics
+  };
+}
+
+function getOptionLabel(options, value) {
+  return options.find((item) => item.value === value)?.label || toLabel(value);
 }
 
 function EyeIcon() {
@@ -57,12 +223,25 @@ function EyeIcon() {
 export default function WorksheetShop({
   initialClass = "all",
   initialType = "all",
+  initialSubject = "all",
+  initialTopic = "all",
+  initialSubtopic = "all",
   initialOpenCart = false
 }) {
-  const [selectedClass, setSelectedClass] = useState(initialClass);
-  const [selectedType, setSelectedType] = useState(initialType);
+  const [selectedClass, setSelectedClass] = useState(toSlug(initialClass) || "all");
+  const [selectedType, setSelectedType] = useState(normalizeType(initialType) || "all");
+  const [selectedSubject, setSelectedSubject] = useState(toSlug(initialSubject) || "all");
+  const [selectedTopic, setSelectedTopic] = useState(toSlug(initialTopic) || "all");
+  const [selectedSubtopic, setSelectedSubtopic] = useState(toSlug(initialSubtopic) || "all");
   const [sortBy, setSortBy] = useState("default");
   const [isCartOpen, setIsCartOpen] = useState(initialOpenCart);
+  const [desktopOpen, setDesktopOpen] = useState({
+    class: true,
+    subject: true,
+    topic: true,
+    subtopic: true,
+    type: true,
+  });
   const [previewState, setPreviewState] = useState(null);
   const [cart, setCart] = useState(() => {
     if (typeof window === "undefined") return [];
@@ -91,11 +270,80 @@ export default function WorksheetShop({
     };
   }, []);
 
+  const taxonomyById = useMemo(() => {
+    const map = new Map();
+    products.forEach((product) => {
+      map.set(product.id, inferTaxonomy(product));
+    });
+    return map;
+  }, []);
+
+  const isGrammarTopic = selectedTopic === "grammar";
+
+  const dynamicSubjectOptions = useMemo(() => {
+    const values = new Set();
+
+    products.forEach((product) => {
+      const classMatch = selectedClass === "all" || product.class === selectedClass;
+      const typeMatch = selectedType === "all" || normalizeType(product.type) === selectedType;
+      if (!classMatch || !typeMatch) return;
+
+      const taxonomy = taxonomyById.get(product.id);
+      if (taxonomy?.subject) values.add(taxonomy.subject);
+    });
+
+    const predefined = SUBJECT_OPTIONS.filter((item) => item.value !== "all");
+    const dynamic = Array.from(values)
+      .filter((value) => value !== "all")
+      .map((value) => ({ value, label: toLabel(value) }));
+
+    const byValue = new Map();
+    [...predefined, ...dynamic].forEach((item) => byValue.set(item.value, item));
+
+    return [{ value: "all", label: "All" }, ...Array.from(byValue.values())];
+  }, [selectedClass, selectedType, taxonomyById]);
+
+  const topicOptions = useMemo(() => {
+    if (selectedSubject === "all") return [{ value: "all", label: "All" }];
+
+    const predefined = TOPIC_OPTIONS_BY_SUBJECT[selectedSubject] || [];
+    const dynamicValues = new Set();
+
+    products.forEach((product) => {
+      const taxonomy = taxonomyById.get(product.id);
+      if (!taxonomy) return;
+
+      const classMatch = selectedClass === "all" || product.class === selectedClass;
+      const typeMatch = selectedType === "all" || normalizeType(product.type) === selectedType;
+      const subjectMatch = taxonomy.subject === selectedSubject;
+      if (!classMatch || !typeMatch || !subjectMatch) return;
+
+      dynamicValues.add(taxonomy.topic);
+    });
+
+    const dynamic = Array.from(dynamicValues)
+      .filter(Boolean)
+      .map((value) => ({ value, label: toLabel(value) }));
+
+    const byValue = new Map();
+    [...predefined, ...dynamic].forEach((item) => byValue.set(item.value, item));
+
+    return [{ value: "all", label: "All" }, ...Array.from(byValue.values())];
+  }, [selectedClass, selectedSubject, selectedType, taxonomyById]);
+
   const visibleProducts = useMemo(() => {
-    const filtered = products.filter((item) => {
-      const classMatch = selectedClass === "all" || item.class === selectedClass;
-      const typeMatch = selectedType === "all" || item.type === selectedType;
-      return classMatch && typeMatch;
+    const filtered = products.filter((product) => {
+      const taxonomy = taxonomyById.get(product.id);
+      const classMatch = selectedClass === "all" || product.class === selectedClass;
+      const typeMatch = selectedType === "all" || normalizeType(product.type) === selectedType;
+      const subjectMatch = selectedSubject === "all" || taxonomy?.subject === selectedSubject;
+      const topicMatch = selectedTopic === "all" || taxonomy?.topic === selectedTopic;
+      const subtopicMatch =
+        !isGrammarTopic ||
+        selectedSubtopic === "all" ||
+        (Array.isArray(taxonomy?.subtopics) && taxonomy.subtopics.includes(selectedSubtopic));
+
+      return classMatch && typeMatch && subjectMatch && topicMatch && subtopicMatch;
     });
 
     const sorted = [...filtered];
@@ -107,7 +355,24 @@ export default function WorksheetShop({
       sorted.sort((a, b) => a.title.localeCompare(b.title));
     }
     return sorted;
-  }, [selectedClass, selectedType, sortBy]);
+  }, [isGrammarTopic, selectedClass, selectedSubtopic, selectedSubject, selectedTopic, selectedType, sortBy, taxonomyById]);
+
+  const selectedPathLabel = useMemo(() => {
+    const path = [];
+    if (selectedClass !== "all") {
+      path.push(getOptionLabel(CLASS_OPTIONS, selectedClass));
+    }
+    if (selectedSubject !== "all") {
+      path.push(getOptionLabel(dynamicSubjectOptions, selectedSubject));
+    }
+    if (selectedTopic !== "all") {
+      path.push(getOptionLabel(topicOptions, selectedTopic));
+    }
+    if (selectedSubtopic !== "all") {
+      path.push(getOptionLabel(GRAMMAR_SUBTOPIC_OPTIONS, selectedSubtopic));
+    }
+    return path.join(" > ");
+  }, [dynamicSubjectOptions, selectedClass, selectedSubject, selectedSubtopic, selectedTopic, topicOptions]);
 
   const cartTotal = useMemo(
     () => cart.reduce((sum, item) => sum + item.quantity * item.price, 0),
@@ -133,14 +398,46 @@ export default function WorksheetShop({
     });
   };
 
-  const clearCart = () => {
-    setCart([]);
-  };
+  const clearCart = () => setCart([]);
 
   const getItemQuantity = (productId) => {
     const item = cart.find((cartItem) => cartItem.id === productId);
     return item ? item.quantity : 0;
   };
+
+  const resetAfterSubjectChange = (subject) => {
+    setSelectedSubject(subject);
+    setSelectedTopic("all");
+    setSelectedSubtopic("all");
+  };
+
+  const resetAfterTopicChange = (topic) => {
+    setSelectedTopic(topic);
+    setSelectedSubtopic("all");
+  };
+
+  const toggleDesktopSection = (section) => {
+    setDesktopOpen((prev) => ({
+      ...prev,
+      [section]: !prev[section],
+    }));
+  };
+
+  const renderDesktopGroup = (sectionKey, title, content) => (
+    <section className="worksheets-sidebar__group">
+      <button
+        type="button"
+        className="worksheets-sidebar__group-toggle"
+        onClick={() => toggleDesktopSection(sectionKey)}
+      >
+        <span>{title}</span>
+        <span aria-hidden="true">{desktopOpen[sectionKey] ? "−" : "+"}</span>
+      </button>
+      {desktopOpen[sectionKey] && (
+        <div className="worksheets-sidebar__group-content">{content}</div>
+      )}
+    </section>
+  );
 
   return (
     <main className="worksheets-page">
@@ -149,178 +446,284 @@ export default function WorksheetShop({
           <div className="worksheets-heading">
             <h1 className="worksheets-title">The Library</h1>
             <p className="worksheets-subtitle">
-              Hand-picked worksheet sets for early learners.
+              Fast class-first browsing for mobile and desktop.
             </p>
           </div>
+        </div>
 
-          <div className="worksheets-filter-mobile">
-            <label>
-              Class
-              <select
-                value={selectedClass}
-                onChange={(event) => setSelectedClass(event.target.value)}
-              >
+        <div className="worksheets-layout">
+          <aside className="worksheets-sidebar">
+            <div className="worksheets-sidebar__header">
+              <h2>Filters</h2>
+            </div>
+
+            {renderDesktopGroup(
+              "class",
+              "Class",
+              <div className="worksheets-sidebar__options">
                 {CLASS_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Asset Type
-              <select
-                value={selectedType}
-                onChange={(event) => setSelectedType(event.target.value)}
-              >
-                {TYPE_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-
-          <div className="worksheets-filter-pane">
-            <div className="worksheets-segment">
-              {CLASS_OPTIONS.map((option) => (
-                <button
-                  key={option.value}
-                  type="button"
-                  className={selectedClass === option.value ? "active" : ""}
-                  onClick={() => setSelectedClass(option.value)}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
-            <div className="worksheets-segment worksheets-segment--type">
-              {TYPE_OPTIONS.map((option) => (
-                <button
-                  key={option.value}
-                  type="button"
-                  className={selectedType === option.value ? "active" : ""}
-                  onClick={() => setSelectedType(option.value)}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div className="worksheets-toolbar">
-          <p>
-            Showing {visibleProducts.length === 0 ? 0 : 1}-{visibleProducts.length}{" "}
-            of {visibleProducts.length} results
-          </p>
-          <label className="worksheets-sort">
-            <span>Sort:</span>
-            <select
-              value={sortBy}
-              onChange={(event) => setSortBy(event.target.value)}
-            >
-              {SORT_OPTIONS.map((option) => (
-                <option value={option.value} key={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-
-        {visibleProducts.length === 0 && (
-          <div className="worksheets-empty">
-            No assets found for selected filters. Try another class or asset type.
-          </div>
-        )}
-
-        <div className="worksheets-grid">
-          {visibleProducts.map((product) => {
-            const quantity = getItemQuantity(product.id);
-            const singlePagePreviewUrl = withPreviewPageLimit(product.pdf, 1);
-
-            return (
-              <article className="worksheet-card" key={product.id}>
-                <div className="worksheet-card__media worksheet-card__media--pdf">
-                  <Link
-                    href={`/product/${product.id}`}
-                    className="worksheet-card__media-click"
-                    aria-label={`Open ${product.title}`}
+                  <button
+                    key={`desktop-class-${option.value}`}
+                    type="button"
+                    className={selectedClass === option.value ? "active" : ""}
+                    onClick={() => {
+                      setSelectedClass(option.value);
+                      resetAfterSubjectChange("all");
+                    }}
                   >
-                    <iframe
-                      src={`${singlePagePreviewUrl}#page=1&view=FitH,88&toolbar=0&navpanes=0&scrollbar=0`}
-                      title={`${product.title} page 1 thumbnail`}
-                      loading="lazy"
-                    />
-                  </Link>
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {renderDesktopGroup(
+              "subject",
+              "Subject",
+              <div className="worksheets-sidebar__options">
+                {dynamicSubjectOptions.map((option) => (
+                  <button
+                    key={`desktop-subject-${option.value}`}
+                    type="button"
+                    className={selectedSubject === option.value ? "active" : ""}
+                    onClick={() => resetAfterSubjectChange(option.value)}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {selectedSubject !== "all" &&
+              renderDesktopGroup(
+                "topic",
+                "Topic",
+                <div className="worksheets-sidebar__options">
+                  {topicOptions.map((option) => (
+                    <button
+                      key={`desktop-topic-${option.value}`}
+                      type="button"
+                      className={selectedTopic === option.value ? "active" : ""}
+                      onClick={() => resetAfterTopicChange(option.value)}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+            {isGrammarTopic &&
+              renderDesktopGroup(
+                "subtopic",
+                "SubTopic",
+                <div className="worksheets-sidebar__options">
                   <button
                     type="button"
-                    className="worksheet-card__preview-btn"
-                    aria-label={`Quick preview ${product.title}`}
-                    onClick={() => setPreviewState(product)}
+                    className={selectedSubtopic === "all" ? "active" : ""}
+                    onClick={() => setSelectedSubtopic("all")}
                   >
-                    <EyeIcon />
+                    All
                   </button>
-                </div>
-
-                <p className="worksheet-card__age">{product.ageLabel || "AGE 3+"}</p>
-                <h3 className="worksheet-card__title">
-                  <Link href={`/product/${product.id}`}>{product.title}</Link>
-                </h3>
-                <p className="worksheet-card__meta">
-                  {(product.type || "worksheet").replaceAll("-", " ")} |{" "}
-                  {product.pages || 0} Pages | Digital PDF
-                </p>
-                <p className="worksheet-card__price">INR {product.price}</p>
-                <div className="worksheet-card__actions">
-                  {quantity === 0 ? (
+                  {GRAMMAR_SUBTOPIC_OPTIONS.map((option) => (
                     <button
+                      key={`desktop-subtopic-${option.value}`}
                       type="button"
-                      className="cart-stepper cart-stepper--empty"
-                      onClick={() => updateCartItem(product, 1)}
+                      className={selectedSubtopic === option.value ? "active" : ""}
+                      onClick={() => setSelectedSubtopic(option.value)}
                     >
-                      <span className="cart-stepper__label">Add to Cart</span>
-                      <span className="cart-stepper__plus">+</span>
+                      {option.label}
                     </button>
-                  ) : (
-                    <div className="cart-stepper">
+                  ))}
+                </div>
+              )}
+
+            {renderDesktopGroup(
+              "type",
+              "Type",
+              <div className="worksheets-sidebar__options">
+                <button
+                  type="button"
+                  className={selectedType === "all" ? "active" : ""}
+                  onClick={() => setSelectedType("all")}
+                >
+                  All
+                </button>
+                {TYPE_OPTIONS.map((option) => (
+                  <button
+                    key={`desktop-type-${option.value}`}
+                    type="button"
+                    className={selectedType === option.value ? "active" : ""}
+                    onClick={() => setSelectedType(option.value)}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </aside>
+
+          <div className="worksheets-content">
+            <div className="worksheets-toolbar">
+              <div>
+                {selectedPathLabel && <p className="worksheets-path">{selectedPathLabel}</p>}
+                <p>
+                  Showing {visibleProducts.length === 0 ? 0 : 1}-{visibleProducts.length} of{" "}
+                  {visibleProducts.length} results
+                </p>
+              </div>
+              <label className="worksheets-sort">
+                <span>Sort:</span>
+                <select value={sortBy} onChange={(event) => setSortBy(event.target.value)}>
+                  {SORT_OPTIONS.map((option) => (
+                    <option value={option.value} key={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
+            <div className="worksheets-mobile-quick-filters">
+              {selectedSubject !== "all" && (
+                <label>
+                  Topic
+                  <select
+                    value={selectedTopic}
+                    onChange={(event) => resetAfterTopicChange(event.target.value)}
+                  >
+                    {topicOptions.map((option) => (
+                      <option key={`mq-topic-${option.value}`} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
+              {selectedTopic === "grammar" && (
+                <label>
+                  SubTopic
+                  <select
+                    value={selectedSubtopic}
+                    onChange={(event) => setSelectedSubtopic(event.target.value)}
+                  >
+                    <option value="all">All</option>
+                    {GRAMMAR_SUBTOPIC_OPTIONS.map((option) => (
+                      <option key={`mq-subtopic-${option.value}`} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
+              <label>
+                Type
+                <select
+                  value={selectedType}
+                  onChange={(event) => setSelectedType(event.target.value)}
+                >
+                  <option value="all">All</option>
+                  {TYPE_OPTIONS.map((option) => (
+                    <option key={`mq-type-${option.value}`} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
+            {visibleProducts.length === 0 && (
+              <div className="worksheets-empty">
+                No assets found for selected filters. Try another selection.
+              </div>
+            )}
+
+            <div className="worksheets-grid">
+              {visibleProducts.map((product) => {
+                const quantity = getItemQuantity(product.id);
+                const singlePagePreviewUrl = withPreviewPageLimit(product.pdf, 1);
+
+                return (
+                  <article className="worksheet-card" key={product.id}>
+                    <div className="worksheet-card__media worksheet-card__media--pdf">
+                      <Link
+                        href={`/product/${product.id}`}
+                        className="worksheet-card__media-click"
+                        aria-label={`Open ${product.title}`}
+                      >
+                        <iframe
+                          src={`${singlePagePreviewUrl}#page=1&view=FitH,88&toolbar=0&navpanes=0&scrollbar=0`}
+                          title={`${product.title} page 1 thumbnail`}
+                          loading="lazy"
+                        />
+                      </Link>
                       <button
                         type="button"
-                        className="cart-stepper__btn"
-                        aria-label={`Decrease quantity for ${product.title}`}
-                        onClick={() => updateCartItem(product, -1)}
+                        className="worksheet-card__preview-btn"
+                        aria-label={`Quick preview ${product.title}`}
+                        onClick={() => setPreviewState(product)}
                       >
-                        {quantity === 1 ? (
-                          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-                            <path
-                              d="M6 7h12M9 7V5h6v2m-7 3v8m4-8v8m4-8v8M8 7l1 12h6l1-12"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                            />
-                          </svg>
-                        ) : (
-                          "-"
-                        )}
-                      </button>
-                      <span className="cart-stepper__count">{quantity}</span>
-                      <button
-                        type="button"
-                        className="cart-stepper__btn"
-                        aria-label={`Increase quantity for ${product.title}`}
-                        onClick={() => updateCartItem(product, 1)}
-                      >
-                        +
+                        <EyeIcon />
                       </button>
                     </div>
-                  )}
-                </div>
-              </article>
-            );
-          })}
+
+                    <p className="worksheet-card__age">{product.ageLabel || "AGE 3+"}</p>
+                    <h3 className="worksheet-card__title">
+                      <Link href={`/product/${product.id}`}>{product.title}</Link>
+                    </h3>
+                    <p className="worksheet-card__meta">
+                      {(product.type || "worksheet").replaceAll("-", " ")} |{" "}
+                      {product.pages || 0} Pages | Digital PDF
+                    </p>
+                    <p className="worksheet-card__price">INR {product.price}</p>
+                    <div className="worksheet-card__actions">
+                      {quantity === 0 ? (
+                        <button
+                          type="button"
+                          className="cart-stepper cart-stepper--empty"
+                          onClick={() => updateCartItem(product, 1)}
+                        >
+                          <span className="cart-stepper__label">Add to Cart</span>
+                          <span className="cart-stepper__plus">+</span>
+                        </button>
+                      ) : (
+                        <div className="cart-stepper">
+                          <button
+                            type="button"
+                            className="cart-stepper__btn"
+                            aria-label={`Decrease quantity for ${product.title}`}
+                            onClick={() => updateCartItem(product, -1)}
+                          >
+                            {quantity === 1 ? (
+                              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                                <path
+                                  d="M6 7h12M9 7V5h6v2m-7 3v8m4-8v8m4-8v8M8 7l1 12h6l1-12"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                />
+                              </svg>
+                            ) : (
+                              "-"
+                            )}
+                          </button>
+                          <span className="cart-stepper__count">{quantity}</span>
+                          <button
+                            type="button"
+                            className="cart-stepper__btn"
+                            aria-label={`Increase quantity for ${product.title}`}
+                            onClick={() => updateCartItem(product, 1)}
+                          >
+                            +
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </section>
 
@@ -343,9 +746,7 @@ export default function WorksheetShop({
                 Close
               </button>
             </header>
-            <p className="worksheet-preview-modal__hint">
-              Preview shows page 1 only.
-            </p>
+            <p className="worksheet-preview-modal__hint">Preview shows page 1 only.</p>
             <iframe
               className="worksheet-preview-modal__frame"
               src={`${withPreviewPageLimit(previewState.pdf, 1)}#page=1&view=FitH,110&toolbar=0&navpanes=0&scrollbar=0`}
@@ -387,9 +788,7 @@ export default function WorksheetShop({
             </div>
 
             <div className="worksheet-cart__items">
-              {cart.length === 0 && (
-                <p className="worksheet-cart__empty">Your cart is empty.</p>
-              )}
+              {cart.length === 0 && <p className="worksheet-cart__empty">Your cart is empty.</p>}
               {cart.map((item) => (
                 <div className="worksheet-cart__item" key={item.id}>
                   <div>

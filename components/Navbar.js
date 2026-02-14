@@ -5,72 +5,24 @@ import { signOut } from "firebase/auth";
 import { auth } from "../firebase/config";
 import { useRouter } from "next/router";
 
-const worksheetMenu = [
-  {
-    key: "pre-nursery",
-    label: "Pre Nursery",
-    submenu: [
-      { label: "Worksheet", href: "/worksheets?class=pre-nursery&type=worksheet" },
-      { label: "Exams", href: "/worksheets?class=pre-nursery&type=exams" },
-      {
-        label: "Half Year Exam",
-        href: "/worksheets?class=pre-nursery&type=half-year-exam"
-      },
-      {
-        label: "Final Year Exam",
-        href: "/worksheets?class=pre-nursery&type=final-year-exam"
-      }
-    ]
-  },
-  {
-    key: "nursery",
-    label: "Nursery",
-    submenu: [
-      { label: "Worksheet", href: "/worksheets?class=nursery&type=worksheet" },
-      { label: "Exams", href: "/worksheets?class=nursery&type=exams" },
-      {
-        label: "Half Year Exam",
-        href: "/worksheets?class=nursery&type=half-year-exam"
-      },
-      {
-        label: "Final Year Exam",
-        href: "/worksheets?class=nursery&type=final-year-exam"
-      }
-    ]
-  },
-  {
-    key: "lkg",
-    label: "LKG",
-    submenu: [
-      { label: "Worksheet", href: "/worksheets?class=lkg&type=worksheet" },
-      { label: "Exams", href: "/worksheets?class=lkg&type=exams" },
-      { label: "Half Year Exam", href: "/worksheets?class=lkg&type=half-year-exam" },
-      {
-        label: "Final Year Exam",
-        href: "/worksheets?class=lkg&type=final-year-exam"
-      }
-    ]
-  },
-  {
-    key: "ukg",
-    label: "UKG",
-    submenu: [
-      { label: "Worksheet", href: "/worksheets?class=ukg&type=worksheet" },
-      { label: "Exams", href: "/worksheets?class=ukg&type=exams" },
-      { label: "Half Year Exam", href: "/worksheets?class=ukg&type=half-year-exam" },
-      {
-        label: "Final Year Exam",
-        href: "/worksheets?class=ukg&type=final-year-exam"
-      }
-    ]
-  }
-];
 const CART_STORAGE_KEY = "ds-worksheet-cart-v1";
+
+const NAV_LINKS = [
+  { label: "Home", href: "/" },
+  { label: "Library", href: "/worksheets" },
+  { label: "Classes", href: "/classes" },
+  { label: "English", href: "/english" },
+  { label: "Maths", href: "/maths" },
+  { label: "Exams", href: "/exams" }
+];
 
 export default function Navbar() {
   const { user } = useAuth();
   const router = useRouter();
   const [cartCount, setCartCount] = useState(0);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [mobileProfileOpen, setMobileProfileOpen] = useState(false);
 
   const handleLogout = async () => {
     if (typeof window !== "undefined") {
@@ -78,6 +30,9 @@ export default function Navbar() {
       window.dispatchEvent(new CustomEvent("ds-cart-updated"));
     }
     await signOut(auth);
+    setMobileMenuOpen(false);
+    setProfileOpen(false);
+    setMobileProfileOpen(false);
     router.push("/");
   };
 
@@ -111,6 +66,7 @@ export default function Navbar() {
   }, []);
 
   const cartLabel = useMemo(() => `Cart (${cartCount})`, [cartCount]);
+
   const userLabel = useMemo(() => {
     const displayName = String(user?.displayName || "").trim();
     if (displayName) return displayName;
@@ -134,62 +90,174 @@ export default function Navbar() {
     router.push("/worksheets?openCart=1");
   };
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const closeMenus = (event) => {
+      if (event.key !== "Escape") return;
+      setMobileMenuOpen(false);
+      setProfileOpen(false);
+      setMobileProfileOpen(false);
+    };
+    window.addEventListener("keydown", closeMenus);
+    return () => {
+      window.removeEventListener("keydown", closeMenus);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (mobileMenuOpen || mobileProfileOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileMenuOpen, mobileProfileOpen]);
+
   return (
     <nav className="navbar">
       <div className="container navbar__inner">
-        <div className="navbar__links">
-          <Link href="/" className="navbar__brand">
-            dearstudent62 Learning Hub
-          </Link>
-          <Link href="/">Home</Link>
-          <div className="navbar__dropdown">
-            <div className="navbar__dropdown-trigger">
-              <Link href="/worksheets">Worksheets</Link>
-              <span className="navbar__caret" aria-hidden="true">
-                ▾
-              </span>
-            </div>
-            <div className="navbar__dropdown-menu">
-              {worksheetMenu.map((item) => (
-                <div className="navbar__dropdown-item" key={item.key}>
-                  <Link href={`/worksheets?class=${item.key}`}>{item.label}</Link>
-                  <span aria-hidden="true">›</span>
-                  <div className="navbar__flyout">
-                    {item.submenu.map((subItem) => (
-                      <Link href={subItem.href} key={`${item.key}-${subItem.label}`}>
-                        {subItem.label}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div className="navbar__actions">
+        <div className="navbar__mobile-top">
           <button
             type="button"
-            className="navbar__cart-link"
-            onClick={handleCartClick}
+            className="navbar__menu-btn"
+            onClick={() => {
+              setMobileProfileOpen(false);
+              setMobileMenuOpen(true);
+            }}
+            aria-label="Open menu"
           >
-            {cartLabel}
+            ☰
           </button>
-          {!user && (
-            <Link href="/auth">Login / Sign Up</Link>
-          )}
 
-          {user && (
-            <>
-              <span className="navbar__email">{userLabel}</span>
-              <Link href="/my-purchases">My Purchases</Link>
-              <button onClick={handleLogout} className="btn-link" type="button">
-                Logout
-              </button>
-            </>
+          <Link href="/" className="navbar__brand">
+            Dear Student
+          </Link>
+
+          <div className="navbar__mobile-actions">
+            <button type="button" className="navbar__icon-btn" onClick={handleCartClick} aria-label={cartLabel}>
+              🛒
+              {cartCount > 0 && <span className="navbar__icon-badge">{cartCount}</span>}
+            </button>
+            <button
+              type="button"
+              className="navbar__icon-btn"
+              aria-label="Account menu"
+              onClick={() => {
+                setMobileMenuOpen(false);
+                setMobileProfileOpen((prev) => !prev);
+              }}
+            >
+              👤
+            </button>
+          </div>
+          {mobileProfileOpen && (
+            <div className="navbar__mobile-profile-menu">
+              {user ? (
+                <>
+                  <Link href="/my-purchases" onClick={() => setMobileProfileOpen(false)}>
+                    My History
+                  </Link>
+                  <button type="button" onClick={handleLogout}>
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <Link href="/auth" onClick={() => setMobileProfileOpen(false)}>
+                  Login
+                </Link>
+              )}
+            </div>
           )}
         </div>
+
+        <div className="navbar__desktop-row">
+          <div className="navbar__links">
+            <Link href="/" className="navbar__brand">
+              Dear Student
+            </Link>
+            {NAV_LINKS.map((item) => (
+              <Link href={item.href} key={item.label}>
+                {item.label}
+              </Link>
+            ))}
+          </div>
+
+          <div className="navbar__search-slot">
+            <input
+              type="search"
+              placeholder="Search worksheets (coming soon)"
+              readOnly
+              aria-label="Search coming soon"
+            />
+          </div>
+
+          <div className="navbar__actions">
+            <button type="button" className="navbar__cart-link" onClick={handleCartClick}>
+              {cartLabel}
+            </button>
+
+            {!user && <Link href="/auth">Login</Link>}
+
+            {user && (
+              <div className="navbar__profile">
+                <button
+                  type="button"
+                  className="navbar__profile-trigger"
+                  onClick={() => setProfileOpen((prev) => !prev)}
+                >
+                  {userLabel} ▾
+                </button>
+                {profileOpen && (
+                  <div className="navbar__profile-menu">
+                    <Link href="/my-purchases" onClick={() => setProfileOpen(false)}>
+                      My History
+                    </Link>
+                    <button onClick={handleLogout} className="btn-link" type="button">
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
+
+      {mobileMenuOpen && (
+        <div className="navbar__mobile-menu" role="dialog" aria-modal="true" aria-label="Main menu">
+          <button
+            type="button"
+            className="navbar__mobile-overlay"
+            onClick={() => setMobileMenuOpen(false)}
+            aria-label="Close menu"
+          />
+
+          <aside className="navbar__mobile-panel">
+            <div className="navbar__mobile-header">
+              <strong>Hello, {user ? userLabel : "Guest"}</strong>
+              <button type="button" className="btn-link" onClick={() => setMobileMenuOpen(false)}>
+                Close
+              </button>
+            </div>
+
+            <div className="navbar__mobile-links">
+              <div className="navbar__mobile-group-title">Browse</div>
+              {NAV_LINKS.map((item) => (
+                <Link
+                  href={item.href}
+                  key={`mobile-${item.label}`}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+          </aside>
+        </div>
+      )}
     </nav>
   );
 }
