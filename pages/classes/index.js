@@ -18,12 +18,10 @@ export default function ClassesPage() {
       <main className="browse-page">
         <section className="container browse-wrap">
           <h1>Classes</h1>
-          <p>Select a class and continue with subject-first browsing.</p>
           <div className="browse-grid">
             {CLASS_OPTIONS.map((item) => (
               <Link key={item.value} href={`/classes/${item.value}`} className="browse-tile">
                 <span>{item.label}</span>
-                <strong>Open</strong>
               </Link>
             ))}
           </div>

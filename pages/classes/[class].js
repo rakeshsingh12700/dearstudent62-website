@@ -25,7 +25,6 @@ export default function ClassDetailPage() {
       <main className="browse-page">
         <section className="container browse-wrap">
           <h1>{toLabel(classValue || "Class")}</h1>
-          <p>Choose a subject to continue.</p>
           <div className="browse-grid">
             {SUBJECT_TILES.map((item) => (
               <Link
@@ -38,7 +37,6 @@ export default function ClassDetailPage() {
                 className="browse-tile"
               >
                 <span>{item.label}</span>
-                <strong>Open</strong>
               </Link>
             ))}
           </div>

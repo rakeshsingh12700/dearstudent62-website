@@ -14,7 +14,6 @@ export default function ExamsPage() {
       <main className="browse-page">
         <section className="container browse-wrap">
           <h1>Exams</h1>
-          <p>Exam-focused shortcuts across classes and subjects.</p>
 
           <div className="browse-grid">
             {EXAM_TYPES.map((item) => (
@@ -24,7 +23,6 @@ export default function ExamsPage() {
                 className="browse-tile"
               >
                 <span>{item.label}</span>
-                <strong>Open</strong>
               </Link>
             ))}
           </div>
