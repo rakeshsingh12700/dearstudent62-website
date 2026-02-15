@@ -6,12 +6,14 @@
     "generate:products": "node scripts/generate-products.mjs",
     "predev": "npm run generate:products",
     "prebuild": "npm run generate:products",
-    "dev": "next dev",
+    "dev": "next dev -H 0.0.0.0",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.990.0",
+    "@aws-sdk/s3-request-presigner": "^3.990.0",
     "firebase": "^12.9.0",
     "next": "16.1.6",
     "pdf-lib": "^1.17.1",

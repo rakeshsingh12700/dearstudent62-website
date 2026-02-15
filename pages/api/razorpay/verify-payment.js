@@ -60,8 +60,14 @@ export default async function handler(req, res) {
       productIds.length > 0 ? productIds : [DEFAULT_PRODUCT_ID];
     const primaryProductId = purchaseProductIds[0];
     const primaryProduct = PRODUCT_CATALOG[primaryProductId];
+    const purchasedStorageKeys = purchaseProductIds
+      .map((productId) => String(PRODUCT_CATALOG[productId]?.storageKey || ""))
+      .filter(Boolean);
 
-    saveToken(token, primaryProduct.file);
+    saveToken(
+      token,
+      purchasedStorageKeys.length > 0 ? purchasedStorageKeys : [primaryProduct.file]
+    );
 
     await Promise.all(
       purchaseProductIds.map((productId) =>
