@@ -78,6 +78,12 @@ export default function Navbar() {
     return emailPrefix || email;
   }, [user?.displayName, user?.email]);
 
+  const userInitial = useMemo(() => {
+    const label = String(userLabel || "").trim();
+    if (!label) return "A";
+    return label.charAt(0).toUpperCase();
+  }, [userLabel]);
+
   const handleCartClick = () => {
     const isWorksheetRoute =
       router.pathname === "/worksheets" || router.pathname === "/worksheets/[class]";
@@ -144,13 +150,13 @@ export default function Navbar() {
             <button
               type="button"
               className="navbar__icon-btn"
-              aria-label="Account menu"
+              aria-label={user ? "Account menu" : "Login"}
               onClick={() => {
                 setMobileMenuOpen(false);
                 setMobileProfileOpen((prev) => !prev);
               }}
             >
-              👤
+              {user ? <span className="navbar__mobile-initial">{userInitial}</span> : "Login"}
             </button>
           </div>
           {mobileProfileOpen && (

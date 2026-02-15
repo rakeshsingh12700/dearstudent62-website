@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { useRouter } from "next/router";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import products from "../data/products";
@@ -154,6 +155,158 @@ function normalizeMobileView(value) {
   return "library";
 }
 
+const TOPIC_VALUES_BY_SUBJECT = Object.fromEntries(
+  Object.entries(TOPIC_OPTIONS_BY_SUBJECT).map(([subject, options]) => [
+    subject,
+    new Set(options.map((option) => option.value)),
+  ])
+);
+
+const GRAMMAR_SUBTOPIC_VALUES = new Set(
+  GRAMMAR_SUBTOPIC_OPTIONS.map((option) => option.value)
+);
+
+function normalizeFilterState(state) {
+  return {
+    class: toSlug(state?.class) || "all",
+    type: normalizeType(state?.type) || "all",
+    subject: toSlug(state?.subject) || "all",
+    topic: toSlug(state?.topic) || "all",
+    subtopic: toSlug(state?.subtopic) || "all",
+    view: normalizeMobileView(state?.view),
+    sort: toSlug(state?.sort) || "default",
+  };
+}
+
+function sanitizeFilterState(state) {
+  const next = normalizeFilterState(state);
+
+  if (next.type === "exams") {
+    next.topic = "all";
+    next.subtopic = "all";
+  }
+
+  if (next.subject === "all") {
+    next.topic = "all";
+    next.subtopic = "all";
+  }
+
+  if (next.subject !== "all" && next.topic !== "all") {
+    const validTopics = TOPIC_VALUES_BY_SUBJECT[next.subject];
+    if (!validTopics || !validTopics.has(next.topic)) {
+      next.topic = "all";
+      next.subtopic = "all";
+    }
+  }
+
+  if (next.topic !== "grammar") {
+    next.subtopic = "all";
+  } else if (next.subtopic !== "all" && !GRAMMAR_SUBTOPIC_VALUES.has(next.subtopic)) {
+    next.subtopic = "all";
+  }
+
+  if (next.type === "exams") next.view = "exams";
+  else if (next.subject === "english") next.view = "english";
+  else if (next.subject === "maths") next.view = "maths";
+  else next.view = "classes";
+
+  return next;
+}
+
+function reduceFilterState(currentState, event) {
+  const state = normalizeFilterState(currentState);
+  switch (event.type) {
+    case "TAB_CLASSES":
+      return {
+        ...state,
+        subject: "all",
+        type: "all",
+        topic: "all",
+        subtopic: "all",
+        view: "classes",
+      };
+    case "TAB_ENGLISH":
+      return {
+        ...state,
+        subject: "english",
+        view: "english",
+      };
+    case "TAB_MATHS":
+      return {
+        ...state,
+        subject: "maths",
+        view: "maths",
+      };
+    case "TAB_EXAMS":
+      return {
+        ...state,
+        type: "exams",
+        topic: "all",
+        subtopic: "all",
+        view: "exams",
+      };
+    case "SET_CLASS":
+      return { ...state, class: toSlug(event.value) || "all" };
+    case "SET_SUBJECT":
+      return { ...state, subject: toSlug(event.value) || "all" };
+    case "SET_TYPE":
+      return { ...state, type: normalizeType(event.value) || "all" };
+    case "SET_TOPIC":
+      return { ...state, topic: toSlug(event.value) || "all" };
+    case "SET_SUBTOPIC":
+      return { ...state, subtopic: toSlug(event.value) || "all" };
+    case "SET_SORT":
+      return { ...state, sort: toSlug(event.value) || "default" };
+    case "CLEAR_FILTERS": {
+      const tab = String(event.tab || "");
+      if (tab === "english") {
+        return {
+          ...state,
+          subject: "english",
+          type: "all",
+          topic: "all",
+          subtopic: "all",
+          view: "english",
+          class: "all",
+        };
+      }
+      if (tab === "maths") {
+        return {
+          ...state,
+          subject: "maths",
+          type: "all",
+          topic: "all",
+          subtopic: "all",
+          view: "maths",
+          class: "all",
+        };
+      }
+      if (tab === "exams") {
+        return {
+          ...state,
+          type: "exams",
+          topic: "all",
+          subtopic: "all",
+          view: "exams",
+          class: "all",
+          subject: "all",
+        };
+      }
+      return {
+        ...state,
+        class: "all",
+        subject: "all",
+        type: "all",
+        topic: "all",
+        subtopic: "all",
+        view: "classes",
+      };
+    }
+    default:
+      return state;
+  }
+}
+
 function matchFirstKey(patternMap, sourceText) {
   return Object.keys(patternMap).find((key) =>
     patternMap[key].some((pattern) => pattern.test(sourceText))
@@ -291,9 +444,11 @@ export default function WorksheetShop({
   initialSubject = "all",
   initialTopic = "all",
   initialSubtopic = "all",
+  initialSort = "default",
   initialOpenCart = false,
   initialMobileView = "library"
 }) {
+  const router = useRouter();
   const [selectedClass, setSelectedClass] = useState(toSlug(initialClass) || "all");
   const [selectedType, setSelectedType] = useState(normalizeType(initialType) || "all");
   const [selectedSubject, setSelectedSubject] = useState(toSlug(initialSubject) || "all");
@@ -309,7 +464,7 @@ export default function WorksheetShop({
     if (selectedSubject === "maths") return "maths";
     return "classes";
   });
-  const [sortBy, setSortBy] = useState("default");
+  const [sortBy, setSortBy] = useState(toSlug(initialSort) || "default");
   const [isCartOpen, setIsCartOpen] = useState(initialOpenCart);
   const [desktopOpen, setDesktopOpen] = useState({
     class: true,
@@ -355,6 +510,56 @@ export default function WorksheetShop({
   }, []);
 
   const isGrammarTopic = selectedTopic === "grammar";
+  const activeTab = useMemo(() => {
+    if (selectedType === "exams") return "exams";
+    if (selectedSubject === "english") return "english";
+    if (selectedSubject === "maths") return "maths";
+    return "classes";
+  }, [selectedSubject, selectedType]);
+
+  const buildCurrentFilterState = () => ({
+    class: selectedClass,
+    type: selectedType,
+    subject: selectedSubject,
+    topic: selectedTopic,
+    subtopic: selectedSubtopic,
+    view: mobileView,
+    sort: sortBy,
+  });
+
+  const applyFilterState = (nextState) => {
+    const sanitized = sanitizeFilterState(nextState);
+    setSelectedClass(sanitized.class);
+    setSelectedType(sanitized.type);
+    setSelectedSubject(sanitized.subject);
+    setSelectedTopic(sanitized.topic);
+    setSelectedSubtopic(sanitized.subtopic);
+    setMobileView(sanitized.view);
+    setSortBy(sanitized.sort);
+
+    const nextQuery = {};
+    if (sanitized.class !== "all") nextQuery.class = sanitized.class;
+    if (sanitized.type !== "all") nextQuery.type = sanitized.type;
+    if (sanitized.subject !== "all") nextQuery.subject = sanitized.subject;
+    if (sanitized.topic !== "all") nextQuery.topic = sanitized.topic;
+    if (sanitized.subtopic !== "all") nextQuery.subtopic = sanitized.subtopic;
+    if (sanitized.view !== "library") nextQuery.view = sanitized.view;
+    if (sanitized.sort !== "default") nextQuery.sort = sanitized.sort;
+
+    router.replace(
+      {
+        pathname: "/worksheets",
+        query: nextQuery,
+      },
+      undefined,
+      { shallow: true, scroll: false }
+    );
+  };
+
+  const applyFilterAction = (event) => {
+    const reduced = reduceFilterState(buildCurrentFilterState(), event);
+    applyFilterState(reduced);
+  };
 
   const dynamicSubjectOptions = useMemo(() => {
     const values = new Set();
@@ -481,21 +686,7 @@ export default function WorksheetShop({
     return item ? item.quantity : 0;
   };
 
-  const resetAfterSubjectChange = (subject) => {
-    setSelectedSubject(subject);
-    setSelectedTopic("all");
-    setSelectedSubtopic("all");
-  };
-
-  const resetAfterTopicChange = (topic) => {
-    setSelectedTopic(topic);
-    setSelectedSubtopic("all");
-  };
-
-  const mobileFilterMode = useMemo(() => {
-    const mode = normalizeMobileView(mobileView);
-    return mode === "library" ? "classes" : mode;
-  }, [mobileView]);
+  const mobileFilterMode = activeTab;
 
   const mobileFilters = useMemo(() => {
     if (mobileFilterMode === "english") {
@@ -504,14 +695,14 @@ export default function WorksheetShop({
           key: "topic",
           label: "Topics",
           value: selectedTopic,
-          onChange: (value) => resetAfterTopicChange(value),
+          onChange: (value) => applyFilterAction({ type: "SET_TOPIC", value }),
           options: topicOptions,
         },
         {
           key: "type",
           label: "Type",
           value: selectedType,
-          onChange: (value) => setSelectedType(value),
+          onChange: (value) => applyFilterAction({ type: "SET_TYPE", value }),
           options: [{ value: "all", label: "All" }, ...TYPE_OPTIONS],
         },
       ];
@@ -523,14 +714,14 @@ export default function WorksheetShop({
           key: "topic",
           label: "Topics",
           value: selectedTopic,
-          onChange: (value) => resetAfterTopicChange(value),
+          onChange: (value) => applyFilterAction({ type: "SET_TOPIC", value }),
           options: topicOptions,
         },
         {
           key: "type",
           label: "Type",
           value: selectedType,
-          onChange: (value) => setSelectedType(value),
+          onChange: (value) => applyFilterAction({ type: "SET_TYPE", value }),
           options: [{ value: "all", label: "All" }, ...TYPE_OPTIONS],
         },
       ];
@@ -542,21 +733,21 @@ export default function WorksheetShop({
           key: "class",
           label: "Class",
           value: selectedClass,
-          onChange: (value) => setSelectedClass(value),
+          onChange: (value) => applyFilterAction({ type: "SET_CLASS", value }),
           options: CLASS_OPTIONS,
         },
         {
           key: "subject",
           label: "Subject",
           value: selectedSubject,
-          onChange: (value) => resetAfterSubjectChange(value),
+          onChange: (value) => applyFilterAction({ type: "SET_SUBJECT", value }),
           options: dynamicSubjectOptions,
         },
         {
           key: "type",
           label: "Type",
           value: selectedType,
-          onChange: (value) => setSelectedType(value),
+          onChange: (value) => applyFilterAction({ type: "SET_TYPE", value }),
           options: [{ value: "all", label: "All" }, ...TYPE_OPTIONS],
         },
       ];
@@ -567,30 +758,33 @@ export default function WorksheetShop({
         key: "class",
         label: "Class",
         value: selectedClass,
-        onChange: (value) => {
-          setSelectedClass(value);
-          if (value !== "all") {
-            resetAfterSubjectChange("all");
-          }
-        },
+        onChange: (value) => applyFilterAction({ type: "SET_CLASS", value }),
         options: CLASS_OPTIONS,
       },
       {
         key: "subject",
         label: "Subject",
         value: selectedSubject,
-        onChange: (value) => resetAfterSubjectChange(value),
+        onChange: (value) => applyFilterAction({ type: "SET_SUBJECT", value }),
         options: dynamicSubjectOptions,
       },
       {
         key: "type",
         label: "Type",
         value: selectedType,
-        onChange: (value) => setSelectedType(value),
+        onChange: (value) => applyFilterAction({ type: "SET_TYPE", value }),
         options: [{ value: "all", label: "All" }, ...TYPE_OPTIONS],
       },
     ];
-  }, [dynamicSubjectOptions, mobileFilterMode, selectedClass, selectedSubject, selectedTopic, selectedType, topicOptions]);
+  }, [
+    dynamicSubjectOptions,
+    mobileFilterMode,
+    selectedClass,
+    selectedSubject,
+    selectedTopic,
+    selectedType,
+    topicOptions,
+  ]);
 
   const toggleDesktopSection = (section) => {
     setDesktopOpen((prev) => ({
@@ -639,10 +833,7 @@ export default function WorksheetShop({
                     key={`desktop-class-${option.value}`}
                     type="button"
                     className={selectedClass === option.value ? "active" : ""}
-                    onClick={() => {
-                      setSelectedClass(option.value);
-                      resetAfterSubjectChange("all");
-                    }}
+                    onClick={() => applyFilterAction({ type: "SET_CLASS", value: option.value })}
                   >
                     {option.label}
                   </button>
@@ -659,7 +850,7 @@ export default function WorksheetShop({
                     key={`desktop-subject-${option.value}`}
                     type="button"
                     className={selectedSubject === option.value ? "active" : ""}
-                    onClick={() => resetAfterSubjectChange(option.value)}
+                    onClick={() => applyFilterAction({ type: "SET_SUBJECT", value: option.value })}
                   >
                     {option.label}
                   </button>
@@ -677,7 +868,7 @@ export default function WorksheetShop({
                       key={`desktop-topic-${option.value}`}
                       type="button"
                       className={selectedTopic === option.value ? "active" : ""}
-                      onClick={() => resetAfterTopicChange(option.value)}
+                      onClick={() => applyFilterAction({ type: "SET_TOPIC", value: option.value })}
                     >
                       {option.label}
                     </button>
@@ -693,7 +884,9 @@ export default function WorksheetShop({
                   <button
                     type="button"
                     className={selectedSubtopic === "all" ? "active" : ""}
-                    onClick={() => setSelectedSubtopic("all")}
+                    onClick={() =>
+                      applyFilterAction({ type: "SET_SUBTOPIC", value: "all" })
+                    }
                   >
                     All
                   </button>
@@ -702,7 +895,9 @@ export default function WorksheetShop({
                       key={`desktop-subtopic-${option.value}`}
                       type="button"
                       className={selectedSubtopic === option.value ? "active" : ""}
-                      onClick={() => setSelectedSubtopic(option.value)}
+                      onClick={() =>
+                        applyFilterAction({ type: "SET_SUBTOPIC", value: option.value })
+                      }
                     >
                       {option.label}
                     </button>
@@ -717,7 +912,7 @@ export default function WorksheetShop({
                 <button
                   type="button"
                   className={selectedType === "all" ? "active" : ""}
-                  onClick={() => setSelectedType("all")}
+                  onClick={() => applyFilterAction({ type: "SET_TYPE", value: "all" })}
                 >
                   All
                 </button>
@@ -726,7 +921,7 @@ export default function WorksheetShop({
                     key={`desktop-type-${option.value}`}
                     type="button"
                     className={selectedType === option.value ? "active" : ""}
-                    onClick={() => setSelectedType(option.value)}
+                    onClick={() => applyFilterAction({ type: "SET_TYPE", value: option.value })}
                   >
                     {option.label}
                   </button>
@@ -744,71 +939,102 @@ export default function WorksheetShop({
                   {visibleProducts.length} results
                 </p>
               </div>
-              <label className="worksheets-sort">
-                <span>Sort:</span>
-                <select
-                  className="worksheets-sort__native"
-                  value={sortBy}
-                  onChange={(event) => setSortBy(event.target.value)}
-                >
-                  {SORT_OPTIONS.map((option) => (
-                    <option value={option.value} key={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-                <DropdownSelect
-                  className="worksheets-sort__mobile"
-                  value={sortBy}
-                  options={SORT_OPTIONS}
-                  onChange={setSortBy}
-                  ariaLabel="Sort options"
-                />
-              </label>
+              <div className="worksheets-toolbar__actions">
+                <label className="worksheets-sort">
+                  <span>Sort:</span>
+                  <select
+                    className="worksheets-sort__native"
+                    value={sortBy}
+                    onChange={(event) =>
+                      applyFilterAction({ type: "SET_SORT", value: event.target.value })
+                    }
+                  >
+                    {SORT_OPTIONS.map((option) => (
+                      <option value={option.value} key={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                  <DropdownSelect
+                    className="worksheets-sort__mobile"
+                    value={sortBy}
+                    options={SORT_OPTIONS}
+                    onChange={(value) => applyFilterAction({ type: "SET_SORT", value })}
+                    ariaLabel="Sort options"
+                  />
+                </label>
+              </div>
+            </div>
+
+            <div className="worksheets-clear-row">
+              <button
+                type="button"
+                className="btn-link worksheets-clear-btn"
+                onClick={() =>
+                  applyFilterAction({ type: "CLEAR_FILTERS", tab: activeTab })
+                }
+              >
+                Clear filters
+              </button>
+            </div>
+
+            <div className="worksheets-desktop-pane">
+              <button
+                type="button"
+                className={activeTab === "classes" ? "active" : ""}
+                onClick={() => applyFilterAction({ type: "TAB_CLASSES" })}
+              >
+                Classes
+              </button>
+              <button
+                type="button"
+                className={activeTab === "english" ? "active" : ""}
+                onClick={() => applyFilterAction({ type: "TAB_ENGLISH" })}
+              >
+                English
+              </button>
+              <button
+                type="button"
+                className={activeTab === "maths" ? "active" : ""}
+                onClick={() => applyFilterAction({ type: "TAB_MATHS" })}
+              >
+                Maths
+              </button>
+              <button
+                type="button"
+                className={activeTab === "exams" ? "active" : ""}
+                onClick={() => applyFilterAction({ type: "TAB_EXAMS" })}
+              >
+                Exams
+              </button>
             </div>
 
             <div className="worksheets-mobile-pane">
               <button
                 type="button"
                 className={mobileFilterMode === "classes" ? "active" : ""}
-                onClick={() => {
-                  setMobileView("classes");
-                  setSelectedType("all");
-                  resetAfterSubjectChange("all");
-                }}
+                onClick={() => applyFilterAction({ type: "TAB_CLASSES" })}
               >
                 Classes
               </button>
               <button
                 type="button"
                 className={mobileFilterMode === "english" ? "active" : ""}
-                onClick={() => {
-                  setMobileView("english");
-                  setSelectedType("all");
-                  resetAfterSubjectChange("english");
-                }}
+                onClick={() => applyFilterAction({ type: "TAB_ENGLISH" })}
               >
                 English
               </button>
               <button
                 type="button"
                 className={mobileFilterMode === "maths" ? "active" : ""}
-                onClick={() => {
-                  setMobileView("maths");
-                  setSelectedType("all");
-                  resetAfterSubjectChange("maths");
-                }}
+                onClick={() => applyFilterAction({ type: "TAB_MATHS" })}
               >
                 Maths
               </button>
               <button
                 type="button"
                 className={mobileFilterMode === "exams" ? "active" : ""}
-                onClick={() => {
-                  setMobileView("exams");
-                  setSelectedType("exams");
-                  resetAfterSubjectChange("all");
-                }}
+                onClick={() => applyFilterAction({ type: "TAB_EXAMS" })}
               >
                 Exams
               </button>
@@ -850,7 +1076,7 @@ export default function WorksheetShop({
                         aria-label={`Open ${product.title}`}
                       >
                         <iframe
-                          src={`${singlePagePreviewUrl}#page=1&view=FitH,88&toolbar=0&navpanes=0&scrollbar=0`}
+                          src={`${singlePagePreviewUrl}#page=1&view=Fit&toolbar=0&navpanes=0&scrollbar=0`}
                           title={`${product.title} page 1 thumbnail`}
                           loading="lazy"
                         />

@@ -197,7 +197,7 @@ export default function ProductPage() {
                   <EyeIcon />
                 </button>
                 <iframe
-                  src={`${singlePagePreviewUrl}#page=1&view=FitH,95&toolbar=0&navpanes=0&scrollbar=0`}
+                  src={`${singlePagePreviewUrl}#page=1&view=Fit&toolbar=0&navpanes=0&scrollbar=0`}
                   title={`${product.title} preview`}
                 />
               </div>

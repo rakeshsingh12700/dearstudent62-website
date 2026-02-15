@@ -27,6 +27,9 @@ export default function Home() {
             worksheets for your little ones.
           </p>
           <div className="hero__actions">
+            <Link href="/worksheets" className="btn btn-primary">
+              Shop Worksheets
+            </Link>
             {!user && (
               <Link href="/auth" className="btn btn-secondary">
                 Get Started
