@@ -15,6 +15,26 @@ const BENEFITS = [
   "Teacher-ready worksheets with easy repetition patterns",
 ];
 
+function EyeIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="16"
+      height="16"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path
+        d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+      />
+      <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" strokeWidth="1.8" />
+    </svg>
+  );
+}
+
 function humanize(value) {
   return String(value || "")
     .replace(/[-_]+/g, " ")
@@ -32,6 +52,7 @@ export default function ProductPage() {
   const [assetAvailable, setAssetAvailable] = useState(true);
   const [checkingAsset, setCheckingAsset] = useState(true);
   const [cartNotice, setCartNotice] = useState("");
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   const product = products.find((item) => item.id === query.id);
   const typeLabel = useMemo(() => humanize(product?.type), [product?.type]);
@@ -167,6 +188,14 @@ export default function ProductPage() {
                 <p>Worksheet Peek</p>
               </div>
               <div className="product-preview-card__frame">
+                <button
+                  type="button"
+                  className="product-preview-card__preview-btn"
+                  aria-label={`Quick preview ${product.title}`}
+                  onClick={() => setIsPreviewOpen(true)}
+                >
+                  <EyeIcon />
+                </button>
                 <iframe
                   src={`${singlePagePreviewUrl}#page=1&view=FitH,95&toolbar=0&navpanes=0&scrollbar=0`}
                   title={`${product.title} preview`}
@@ -284,6 +313,35 @@ export default function ProductPage() {
           </section>
         </section>
       </main>
+
+      {isPreviewOpen && (
+        <div className="worksheet-preview-modal">
+          <button
+            className="worksheet-preview-modal__overlay"
+            onClick={() => setIsPreviewOpen(false)}
+            type="button"
+            aria-label="Close preview"
+          />
+          <section className="worksheet-preview-modal__panel">
+            <header className="worksheet-preview-modal__header">
+              <h2>{product.title} - Quick Preview</h2>
+              <button
+                type="button"
+                className="btn-link"
+                onClick={() => setIsPreviewOpen(false)}
+              >
+                Close
+              </button>
+            </header>
+            <p className="worksheet-preview-modal__hint">Preview shows page 1 only.</p>
+            <iframe
+              className="worksheet-preview-modal__frame"
+              src={`${singlePagePreviewUrl}#page=1&view=FitH,110&toolbar=0&navpanes=0&scrollbar=0`}
+              title={`${product.title} preview`}
+            />
+          </section>
+        </div>
+      )}
     </>
   );
 }
