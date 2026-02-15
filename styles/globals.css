@@ -589,11 +589,25 @@ button {
   transition: border-color 0.2s ease;
 }
 
-.worksheet-card__media--pdf iframe {
+.worksheet-card__media--pdf img {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
+  border: 0;
+  background: #fff;
+  pointer-events: none;
+  object-fit: cover;
+  object-position: top center;
+  transition: transform 0.2s ease;
+}
+
+.worksheet-card__media--pdf iframe {
+  position: absolute;
+  inset: 0;
+  width: calc(100% + 18px);
+  height: 100%;
+  max-width: none;
   border: 0;
   background: #fff;
   pointer-events: none;
@@ -604,8 +618,40 @@ button {
   border-color: #f97316;
 }
 
+.worksheet-card:hover .worksheet-card__media--pdf img {
+  transform: scale(1.01);
+}
+
 .worksheet-card:hover .worksheet-card__media--pdf iframe {
   transform: scale(1.01);
+}
+
+.worksheet-card__thumb-fallback {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #1f2937 0%, #111827 100%);
+  color: #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 10px;
+  font-weight: 700;
+  font-size: 0.88rem;
+}
+
+.worksheet-card__thumb-android {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #1f2937 0%, #111827 100%);
+  color: #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 10px;
+  font-weight: 700;
+  font-size: 0.9rem;
 }
 
 .worksheet-card__badge {
@@ -820,12 +866,45 @@ button {
   font-weight: 700;
 }
 
+.worksheet-preview-modal__hint a {
+  color: #9a3412;
+  text-decoration: underline;
+}
+
 .worksheet-preview-modal__frame {
   width: 100%;
   height: 72vh;
   border: 1px solid #e5e7eb;
   border-radius: 10px;
   background: #fff;
+}
+
+.worksheet-preview-modal__fallback {
+  border: 1px dashed #f3d9bf;
+  border-radius: 10px;
+  background: #fff7ed;
+  padding: 14px;
+  display: grid;
+  gap: 8px;
+}
+
+.worksheet-preview-modal__fallback p {
+  margin: 0;
+  color: #7c2d12;
+  font-weight: 700;
+}
+
+.worksheet-preview-modal__fallback a {
+  width: fit-content;
+  border: 1px solid #f3d9bf;
+  border-radius: 999px;
+  background: #fff;
+  color: #9a3412;
+  min-height: 34px;
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  font-weight: 800;
 }
 
 .worksheets-topic-drawer {
@@ -1354,6 +1433,18 @@ button {
   height: 100%;
   border: 0;
   pointer-events: none;
+}
+
+.product-preview-card__android-fallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background: linear-gradient(180deg, #1f2937 0%, #111827 100%);
+  color: #e5e7eb;
+  font-weight: 700;
 }
 
 .product-preview-card__preview-btn {
