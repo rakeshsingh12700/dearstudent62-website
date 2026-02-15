@@ -72,22 +72,30 @@ export default async function handler(req, res) {
     }
 
     if (shouldLimitPages) {
-      const sourceDoc = await PDFDocument.load(sourceBytes);
-      const totalPages = sourceDoc.getPageCount();
-      const targetPageCount = Math.min(pagesToPreview, totalPages);
-      const previewDoc = await PDFDocument.create();
-      const pageIndexes = Array.from(
-        { length: targetPageCount },
-        (_, index) => index
-      );
-      const copiedPages = await previewDoc.copyPages(sourceDoc, pageIndexes);
-      copiedPages.forEach((page) => previewDoc.addPage(page));
-      const previewBytes = await previewDoc.save();
+      try {
+        const sourceDoc = await PDFDocument.load(sourceBytes);
+        const totalPages = sourceDoc.getPageCount();
+        const targetPageCount = Math.min(pagesToPreview, totalPages);
+        const previewDoc = await PDFDocument.create();
+        const pageIndexes = Array.from(
+          { length: targetPageCount },
+          (_, index) => index
+        );
+        const copiedPages = await previewDoc.copyPages(sourceDoc, pageIndexes);
+        copiedPages.forEach((page) => previewDoc.addPage(page));
+        const previewBytes = await previewDoc.save();
 
-      res.setHeader("Content-Type", "application/pdf");
-      res.setHeader("Content-Disposition", `inline; filename="${key}"`);
-      res.setHeader("Cache-Control", "public, max-age=300");
-      return res.status(200).send(Buffer.from(previewBytes));
+        res.setHeader("Content-Type", "application/pdf");
+        res.setHeader("Content-Disposition", `inline; filename="${key}"`);
+        res.setHeader("Cache-Control", "public, max-age=300");
+        return res.status(200).send(Buffer.from(previewBytes));
+      } catch (previewError) {
+        // Fallback: serve full PDF so preview still works even if page slicing fails.
+        console.warn("Preview page slicing failed, falling back to full PDF:", {
+          key,
+          error: previewError?.message || String(previewError),
+        });
+      }
     }
 
     res.setHeader("Content-Type", "application/pdf");
