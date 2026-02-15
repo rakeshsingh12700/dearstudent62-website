@@ -15,6 +15,8 @@ export default function ClassPage() {
     typeof query.topic === "string" ? query.topic.toLowerCase() : "all";
   const subtopicFromQuery =
     typeof query.subtopic === "string" ? query.subtopic.toLowerCase() : "all";
+  const sortFromQuery =
+    typeof query.sort === "string" ? query.sort.toLowerCase() : "default";
   const mobileViewFromQuery =
     typeof query.view === "string" ? query.view.toLowerCase() : "class";
   const openCartFromQuery =
@@ -24,12 +26,13 @@ export default function ClassPage() {
     <>
       <Navbar />
       <WorksheetShop
-        key={`${classFromRoute}-${typeFromQuery}-${subjectFromQuery}-${topicFromQuery}-${subtopicFromQuery}-${mobileViewFromQuery}-${openCartFromQuery ? "cart" : "list"}`}
+        key={`${classFromRoute}-${typeFromQuery}-${subjectFromQuery}-${topicFromQuery}-${subtopicFromQuery}-${sortFromQuery}-${mobileViewFromQuery}-${openCartFromQuery ? "cart" : "list"}`}
         initialClass={classFromRoute}
         initialType={typeFromQuery}
         initialSubject={subjectFromQuery}
         initialTopic={topicFromQuery}
         initialSubtopic={subtopicFromQuery}
+        initialSort={sortFromQuery}
         initialOpenCart={openCartFromQuery}
         initialMobileView={mobileViewFromQuery}
       />
