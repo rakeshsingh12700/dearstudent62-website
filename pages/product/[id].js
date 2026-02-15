@@ -53,6 +53,7 @@ export default function ProductPage() {
   const [checkingAsset, setCheckingAsset] = useState(true);
   const [cartNotice, setCartNotice] = useState("");
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [isAndroidDevice, setIsAndroidDevice] = useState(false);
 
   const product = products.find((item) => item.id === query.id);
   const typeLabel = useMemo(() => humanize(product?.type), [product?.type]);
@@ -61,6 +62,16 @@ export default function ProductPage() {
     () => getPreviewUrl(product?.storageKey, 1),
     [product?.storageKey]
   );
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const ua = String(window.navigator?.userAgent || "");
+    const platform = String(window.navigator?.platform || "");
+    const maxTouchPoints = Number(window.navigator?.maxTouchPoints || 0);
+    const isAndroidUa = /android/i.test(ua);
+    const isDesktopPlatform = /mac|win/i.test(platform);
+    setIsAndroidDevice(isAndroidUa && !isDesktopPlatform && maxTouchPoints > 0);
+  }, []);
 
   useEffect(() => {
     const checkPurchase = async () => {
@@ -192,14 +203,26 @@ export default function ProductPage() {
                   type="button"
                   className="product-preview-card__preview-btn"
                   aria-label={`Quick preview ${product.title}`}
-                  onClick={() => setIsPreviewOpen(true)}
+                  onClick={() => {
+                    if (isAndroidDevice && typeof window !== "undefined") {
+                      window.open(singlePagePreviewUrl, "_blank", "noopener,noreferrer");
+                      return;
+                    }
+                    setIsPreviewOpen(true);
+                  }}
                 >
                   <EyeIcon />
                 </button>
-                <iframe
-                  src={`${singlePagePreviewUrl}#page=1&view=Fit&toolbar=0&navpanes=0&scrollbar=0`}
-                  title={`${product.title} preview`}
-                />
+                {isAndroidDevice ? (
+                  <div className="product-preview-card__android-fallback">
+                    <span>PDF Preview</span>
+                  </div>
+                ) : (
+                  <iframe
+                    src={`${singlePagePreviewUrl}#page=1&view=Fit&toolbar=0&navpanes=0&scrollbar=0`}
+                    title={`${product.title} preview`}
+                  />
+                )}
               </div>
               <p className="product-preview-card__hint">
                 Preview shows page 1 only.

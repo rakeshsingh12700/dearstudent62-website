@@ -3,7 +3,10 @@ import { useRouter } from "next/router";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import products from "../data/products";
-import { getPreviewUrl } from "../lib/productAssetUrls";
+import {
+  getDisplayTypeLabel,
+  getPreviewUrl,
+} from "../lib/productAssetUrls";
 
 const CLASS_OPTIONS = [
   { value: "all", label: "All" },
@@ -474,6 +477,8 @@ export default function WorksheetShop({
     type: true,
   });
   const [previewState, setPreviewState] = useState(null);
+  const [previewLoadFailed, setPreviewLoadFailed] = useState(false);
+  const [isAndroidDevice, setIsAndroidDevice] = useState(false);
   const [cart, setCart] = useState(() => {
     if (typeof window === "undefined") return [];
     const savedCart = window.localStorage.getItem(CART_STORAGE_KEY);
@@ -500,6 +505,20 @@ export default function WorksheetShop({
       window.removeEventListener("ds-open-cart", openCart);
     };
   }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const ua = String(window.navigator?.userAgent || "");
+    const platform = String(window.navigator?.platform || "");
+    const maxTouchPoints = Number(window.navigator?.maxTouchPoints || 0);
+    const isAndroidUa = /android/i.test(ua);
+    const isDesktopPlatform = /mac|win/i.test(platform);
+    setIsAndroidDevice(isAndroidUa && !isDesktopPlatform && maxTouchPoints > 0);
+  }, []);
+
+  useEffect(() => {
+    setPreviewLoadFailed(false);
+  }, [previewState]);
 
   const taxonomyById = useMemo(() => {
     const map = new Map();
@@ -684,6 +703,16 @@ export default function WorksheetShop({
   const getItemQuantity = (productId) => {
     const item = cart.find((cartItem) => cartItem.id === productId);
     return item ? item.quantity : 0;
+  };
+
+  const openQuickPreview = (product) => {
+    const url = getPreviewUrl(product?.storageKey, 1);
+    if (!url) return;
+    if (isAndroidDevice && typeof window !== "undefined") {
+      window.open(url, "_blank", "noopener,noreferrer");
+      return;
+    }
+    setPreviewState(product);
   };
 
   const mobileFilterMode = activeTab;
@@ -1066,7 +1095,6 @@ export default function WorksheetShop({
               {visibleProducts.map((product) => {
                 const quantity = getItemQuantity(product.id);
                 const singlePagePreviewUrl = getPreviewUrl(product.storageKey, 1);
-
                 return (
                   <article className="worksheet-card" key={product.id}>
                     <div className="worksheet-card__media worksheet-card__media--pdf">
@@ -1075,17 +1103,23 @@ export default function WorksheetShop({
                         className="worksheet-card__media-click"
                         aria-label={`Open ${product.title}`}
                       >
-                        <iframe
-                          src={`${singlePagePreviewUrl}#page=1&view=Fit&toolbar=0&navpanes=0&scrollbar=0`}
-                          title={`${product.title} page 1 thumbnail`}
-                          loading="lazy"
-                        />
+                        {isAndroidDevice ? (
+                          <div className="worksheet-card__thumb-android">
+                            <span>PDF Preview</span>
+                          </div>
+                        ) : (
+                          <iframe
+                            src={`${singlePagePreviewUrl}#page=1&view=FitH,88&toolbar=0&navpanes=0&scrollbar=0`}
+                            title={`${product.title} page 1 thumbnail`}
+                            loading="lazy"
+                          />
+                        )}
                       </Link>
                       <button
                         type="button"
                         className="worksheet-card__preview-btn"
                         aria-label={`Quick preview ${product.title}`}
-                        onClick={() => setPreviewState(product)}
+                        onClick={() => openQuickPreview(product)}
                       >
                         <EyeIcon />
                       </button>
@@ -1096,7 +1130,7 @@ export default function WorksheetShop({
                       <Link href={`/product/${product.id}`}>{product.title}</Link>
                     </h3>
                     <p className="worksheet-card__meta">
-                      {(product.type || "worksheet").replaceAll("-", " ")} |{" "}
+                      {getDisplayTypeLabel(product.type)} |{" "}
                       {product.pages || 0} Pages | Digital PDF
                     </p>
                     <p className="worksheet-card__price">INR {product.price}</p>
@@ -1172,11 +1206,25 @@ export default function WorksheetShop({
               </button>
             </header>
             <p className="worksheet-preview-modal__hint">Preview shows page 1 only.</p>
-            <iframe
-              className="worksheet-preview-modal__frame"
-              src={`${getPreviewUrl(previewState.storageKey, 1)}#page=1&view=FitH,110&toolbar=0&navpanes=0&scrollbar=0`}
-              title={`${previewState.title} preview`}
-            />
+            {!previewLoadFailed ? (
+              <iframe
+                className="worksheet-preview-modal__frame"
+                src={`${getPreviewUrl(previewState.storageKey, 1)}#page=1&view=FitH,110&toolbar=0&navpanes=0&scrollbar=0`}
+                title={`${previewState.title} preview`}
+                onError={() => setPreviewLoadFailed(true)}
+              />
+            ) : (
+              <div className="worksheet-preview-modal__fallback">
+                <p>Preview could not load on this device/browser.</p>
+                <a
+                  href={getPreviewUrl(previewState.storageKey, 1)}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Open preview in new tab
+                </a>
+              </div>
+            )}
           </section>
         </div>
       )}
