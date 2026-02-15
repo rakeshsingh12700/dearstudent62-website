@@ -1,5 +1,5 @@
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { PDFDocument } from "pdf-lib/dist/pdf-lib.esm.js";
+import { PDFDocument } from "pdf-lib";
 
 function getR2Client() {
   const accountId = String(process.env.R2_ACCOUNT_ID || "").trim();
@@ -40,6 +40,10 @@ async function bodyToBuffer(body) {
 }
 
 export default async function handler(req, res) {
+  if (req.method !== "GET") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
   const key = String(req.query.file || "").trim();
   const pagesToPreview = Number.parseInt(String(req.query.pages || ""), 10);
   const shouldLimitPages = Number.isFinite(pagesToPreview) && pagesToPreview > 0;
@@ -72,22 +76,30 @@ export default async function handler(req, res) {
     }
 
     if (shouldLimitPages) {
-      const sourceDoc = await PDFDocument.load(sourceBytes);
-      const totalPages = sourceDoc.getPageCount();
-      const targetPageCount = Math.min(pagesToPreview, totalPages);
-      const previewDoc = await PDFDocument.create();
-      const pageIndexes = Array.from(
-        { length: targetPageCount },
-        (_, index) => index
-      );
-      const copiedPages = await previewDoc.copyPages(sourceDoc, pageIndexes);
-      copiedPages.forEach((page) => previewDoc.addPage(page));
-      const previewBytes = await previewDoc.save();
+      try {
+        const sourceDoc = await PDFDocument.load(sourceBytes);
+        const totalPages = sourceDoc.getPageCount();
+        const targetPageCount = Math.min(pagesToPreview, totalPages);
+        const previewDoc = await PDFDocument.create();
+        const pageIndexes = Array.from(
+          { length: targetPageCount },
+          (_, index) => index
+        );
+        const copiedPages = await previewDoc.copyPages(sourceDoc, pageIndexes);
+        copiedPages.forEach((page) => previewDoc.addPage(page));
+        const previewBytes = await previewDoc.save();
 
-      res.setHeader("Content-Type", "application/pdf");
-      res.setHeader("Content-Disposition", `inline; filename="${key}"`);
-      res.setHeader("Cache-Control", "public, max-age=300");
-      return res.status(200).send(Buffer.from(previewBytes));
+        res.setHeader("Content-Type", "application/pdf");
+        res.setHeader("Content-Disposition", `inline; filename="${key}"`);
+        res.setHeader("Cache-Control", "public, max-age=300");
+        return res.status(200).send(Buffer.from(previewBytes));
+      } catch (error) {
+        // Fallback to original PDF so previews still work if PDF slicing fails in runtime.
+        console.warn("Preview page slicing failed; falling back to full PDF:", {
+          key,
+          error: error?.message || String(error),
+        });
+      }
     }
 
     res.setHeader("Content-Type", "application/pdf");
