@@ -5,6 +5,7 @@ import Navbar from "../../components/Navbar";
 import products from "../../data/products";
 import { useAuth } from "../../context/AuthContext";
 import { hasPurchased } from "../../firebase/purchases";
+import { getPreviewUrl } from "../../lib/productAssetUrls";
 
 const CART_STORAGE_KEY = "ds-worksheet-cart-v1";
 
@@ -13,12 +14,6 @@ const BENEFITS = [
   "Screen-light format for home, class, and travel use",
   "Teacher-ready worksheets with easy repetition patterns",
 ];
-
-function withPreviewPageLimit(url, pageCount = 1) {
-  if (!url) return "";
-  const separator = url.includes("?") ? "&" : "?";
-  return `${url}${separator}pages=${pageCount}`;
-}
 
 function humanize(value) {
   return String(value || "")
@@ -34,14 +29,16 @@ export default function ProductPage() {
   const [guestEmail, setGuestEmail] = useState("");
   const [purchased, setPurchased] = useState(false);
   const [checking, setChecking] = useState(true);
+  const [assetAvailable, setAssetAvailable] = useState(true);
+  const [checkingAsset, setCheckingAsset] = useState(true);
   const [cartNotice, setCartNotice] = useState("");
 
   const product = products.find((item) => item.id === query.id);
   const typeLabel = useMemo(() => humanize(product?.type), [product?.type]);
   const classLabel = useMemo(() => humanize(product?.class), [product?.class]);
   const singlePagePreviewUrl = useMemo(
-    () => withPreviewPageLimit(product?.pdf, 1),
-    [product?.pdf]
+    () => getPreviewUrl(product?.storageKey, 1),
+    [product?.storageKey]
   );
 
   useEffect(() => {
@@ -63,6 +60,34 @@ export default function ProductPage() {
 
     checkPurchase();
   }, [user, guestEmail, product]);
+
+  useEffect(() => {
+    const checkAssetAvailability = async () => {
+      const key = String(product?.storageKey || "").trim();
+      if (!key) {
+        setAssetAvailable(false);
+        setCheckingAsset(false);
+        return;
+      }
+
+      setCheckingAsset(true);
+      try {
+        const response = await fetch(
+          `/api/asset-exists?key=${encodeURIComponent(key)}`
+        );
+        const payload = await response.json().catch(() => ({}));
+        setAssetAvailable(Boolean(payload?.exists));
+      } catch {
+        setAssetAvailable(false);
+      } finally {
+        setCheckingAsset(false);
+      }
+    };
+
+    if (product) {
+      checkAssetAvailability();
+    }
+  }, [product]);
 
   if (!product) {
     return (
@@ -178,8 +203,16 @@ export default function ProductPage() {
               {checking && (
                 <p className="product-info-card__status">Checking your library access...</p>
               )}
+              {checkingAsset && (
+                <p className="product-info-card__status">Verifying file availability...</p>
+              )}
+              {!checkingAsset && !assetAvailable && (
+                <p className="product-info-card__status">
+                  This worksheet file is currently unavailable.
+                </p>
+              )}
 
-              {!checking && purchased && (
+              {!checking && purchased && assetAvailable && (
                 <div className="product-info-card__owned">
                   <p>This worksheet is already in your library.</p>
                   <div className="product-info-card__cta-row">
@@ -193,7 +226,7 @@ export default function ProductPage() {
                 </div>
               )}
 
-              {!checking && !purchased && (
+              {!checking && !purchased && assetAvailable && (
                 <>
                   {!user && (
                     <div className="product-info-card__guest">

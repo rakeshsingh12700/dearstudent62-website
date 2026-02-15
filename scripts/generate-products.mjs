@@ -1,10 +1,69 @@
 import fs from "fs/promises";
 import path from "path";
+import { GetObjectCommand, ListObjectsV2Command, S3Client } from "@aws-sdk/client-s3";
+import nextEnv from "@next/env";
 import { PDFDocument } from "pdf-lib/dist/pdf-lib.esm.js";
 
 const ROOT_DIR = process.cwd();
-const PDF_DIR = path.join(ROOT_DIR, "private", "pdfs");
 const OUTPUT_FILE = path.join(ROOT_DIR, "data", "products.generated.json");
+const LIST_PAGE_SIZE = 1000;
+const PAGE_COUNT_CONCURRENCY = 8;
+const { loadEnvConfig } = nextEnv;
+
+// Plain node scripts do not auto-load Next.js .env files.
+loadEnvConfig(ROOT_DIR);
+
+function getR2Client() {
+  const accountId = String(process.env.R2_ACCOUNT_ID || "").trim();
+  const accessKeyId = String(process.env.R2_ACCESS_KEY_ID || "").trim();
+  const secretAccessKey = String(process.env.R2_SECRET_ACCESS_KEY || "").trim();
+
+  if (!accountId || !accessKeyId || !secretAccessKey) {
+    throw new Error("Missing R2_ACCOUNT_ID / R2_ACCESS_KEY_ID / R2_SECRET_ACCESS_KEY");
+  }
+
+  return new S3Client({
+    region: "auto",
+    endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+    credentials: {
+      accessKeyId,
+      secretAccessKey,
+    },
+  });
+}
+
+function hasRequiredR2Env() {
+  const accountId = String(process.env.R2_ACCOUNT_ID || "").trim();
+  const accessKeyId = String(process.env.R2_ACCESS_KEY_ID || "").trim();
+  const secretAccessKey = String(process.env.R2_SECRET_ACCESS_KEY || "").trim();
+  const bucket = String(process.env.R2_BUCKET_NAME || "").trim();
+  return Boolean(accountId && accessKeyId && secretAccessKey && bucket);
+}
+
+function getR2BucketName() {
+  const bucket = String(process.env.R2_BUCKET_NAME || "").trim();
+  if (!bucket) throw new Error("Missing R2_BUCKET_NAME");
+  return bucket;
+}
+
+async function bodyToBuffer(body) {
+  if (!body) throw new Error("Missing object body");
+
+  if (typeof body.transformToByteArray === "function") {
+    const byteArray = await body.transformToByteArray();
+    return Buffer.from(byteArray);
+  }
+
+  if (typeof body[Symbol.asyncIterator] === "function") {
+    const chunks = [];
+    for await (const chunk of body) {
+      chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+    }
+    return Buffer.concat(chunks);
+  }
+
+  throw new Error("Unsupported object body stream");
+}
 
 function slugify(value) {
   return String(value || "")
@@ -65,38 +124,112 @@ function parseProductFromFilename(fileName) {
     subcategory,
     price,
     ageLabel: "AGE 3+",
-    pdf: `/api/preview?file=${encodeURIComponent(fileName)}`,
-    downloadUrl: `/api/download?file=${encodeURIComponent(fileName)}`,
+    storageKey: fileName,
     imageUrl: "",
   };
 }
 
-async function getPdfPageCount(fileName) {
-  const filePath = path.join(PDF_DIR, fileName);
-  const bytes = await fs.readFile(filePath);
+async function getPdfPageCount(r2Client, bucket, fileName) {
+  const response = await r2Client.send(
+    new GetObjectCommand({
+      Bucket: bucket,
+      Key: fileName,
+    })
+  );
+  const bytes = await bodyToBuffer(response.Body);
   const pdf = await PDFDocument.load(bytes);
   return pdf.getPageCount();
 }
 
-async function generateProducts() {
-  const entries = await fs.readdir(PDF_DIR, { withFileTypes: true });
-  const files = entries
-    .filter((entry) => entry.isFile() && entry.name.toLowerCase().endsWith(".pdf"))
-    .map((entry) => entry.name)
-    .sort((a, b) => a.localeCompare(b));
+async function listPdfKeysFromBucket() {
+  const r2Client = getR2Client();
+  const bucket = getR2BucketName();
+  const keys = [];
 
-  const products = await Promise.all(
-    files.map(async (fileName) => {
+  let continuationToken;
+  do {
+    const response = await r2Client.send(
+      new ListObjectsV2Command({
+        Bucket: bucket,
+        MaxKeys: LIST_PAGE_SIZE,
+        ContinuationToken: continuationToken,
+      })
+    );
+
+    const pageKeys = (response.Contents || [])
+      .map((item) => String(item?.Key || "").trim())
+      .filter(Boolean)
+      .filter((key) => key.toLowerCase().endsWith(".pdf"))
+      .filter((key) => !key.includes("/") && !key.includes("\\"));
+
+    keys.push(...pageKeys);
+    continuationToken = response.IsTruncated
+      ? String(response.NextContinuationToken || "")
+      : "";
+  } while (continuationToken);
+
+  return [...new Set(keys)].sort((a, b) => a.localeCompare(b));
+}
+
+async function mapWithConcurrency(items, concurrency, worker) {
+  const results = new Array(items.length);
+  let cursor = 0;
+
+  const runners = Array.from(
+    { length: Math.max(1, Math.min(concurrency, items.length || 1)) },
+    async () => {
+      while (cursor < items.length) {
+        const index = cursor;
+        cursor += 1;
+        results[index] = await worker(items[index], index);
+      }
+    }
+  );
+
+  await Promise.all(runners);
+  return results;
+}
+
+async function generateProducts() {
+  if (!hasRequiredR2Env()) {
+    try {
+      await fs.access(OUTPUT_FILE);
+      console.warn(
+        "R2 environment variables are missing. Using existing data/products.generated.json."
+      );
+      return;
+    } catch {
+      throw new Error(
+        "Missing R2 env vars and no existing data/products.generated.json. " +
+          "Set R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, and R2_BUCKET_NAME."
+      );
+    }
+  }
+
+  const r2Client = getR2Client();
+  const bucket = getR2BucketName();
+  const files = await listPdfKeysFromBucket();
+  if (files.length === 0) {
+    throw new Error("No PDF objects found in R2 bucket.");
+  }
+
+  const products = await mapWithConcurrency(
+    files,
+    PAGE_COUNT_CONCURRENCY,
+    async (fileName) => {
       const product = parseProductFromFilename(fileName);
-      const pages = await getPdfPageCount(fileName);
+      const pages = await getPdfPageCount(r2Client, bucket, fileName);
       return {
         ...product,
         pages,
       };
-    })
+    }
   );
+
   await fs.writeFile(OUTPUT_FILE, `${JSON.stringify(products, null, 2)}\n`, "utf8");
-  console.log(`Generated ${products.length} products -> data/products.generated.json`);
+  console.log(
+    `Generated ${products.length} products from R2 bucket -> data/products.generated.json`
+  );
 }
 
 generateProducts().catch((error) => {

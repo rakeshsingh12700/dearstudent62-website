@@ -6,6 +6,7 @@ import Navbar from "../../components/Navbar";
 import { useAuth } from "../../context/AuthContext";
 import products from "../../data/products";
 import { getUserPurchases } from "../../firebase/purchases";
+import { getDownloadUrl } from "../../lib/productAssetUrls";
 
 function toDate(value) {
   if (!value) return null;
@@ -83,6 +84,7 @@ export default function OrderDetailsPage() {
           const product = productById.get(purchase.productId || "");
           return {
             id: purchase.id,
+            storageKey: String(product?.storageKey || "").trim(),
             title: product?.title || humanizeId(purchase.productId),
             price: Number(product?.price || 0),
             quantity:
@@ -94,9 +96,6 @@ export default function OrderDetailsPage() {
             category: product?.category || "Digital Worksheet",
             classLabel: product?.class ? humanizeId(product.class) : "Early Learning",
             purchasedAtLabel: formatDateTime(purchase.purchasedAt),
-            downloadHref: `/api/download?paymentId=${encodeURIComponent(
-              purchase.paymentId || purchase.id
-            )}&productId=${encodeURIComponent(String(purchase.productId || ""))}`,
           };
         });
 
@@ -127,6 +126,27 @@ export default function OrderDetailsPage() {
     () => orderItems.reduce((sum, item) => sum + (item.quantity || 1), 0),
     [orderItems]
   );
+
+  const handleDownload = async (storageKey) => {
+    const key = String(storageKey || "").trim();
+    if (!key) return;
+    if (!user) {
+      alert("Please login to download.");
+      return;
+    }
+
+    try {
+      const idToken = await user.getIdToken();
+      const link = document.createElement("a");
+      link.href = getDownloadUrl(key, idToken);
+      link.download = key;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch {
+      alert("Unable to verify your login. Please login again.");
+    }
+  };
 
   return (
     <>
@@ -207,9 +227,15 @@ export default function OrderDetailsPage() {
                     </div>
                     <div className="order-line-item__actions">
                       <strong>INR {(item.price || 0) * (item.quantity || 1)}</strong>
-                      <a href={item.downloadHref} className="btn btn-secondary" download>
-                        Download
-                      </a>
+                      {item.storageKey ? (
+                        <button
+                          type="button"
+                          className="btn btn-secondary"
+                          onClick={() => handleDownload(item.storageKey)}
+                        >
+                          Download
+                        </button>
+                      ) : null}
                     </div>
                   </article>
                 ))}

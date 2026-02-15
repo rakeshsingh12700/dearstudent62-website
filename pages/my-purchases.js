@@ -5,6 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import { getUserPurchases } from "../firebase/purchases";
 import Navbar from "../components/Navbar";
 import products from "../data/products";
+import { getDownloadUrl, getPreviewUrl } from "../lib/productAssetUrls";
 
 const CART_STORAGE_KEY = "ds-worksheet-cart-v1";
 const ACCENT_PALETTE = [
@@ -102,6 +103,7 @@ export default function MyPurchases() {
         return {
           id: purchase.id,
           productId: productId || "unknown",
+          storageKey: String(product?.storageKey || "").trim(),
           title: product?.title || humanizeId(productId),
           category: product?.category || "Digital Worksheet",
           classLabel: product?.class
@@ -111,7 +113,7 @@ export default function MyPurchases() {
           type: product?.type || "worksheet",
           price: typeof product?.price === "number" ? product.price : null,
           imageUrl: product?.imageUrl || "",
-          pdfPreviewUrl: product?.pdf || "",
+          pdfPreviewUrl: getPreviewUrl(product?.storageKey, 1),
           quantity:
             Number.isFinite(Number(purchase.quantity)) &&
             Number(purchase.quantity) > 0
@@ -120,9 +122,6 @@ export default function MyPurchases() {
           purchasedAtMs: purchasedDate ? purchasedDate.getTime() : 0,
           purchasedAtLabel: formatDateTime(purchase.purchasedAt),
           paymentId: fallbackId,
-          downloadHref: `/api/download?paymentId=${encodeURIComponent(
-            fallbackId
-          )}&productId=${encodeURIComponent(productId)}`,
           viewHref: productId ? `/product/${productId}` : null,
           accent: getAccentForId(productId || fallbackId),
         };
@@ -271,6 +270,27 @@ export default function MyPurchases() {
     window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(nextCart));
     window.dispatchEvent(new CustomEvent("ds-cart-updated"));
     router.push("/worksheets?openCart=1");
+  };
+
+  const handleDownload = async (storageKey) => {
+    const key = String(storageKey || "").trim();
+    if (!key) return;
+    if (!user) {
+      alert("Please login to download.");
+      return;
+    }
+
+    try {
+      const idToken = await user.getIdToken();
+      const link = document.createElement("a");
+      link.href = getDownloadUrl(key, idToken);
+      link.download = key;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch {
+      alert("Unable to verify your login. Please login again.");
+    }
   };
 
   return (
@@ -445,9 +465,15 @@ export default function MyPurchases() {
                               {item.pages ? `${item.pages} pages` : "Printable PDF"} • Qty{" "}
                               {item.quantity}
                             </p>
-                            <a href={item.downloadHref} className="btn-link" download>
-                              Download PDF
-                            </a>
+                            {item.storageKey ? (
+                              <button
+                                type="button"
+                                className="btn-link"
+                                onClick={() => handleDownload(item.storageKey)}
+                              >
+                                Download PDF
+                              </button>
+                            ) : null}
                           </div>
                         </div>
                       ))}

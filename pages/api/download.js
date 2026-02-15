@@ -1,89 +1,162 @@
-import fs from "fs";
-import path from "path";
-import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  limit,
-  query,
-  where,
-} from "firebase/firestore";
+import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { collection, getDocs, limit, query, where } from "firebase/firestore";
 import { db } from "../../firebase/config";
-import { DEFAULT_PRODUCT_ID, PRODUCT_CATALOG } from "../../lib/productCatalog";
+import { PRODUCT_CATALOG } from "../../lib/productCatalog";
+import { getToken as getCheckoutToken } from "../../lib/tokenStore";
+
+const SIGNED_URL_TTL_SECONDS = 60;
+
+function getR2Client() {
+  const accountId = String(process.env.R2_ACCOUNT_ID || "").trim();
+  const accessKeyId = String(process.env.R2_ACCESS_KEY_ID || "").trim();
+  const secretAccessKey = String(process.env.R2_SECRET_ACCESS_KEY || "").trim();
+
+  if (!accountId || !accessKeyId || !secretAccessKey) {
+    throw new Error("Missing Cloudflare R2 environment variables");
+  }
+
+  return new S3Client({
+    region: "auto",
+    endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+    credentials: {
+      accessKeyId,
+      secretAccessKey,
+    },
+  });
+}
+
+async function verifyFirebaseIdToken(idToken) {
+  const token = String(idToken || "").trim();
+  if (!token) return null;
+
+  const apiKey = String(
+    process.env.FIREBASE_API_KEY || process.env.NEXT_PUBLIC_FIREBASE_API_KEY || ""
+  ).trim();
+  if (!apiKey) {
+    throw new Error("Missing FIREBASE_API_KEY");
+  }
+
+  const response = await fetch(
+    `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${apiKey}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ idToken: token }),
+    }
+  );
+
+  if (!response.ok) return null;
+  const payload = await response.json();
+  const account = Array.isArray(payload?.users) ? payload.users[0] : null;
+  if (!account?.email) return null;
+
+  return {
+    uid: String(account.localId || "").trim(),
+    email: String(account.email || "").trim().toLowerCase(),
+  };
+}
+
+async function hasUserPurchasedProduct({ email, uid, productId }) {
+  const normalizedProductId = String(productId || "").trim();
+  if (!normalizedProductId) return false;
+
+  if (uid) {
+    const byUserIdQuery = query(
+      collection(db, "purchases"),
+      where("userId", "==", uid),
+      where("productId", "==", normalizedProductId),
+      limit(1)
+    );
+    const byUserIdSnapshot = await getDocs(byUserIdQuery);
+    if (!byUserIdSnapshot.empty) return true;
+  }
+
+  if (!email) return false;
+
+  const byEmailQuery = query(
+    collection(db, "purchases"),
+    where("email", "==", email),
+    where("productId", "==", normalizedProductId),
+    limit(1)
+  );
+  const byEmailSnapshot = await getDocs(byEmailQuery);
+  return !byEmailSnapshot.empty;
+}
+
+function hasValidCheckoutToken(token, key) {
+  const tokenData = getCheckoutToken(token);
+  if (!tokenData) return false;
+
+  const normalizedKey = String(key || "").trim();
+  const fileList = Array.isArray(tokenData.files) ? tokenData.files : [];
+  if (fileList.length > 0) {
+    return fileList.some((item) => String(item || "").trim() === normalizedKey);
+  }
+  if (!tokenData?.file) return false;
+  return String(tokenData.file).trim() === normalizedKey;
+}
 
 export default async function handler(req, res) {
-  const paymentId = String(req.query.paymentId || "").trim();
-  const requestedProductId = String(req.query.productId || "").trim();
-
-  if (!paymentId) {
-    return res.status(400).json({ error: "Payment ID required" });
+  if (req.method !== "GET") {
+    return res.status(405).json({ error: "Method not allowed" });
   }
 
-  let purchaseData = null;
+  const key = String(req.query.key || "").trim();
+  const token = String(req.query.token || "").trim();
 
-  if (requestedProductId) {
-    const productOrderQuery = query(
-      collection(db, "purchases"),
-      where("paymentId", "==", paymentId),
-      where("productId", "==", requestedProductId),
-      limit(1)
+  if (!key) {
+    return res.status(400).json({ error: "Missing key query parameter" });
+  }
+
+  // Keep keys as exact bucket object names; reject path-like values.
+  if (key.includes("/") || key.includes("\\") || key.includes("..")) {
+    return res.status(400).json({ error: "Invalid key" });
+  }
+
+  const bucket = String(process.env.R2_BUCKET_NAME || "").trim();
+  if (!bucket) {
+    return res.status(500).json({ error: "Missing R2_BUCKET_NAME" });
+  }
+
+  try {
+    const productEntry = Object.values(PRODUCT_CATALOG).find(
+      (product) => String(product?.storageKey || "").trim() === key
     );
-
-    const productOrderSnapshot = await getDocs(productOrderQuery);
-    if (!productOrderSnapshot.empty) {
-      purchaseData = productOrderSnapshot.docs[0].data();
+    if (!productEntry?.id) {
+      return res.status(404).json({ error: "Product not found for this key" });
     }
-  }
 
-  if (!purchaseData) {
-    const legacyDoc = await getDoc(doc(db, "purchases", paymentId));
-    if (legacyDoc.exists()) {
-      purchaseData = legacyDoc.data();
+    const user = await verifyFirebaseIdToken(token);
+    const purchasedWithLogin = user?.email
+      ? await hasUserPurchasedProduct({
+          email: user.email,
+          uid: user.uid,
+          productId: productEntry.id,
+        })
+      : false;
+    const purchasedWithCheckoutToken = hasValidCheckoutToken(token, key);
+
+    if (!purchasedWithLogin && !purchasedWithCheckoutToken) {
+      return res.status(403).json({ error: "Not authorized" });
     }
+
+    const r2Client = getR2Client();
+    const fileName = key.replace(/"/g, "");
+    const command = new GetObjectCommand({
+      Bucket: bucket,
+      Key: key,
+      ResponseContentType: "application/pdf",
+      ResponseContentDisposition: `attachment; filename="${fileName}"`,
+    });
+    const signedUrl = await getSignedUrl(r2Client, command, {
+      expiresIn: SIGNED_URL_TTL_SECONDS,
+    });
+
+    res.setHeader("Cache-Control", "no-store");
+    return res.redirect(302, signedUrl);
+  } catch (error) {
+    console.error("R2 signed URL generation failed:", error);
+    return res.status(500).json({ error: "Failed to create signed download URL" });
   }
-
-  if (!purchaseData) {
-    const firstOrderItemQuery = query(
-      collection(db, "purchases"),
-      where("paymentId", "==", paymentId),
-      limit(1)
-    );
-    const firstOrderItemSnapshot = await getDocs(firstOrderItemQuery);
-    if (!firstOrderItemSnapshot.empty) {
-      purchaseData = firstOrderItemSnapshot.docs[0].data();
-    }
-  }
-
-  if (!purchaseData) {
-    return res.status(403).json({ error: "Unauthorized" });
-  }
-
-  const finalProductId =
-    requestedProductId ||
-    String(purchaseData.productId || "").trim() ||
-    DEFAULT_PRODUCT_ID;
-  const productEntry = PRODUCT_CATALOG[finalProductId];
-
-  if (!productEntry) {
-    return res.status(404).json({ error: "Product file mapping not found" });
-  }
-
-  const filePath = path.join(
-    process.cwd(),
-    "private/pdfs",
-    productEntry.file
-  );
-
-  if (!fs.existsSync(filePath)) {
-    return res.status(404).json({ error: "File not found" });
-  }
-
-  res.setHeader("Content-Type", "application/pdf");
-  res.setHeader(
-    "Content-Disposition",
-    `attachment; filename="${productEntry.file}"`
-  );
-
-  fs.createReadStream(filePath).pipe(res);
 }

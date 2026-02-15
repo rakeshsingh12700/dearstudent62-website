@@ -4,45 +4,69 @@ import Navbar from "../components/Navbar";
 import Link from "next/link";
 import { useAuth } from "../context/AuthContext";
 import products from "../data/products";
+import { getDownloadUrl } from "../lib/productAssetUrls";
 
 export default function Success() {
   const router = useRouter();
   const { user } = useAuth();
-  const paymentId =
-    typeof router.query.paymentId === "string" ? router.query.paymentId : "";
+  const checkoutToken =
+    typeof router.query.token === "string" ? router.query.token : "";
   const productId =
     typeof router.query.productId === "string" ? router.query.productId : "";
+  const productIdsParam =
+    typeof router.query.productIds === "string" ? router.query.productIds : "";
   const queryEmail = typeof router.query.email === "string" ? router.query.email : "";
-  const productTitle = useMemo(() => {
-    const product = products.find((item) => item.id === productId);
-    return product?.title || "Worksheet";
-  }, [productId]);
-  const fileName = useMemo(() => {
-    const product = products.find((item) => item.id === productId);
-    if (!product?.pdf) return "worksheet.pdf";
-    const fileParam = product.pdf.match(/file=([^&]+)/);
-    return fileParam ? decodeURIComponent(fileParam[1]) : "worksheet.pdf";
-  }, [productId]);
+  const purchasedProducts = useMemo(() => {
+    const idsFromParam = productIdsParam
+      .split(",")
+      .map((id) => id.trim())
+      .filter(Boolean);
+    const ids = idsFromParam.length > 0 ? idsFromParam : [productId].filter(Boolean);
+    return ids
+      .map((id) => products.find((item) => item.id === id))
+      .filter(Boolean);
+  }, [productId, productIdsParam]);
   const checkoutEmail = useMemo(() => {
     if (queryEmail) return queryEmail;
     if (typeof window === "undefined") return "";
     return window.sessionStorage.getItem("ds-last-checkout-email") || "";
   }, [queryEmail]);
 
-  const handleDownload = () => {
-    if (!paymentId) {
-      alert("Missing payment reference. Open My Purchases to download.");
+  const handleDownload = (product) => {
+    if (!product?.storageKey) {
+      alert("Missing file reference. Open My Purchases to download.");
       return;
     }
 
-    // Trigger browser download.
-    const link = document.createElement("a");
-    const productQuery = productId ? `&productId=${encodeURIComponent(productId)}` : "";
-    link.href = `/api/download?paymentId=${paymentId}${productQuery}`;
-    link.download = fileName;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
+    if (!user && !checkoutToken) {
+      alert("Please login to download from your library.");
+      return;
+    }
+
+    if (!user && checkoutToken) {
+      const link = document.createElement("a");
+      link.href = getDownloadUrl(product.storageKey, checkoutToken);
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      return;
+    }
+
+    user
+      .getIdToken()
+      .then((idToken) => {
+        const downloadUrl = getDownloadUrl(product.storageKey, idToken || checkoutToken);
+        const link = document.createElement("a");
+        link.href = downloadUrl;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+      })
+      .catch(() => {
+        alert("Unable to verify your login. Please login again.");
+      });
   };
 
   return (
@@ -51,14 +75,19 @@ export default function Success() {
       <div style={{ padding: "40px" }}>
         <h2>Payment successful 🎉</h2>
         <p>Your worksheet is ready.</p>
-        <button
-          type="button"
-          onClick={handleDownload}
-          style={{ marginRight: 12, padding: "10px 16px", cursor: "pointer" }}
-          disabled={!paymentId}
-        >
-          Download {productTitle}
-        </button>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 12 }}>
+          {purchasedProducts.map((product) => (
+            <button
+              key={product.id}
+              type="button"
+              onClick={() => handleDownload(product)}
+              style={{ padding: "10px 16px", cursor: "pointer" }}
+              disabled={!product?.storageKey || (!user && !checkoutToken)}
+            >
+              Download {product.title}
+            </button>
+          ))}
+        </div>
         <button
           type="button"
           onClick={() => router.push("/worksheets")}

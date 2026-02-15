@@ -4,6 +4,7 @@ import Link from "next/link";
 import Navbar from "../components/Navbar";
 import { useAuth } from "../context/AuthContext";
 import products from "../data/products";
+import { getPreviewUrl } from "../lib/productAssetUrls";
 
 const RAZORPAY_SDK_SRC = "https://checkout.razorpay.com/v1/checkout.js";
 const CART_STORAGE_KEY = "ds-worksheet-cart-v1";
@@ -105,7 +106,7 @@ const getCartPreviewItems = () => {
         quantity,
         price,
         lineTotal: quantity * price,
-        previewUrl: String(product?.pdf || ""),
+        previewUrl: getPreviewUrl(product?.storageKey, 1),
         href: `/product/${productId}`,
       };
     })
@@ -224,7 +225,10 @@ export default function Checkout() {
               const primaryProductId = encodeURIComponent(
                 result.primaryProductId || ""
               );
-              window.location.href = `/success?token=${result.token}&paymentId=${result.paymentId}&email=${encodeURIComponent(buyerEmail)}&productId=${primaryProductId}`;
+              const productIdsParam = encodeURIComponent(
+                Array.isArray(result.productIds) ? result.productIds.join(",") : ""
+              );
+              window.location.href = `/success?token=${result.token}&paymentId=${result.paymentId}&email=${encodeURIComponent(buyerEmail)}&productId=${primaryProductId}&productIds=${productIdsParam}`;
             } else {
               alert(result.error || "Payment verification failed.");
             }

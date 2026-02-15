@@ -2,6 +2,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import products from "../data/products";
+import { getPreviewUrl } from "../lib/productAssetUrls";
 
 const CLASS_OPTIONS = [
   { value: "all", label: "All" },
@@ -151,12 +152,6 @@ function normalizeMobileView(value) {
   if (slug === "maths") return "maths";
   if (slug === "exam" || slug === "exams") return "exams";
   return "library";
-}
-
-function withPreviewPageLimit(url, pageCount = 1) {
-  if (!url) return "";
-  const separator = url.includes("?") ? "&" : "?";
-  return `${url}${separator}pages=${pageCount}`;
 }
 
 function matchFirstKey(patternMap, sourceText) {
@@ -844,7 +839,7 @@ export default function WorksheetShop({
             <div className="worksheets-grid">
               {visibleProducts.map((product) => {
                 const quantity = getItemQuantity(product.id);
-                const singlePagePreviewUrl = withPreviewPageLimit(product.pdf, 1);
+                const singlePagePreviewUrl = getPreviewUrl(product.storageKey, 1);
 
                 return (
                   <article className="worksheet-card" key={product.id}>
@@ -953,7 +948,7 @@ export default function WorksheetShop({
             <p className="worksheet-preview-modal__hint">Preview shows page 1 only.</p>
             <iframe
               className="worksheet-preview-modal__frame"
-              src={`${withPreviewPageLimit(previewState.pdf, 1)}#page=1&view=FitH,110&toolbar=0&navpanes=0&scrollbar=0`}
+              src={`${getPreviewUrl(previewState.storageKey, 1)}#page=1&view=FitH,110&toolbar=0&navpanes=0&scrollbar=0`}
               title={`${previewState.title} preview`}
             />
           </section>
