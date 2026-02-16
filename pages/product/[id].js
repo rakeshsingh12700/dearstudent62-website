@@ -134,6 +134,7 @@ export default function ProductPage() {
   const [ratingLoading, setRatingLoading] = useState(false);
   const [ratingSubmitting, setRatingSubmitting] = useState(false);
   const [ratingNotice, setRatingNotice] = useState({ type: "", text: "" });
+  const [editingRating, setEditingRating] = useState(false);
 
   const staticProduct = products.find((item) => item.id === query.id);
   const product = runtimeProduct || staticProduct;
@@ -495,10 +496,8 @@ export default function ProductPage() {
           review: String(payload.userRating.review || ""),
         });
       }
-      setRatingNotice({
-        type: "ok",
-        text: "Thanks for your rating. Your feedback has been saved.",
-      });
+      setRatingNotice({ type: "ok", text: "Thanks for your rating. Your feedback has been saved." });
+      setEditingRating(false);
     } catch (error) {
       setRatingNotice({
         type: "error",
@@ -660,66 +659,67 @@ export default function ProductPage() {
               )}
 
               {!checking && purchased && assetAvailable && (
-                <form className="product-rating-form" onSubmit={submitRating}>
-                  <h3>Rate This Worksheet</h3>
-                  <p className="product-rating-form__hint">
-                    Share your rating. Review text is optional and kept private for quality checks.
-                  </p>
-                  <div className="product-rating-form__stars" role="group" aria-label="Rating">
-                    {[1, 2, 3, 4, 5].map((value) => (
-                      <button
-                        key={`rate-${value}`}
-                        type="button"
-                        className={`product-rating-form__star ${
-                          ratingForm.rating >= value ? "active" : ""
-                        }`}
-                        onClick={() =>
-                          setRatingForm((prev) => ({
-                            ...prev,
-                            rating: value,
-                          }))
-                        }
-                        aria-label={`${value} star${value === 1 ? "" : "s"}`}
-                      >
-                        ★
-                      </button>
-                    ))}
-                  </div>
-                  <label htmlFor="product-rating-review">Optional review</label>
-                  <textarea
-                    id="product-rating-review"
-                    name="review"
-                    value={ratingForm.review}
-                    maxLength={1200}
-                    onChange={(event) =>
-                      setRatingForm((prev) => ({
-                        ...prev,
-                        review: event.target.value,
-                      }))
-                    }
-                    placeholder="Tell us what worked well or what can improve."
-                    rows={4}
-                  />
-                  <button
-                    type="submit"
-                    className="btn btn-secondary"
-                    disabled={ratingSubmitting || ratingLoading}
-                  >
-                    {ratingSubmitting ? "Saving..." : "Submit Rating"}
-                  </button>
-                  {ratingNotice.text && (
-                    <p
-                      className={`product-rating-form__status ${
-                        ratingNotice.type === "error"
-                          ? "product-rating-form__status--error"
-                          : "product-rating-form__status--ok"
-                      }`}
-                    >
-                      {ratingNotice.text}
-                    </p>
-                  )}
-                </form>
+                <div className="product-info-card__help">
+                  <p>Questions before purchase or a checkout issue?</p>
+                  <Link href="/contact-us" className="btn-link">Contact Support</Link>
+                </div>
               )}
+
+              {!checking && purchased && assetAvailable && (() => {
+                const hasRated = ratingForm.rating >= 1 && !ratingLoading;
+                if (hasRated && !editingRating) {
+                  return (
+                    <div className="product-rating-form product-rating-form--rated">
+                      <p className="product-rating-form__summary">
+                        <span className="product-rating-form__summary-stars">{buildRatingStars(ratingForm.rating)}</span>
+                        You rated this worksheet
+                      </p>
+                      <button type="button" className="btn btn-secondary" onClick={() => setEditingRating(true)}>
+                        Change rating
+                      </button>
+                    </div>
+                  );
+                }
+                return (
+                  <form className="product-rating-form" onSubmit={submitRating}>
+                    <h3>Rate This Worksheet</h3>
+                    <p className="product-rating-form__hint">
+                      Share your rating. Review text is optional and kept private for quality checks.
+                    </p>
+                    <div className="product-rating-form__stars" role="group" aria-label="Rating">
+                      {[1, 2, 3, 4, 5].map((value) => (
+                        <button
+                          key={`rate-${value}`}
+                          type="button"
+                          className={`product-rating-form__star ${ratingForm.rating >= value ? "active" : ""}`}
+                          onClick={() => setRatingForm((prev) => ({ ...prev, rating: value }))}
+                          aria-label={`${value} star${value === 1 ? "" : "s"}`}
+                        >
+                          ★
+                        </button>
+                      ))}
+                    </div>
+                    <label htmlFor="product-rating-review">Optional review</label>
+                    <textarea
+                      id="product-rating-review"
+                      name="review"
+                      value={ratingForm.review}
+                      maxLength={1200}
+                      onChange={(e) => setRatingForm((prev) => ({ ...prev, review: e.target.value }))}
+                      placeholder="Tell us what worked well or what can improve."
+                      rows={4}
+                    />
+                    <button type="submit" className="btn btn-secondary" disabled={ratingSubmitting || ratingLoading}>
+                      {ratingSubmitting ? "Saving..." : "Submit Rating"}
+                    </button>
+                    {ratingNotice.text && (
+                      <p className={`product-rating-form__status ${ratingNotice.type === "error" ? "product-rating-form__status--error" : "product-rating-form__status--ok"}`}>
+                        {ratingNotice.text}
+                      </p>
+                    )}
+                  </form>
+                );
+              })()}
 
               {!checking && !purchased && assetAvailable && (
                 <>
@@ -739,7 +739,10 @@ export default function ProductPage() {
                       Add to Cart
                     </button>
                   </div>
-
+                  <div className="product-info-card__help">
+                    <p>Questions before purchase or a checkout issue?</p>
+                    <Link href="/contact-us" className="btn-link">Contact Support</Link>
+                  </div>
                   {cartNotice && <p className="product-info-card__status">{cartNotice}</p>}
                 </>
               )}
@@ -749,13 +752,6 @@ export default function ProductPage() {
                   <li key={benefit}>{benefit}</li>
                 ))}
               </ul>
-
-              <div className="product-info-card__help">
-                <p>Questions before purchase or a checkout issue?</p>
-                <Link href="/contact-us" className="btn-link">
-                  Contact Support
-                </Link>
-              </div>
             </div>
           </section>
 
@@ -781,6 +777,7 @@ export default function ProductPage() {
               </p>
             </article>
           </section>
+
         </section>
       </main>
 

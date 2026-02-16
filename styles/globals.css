@@ -2476,6 +2476,25 @@ button {
   color: #b91c1c;
 }
 
+.product-rating-form--rated {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.product-rating-form__summary {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #334155;
+}
+
+.product-rating-form__summary-stars {
+  color: #f59e0b;
+  margin-right: 6px;
+}
+
 .product-share {
   position: relative;
   flex: 0 0 auto;
