@@ -51,11 +51,48 @@ export default function OrderDetailsPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [orderItems, setOrderItems] = useState([]);
+  const [runtimeProducts, setRuntimeProducts] = useState([]);
 
-  const productById = useMemo(
-    () => new Map(products.map((product) => [product.id, product])),
-    []
-  );
+  const productById = useMemo(() => {
+    const map = new Map(products.map((product) => [product.id, product]));
+    runtimeProducts.forEach((product) => {
+      if (!product?.id) return;
+      map.set(product.id, product);
+    });
+    return map;
+  }, [runtimeProducts]);
+
+  useEffect(() => {
+    if (!user?.email || typeof orderId !== "string") return;
+    let cancelled = false;
+
+    const loadRuntimeProducts = async () => {
+      try {
+        const purchases = await getUserPurchases(user);
+        const ids = Array.from(
+          new Set(
+            purchases
+              .filter((purchase) => (purchase.paymentId || purchase.id) === orderId)
+              .map((purchase) => String(purchase?.productId || "").trim())
+              .filter(Boolean)
+          )
+        );
+        if (ids.length === 0) return;
+        const response = await fetch(`/api/products?ids=${encodeURIComponent(ids.join(","))}`);
+        if (!response.ok) return;
+        const payload = await response.json().catch(() => ({}));
+        const list = Array.isArray(payload?.products) ? payload.products : [];
+        if (!cancelled) setRuntimeProducts(list);
+      } catch {
+        // Keep static fallback only.
+      }
+    };
+
+    loadRuntimeProducts();
+    return () => {
+      cancelled = true;
+    };
+  }, [orderId, user]);
 
   useEffect(() => {
     if (!user?.email || typeof orderId !== "string") return;

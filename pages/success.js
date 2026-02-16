@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import Navbar from "../components/Navbar";
 import Link from "next/link";
@@ -9,6 +9,7 @@ import { getDownloadUrl } from "../lib/productAssetUrls";
 export default function Success() {
   const router = useRouter();
   const { user } = useAuth();
+  const [runtimeProducts, setRuntimeProducts] = useState([]);
   const checkoutToken =
     typeof router.query.token === "string" ? router.query.token : "";
   const productId =
@@ -22,9 +23,36 @@ export default function Success() {
       .map((id) => id.trim())
       .filter(Boolean);
     const ids = idsFromParam.length > 0 ? idsFromParam : [productId].filter(Boolean);
+    const runtimeById = new Map(runtimeProducts.map((item) => [item.id, item]));
     return ids
-      .map((id) => products.find((item) => item.id === id))
+      .map((id) => runtimeById.get(id) || products.find((item) => item.id === id))
       .filter(Boolean);
+  }, [productId, productIdsParam, runtimeProducts]);
+
+  useEffect(() => {
+    const ids = String(productIdsParam || productId || "")
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean);
+    if (ids.length === 0) return;
+
+    let cancelled = false;
+    const loadProducts = async () => {
+      try {
+        const response = await fetch(`/api/products?ids=${encodeURIComponent(ids.join(","))}`);
+        if (!response.ok) return;
+        const payload = await response.json().catch(() => ({}));
+        const list = Array.isArray(payload?.products) ? payload.products : [];
+        if (!cancelled) setRuntimeProducts(list);
+      } catch {
+        // Keep static fallback.
+      }
+    };
+
+    loadProducts();
+    return () => {
+      cancelled = true;
+    };
   }, [productId, productIdsParam]);
   const checkoutEmail = useMemo(() => {
     if (queryEmail) return queryEmail;
@@ -46,7 +74,7 @@ export default function Success() {
     if (!user && checkoutToken) {
       const link = document.createElement("a");
       link.href = getDownloadUrl(product.storageKey, checkoutToken);
-      link.download = fileName;
+      link.download = String(product.storageKey || "worksheet.pdf");
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -59,7 +87,7 @@ export default function Success() {
         const downloadUrl = getDownloadUrl(product.storageKey, idToken || checkoutToken);
         const link = document.createElement("a");
         link.href = downloadUrl;
-        link.download = fileName;
+        link.download = String(product.storageKey || "worksheet.pdf");
         document.body.appendChild(link);
         link.click();
         link.remove();

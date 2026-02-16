@@ -5,7 +5,7 @@ import Navbar from "../../components/Navbar";
 import products from "../../data/products";
 import { useAuth } from "../../context/AuthContext";
 import { hasPurchased } from "../../firebase/purchases";
-import { getPreviewUrl } from "../../lib/productAssetUrls";
+import { getPreviewUrl, getThumbnailUrl } from "../../lib/productAssetUrls";
 
 const CART_STORAGE_KEY = "ds-worksheet-cart-v1";
 
@@ -54,14 +54,25 @@ export default function ProductPage() {
   const [cartNotice, setCartNotice] = useState("");
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isAndroidDevice, setIsAndroidDevice] = useState(false);
+  const [runtimeProduct, setRuntimeProduct] = useState(null);
 
-  const product = products.find((item) => item.id === query.id);
+  const staticProduct = products.find((item) => item.id === query.id);
+  const product = runtimeProduct || staticProduct;
   const typeLabel = useMemo(() => humanize(product?.type), [product?.type]);
   const classLabel = useMemo(() => humanize(product?.class), [product?.class]);
   const singlePagePreviewUrl = useMemo(
     () => getPreviewUrl(product?.storageKey, 1),
     [product?.storageKey]
   );
+  const thumbnailUrl = useMemo(
+    () => getThumbnailUrl(product?.storageKey, product?.imageUrl),
+    [product?.storageKey, product?.imageUrl]
+  );
+  const previewImageUrl = useMemo(
+    () => String(product?.previewImageUrl || "").trim(),
+    [product?.previewImageUrl]
+  );
+  const showPreviewImage = Boolean(product?.showPreviewPage && previewImageUrl);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -72,6 +83,29 @@ export default function ProductPage() {
     const isDesktopPlatform = /mac|win/i.test(platform);
     setIsAndroidDevice(isAndroidUa && !isDesktopPlatform && maxTouchPoints > 0);
   }, []);
+
+  useEffect(() => {
+    if (typeof query.id !== "string" || !query.id) return;
+    let cancelled = false;
+
+    const loadProduct = async () => {
+      try {
+        const response = await fetch(`/api/products?id=${encodeURIComponent(query.id)}`);
+        if (!response.ok) return;
+        const payload = await response.json().catch(() => ({}));
+        if (!cancelled && payload?.product?.id) {
+          setRuntimeProduct(payload.product);
+        }
+      } catch {
+        // Keep static fallback.
+      }
+    };
+
+    loadProduct();
+    return () => {
+      cancelled = true;
+    };
+  }, [query.id]);
 
   useEffect(() => {
     const checkPurchase = async () => {
@@ -203,17 +237,17 @@ export default function ProductPage() {
                   type="button"
                   className="product-preview-card__preview-btn"
                   aria-label={`Quick preview ${product.title}`}
-                  onClick={() => {
-                    if (isAndroidDevice && typeof window !== "undefined") {
-                      window.open(singlePagePreviewUrl, "_blank", "noopener,noreferrer");
-                      return;
-                    }
-                    setIsPreviewOpen(true);
-                  }}
+                  onClick={() => setIsPreviewOpen(true)}
                 >
                   <EyeIcon />
                 </button>
-                {isAndroidDevice ? (
+                {thumbnailUrl ? (
+                  <img
+                    src={thumbnailUrl}
+                    alt={`${product.title} thumbnail`}
+                    loading="lazy"
+                  />
+                ) : isAndroidDevice ? (
                   <div className="product-preview-card__android-fallback">
                     <span>PDF Preview</span>
                   </div>
@@ -233,7 +267,7 @@ export default function ProductPage() {
               <div className="product-info-card__eyebrow-row">
                 <span>{classLabel}</span>
                 <span>{typeLabel}</span>
-                <span>{product.ageLabel || "AGE 3+"}</span>
+                {!product.hideAgeLabel && product.ageLabel && <span>{product.ageLabel}</span>}
               </div>
               <h1>{product.title}</h1>
               <p className="product-info-card__subtitle">
@@ -356,12 +390,31 @@ export default function ProductPage() {
                 Close
               </button>
             </header>
-            <p className="worksheet-preview-modal__hint">Preview shows page 1 only.</p>
-            <iframe
-              className="worksheet-preview-modal__frame"
-              src={`${singlePagePreviewUrl}#page=1&view=FitH,110&toolbar=0&navpanes=0&scrollbar=0`}
-              title={`${product.title} preview`}
-            />
+            <p className="worksheet-preview-modal__hint">
+              Preview shows cover image{showPreviewImage ? " and first-page of the pdf." : "."}
+            </p>
+            {thumbnailUrl ? (
+              <div className="worksheet-preview-modal__pages">
+                <img
+                  className="worksheet-preview-modal__page-image"
+                  src={thumbnailUrl}
+                  alt={`${product.title} cover`}
+                />
+                {showPreviewImage && (
+                  <img
+                    className="worksheet-preview-modal__page-image"
+                    src={previewImageUrl}
+                    alt={`${product.title} first page`}
+                  />
+                )}
+              </div>
+            ) : (
+              <iframe
+                className="worksheet-preview-modal__frame"
+                src={`${singlePagePreviewUrl}#page=1&view=FitH,110&toolbar=0&navpanes=0&scrollbar=0`}
+                title={`${product.title} preview`}
+              />
+            )}
           </section>
         </div>
       )}

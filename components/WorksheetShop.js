@@ -2,10 +2,11 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import products from "../data/products";
+import staticProducts from "../data/products";
 import {
   getDisplayTypeLabel,
   getPreviewUrl,
+  getThumbnailUrl,
 } from "../lib/productAssetUrls";
 
 const CLASS_OPTIONS = [
@@ -452,6 +453,7 @@ export default function WorksheetShop({
   initialMobileView = "library"
 }) {
   const router = useRouter();
+  const [products, setProducts] = useState(staticProducts);
   const [selectedClass, setSelectedClass] = useState(toSlug(initialClass) || "all");
   const [selectedType, setSelectedType] = useState(normalizeType(initialType) || "all");
   const [selectedSubject, setSelectedSubject] = useState(toSlug(initialSubject) || "all");
@@ -478,7 +480,15 @@ export default function WorksheetShop({
   });
   const [previewState, setPreviewState] = useState(null);
   const [previewLoadFailed, setPreviewLoadFailed] = useState(false);
-  const [isAndroidDevice, setIsAndroidDevice] = useState(false);
+  const [isAndroidDevice] = useState(() => {
+    if (typeof window === "undefined") return false;
+    const ua = String(window.navigator?.userAgent || "");
+    const platform = String(window.navigator?.platform || "");
+    const maxTouchPoints = Number(window.navigator?.maxTouchPoints || 0);
+    const isAndroidUa = /android/i.test(ua);
+    const isDesktopPlatform = /mac|win/i.test(platform);
+    return isAndroidUa && !isDesktopPlatform && maxTouchPoints > 0;
+  });
   const [cart, setCart] = useState(() => {
     if (typeof window === "undefined") return [];
     const savedCart = window.localStorage.getItem(CART_STORAGE_KEY);
@@ -507,18 +517,26 @@ export default function WorksheetShop({
   }, []);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const ua = String(window.navigator?.userAgent || "");
-    const platform = String(window.navigator?.platform || "");
-    const maxTouchPoints = Number(window.navigator?.maxTouchPoints || 0);
-    const isAndroidUa = /android/i.test(ua);
-    const isDesktopPlatform = /mac|win/i.test(platform);
-    setIsAndroidDevice(isAndroidUa && !isDesktopPlatform && maxTouchPoints > 0);
-  }, []);
+    let cancelled = false;
+    const loadProducts = async () => {
+      try {
+        const response = await fetch("/api/products");
+        if (!response.ok) return;
+        const payload = await response.json().catch(() => ({}));
+        const runtimeProducts = Array.isArray(payload?.products) ? payload.products : [];
+        if (!cancelled && runtimeProducts.length > 0) {
+          setProducts(runtimeProducts);
+        }
+      } catch {
+        // Keep static fallback when runtime source is unavailable.
+      }
+    };
 
-  useEffect(() => {
-    setPreviewLoadFailed(false);
-  }, [previewState]);
+    loadProducts();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const taxonomyById = useMemo(() => {
     const map = new Map();
@@ -526,7 +544,7 @@ export default function WorksheetShop({
       map.set(product.id, inferTaxonomy(product));
     });
     return map;
-  }, []);
+  }, [products]);
 
   const isGrammarTopic = selectedTopic === "grammar";
   const activeTab = useMemo(() => {
@@ -601,7 +619,7 @@ export default function WorksheetShop({
     [...predefined, ...dynamic].forEach((item) => byValue.set(item.value, item));
 
     return [{ value: "all", label: "All" }, ...Array.from(byValue.values())];
-  }, [selectedClass, selectedType, taxonomyById]);
+  }, [products, selectedClass, selectedType, taxonomyById]);
 
   const topicOptions = useMemo(() => {
     if (selectedSubject === "all") return [{ value: "all", label: "All" }];
@@ -629,7 +647,7 @@ export default function WorksheetShop({
     [...predefined, ...dynamic].forEach((item) => byValue.set(item.value, item));
 
     return [{ value: "all", label: "All" }, ...Array.from(byValue.values())];
-  }, [selectedClass, selectedSubject, selectedType, taxonomyById]);
+  }, [products, selectedClass, selectedSubject, selectedType, taxonomyById]);
 
   const visibleProducts = useMemo(() => {
     const filtered = products.filter((product) => {
@@ -655,7 +673,7 @@ export default function WorksheetShop({
       sorted.sort((a, b) => a.title.localeCompare(b.title));
     }
     return sorted;
-  }, [isGrammarTopic, selectedClass, selectedSubtopic, selectedSubject, selectedTopic, selectedType, sortBy, taxonomyById]);
+  }, [products, isGrammarTopic, selectedClass, selectedSubtopic, selectedSubject, selectedTopic, selectedType, sortBy, taxonomyById]);
 
   const selectedPathLabel = useMemo(() => {
     const path = [];
@@ -708,10 +726,7 @@ export default function WorksheetShop({
   const openQuickPreview = (product) => {
     const url = getPreviewUrl(product?.storageKey, 1);
     if (!url) return;
-    if (isAndroidDevice && typeof window !== "undefined") {
-      window.open(url, "_blank", "noopener,noreferrer");
-      return;
-    }
+    setPreviewLoadFailed(false);
     setPreviewState(product);
   };
 
@@ -806,6 +821,7 @@ export default function WorksheetShop({
       },
     ];
   }, [
+    applyFilterAction,
     dynamicSubjectOptions,
     mobileFilterMode,
     selectedClass,
@@ -1095,6 +1111,7 @@ export default function WorksheetShop({
               {visibleProducts.map((product) => {
                 const quantity = getItemQuantity(product.id);
                 const singlePagePreviewUrl = getPreviewUrl(product.storageKey, 1);
+                const thumbnailUrl = getThumbnailUrl(product.storageKey, product.imageUrl);
                 return (
                   <article className="worksheet-card" key={product.id}>
                     <div className="worksheet-card__media worksheet-card__media--pdf">
@@ -1103,7 +1120,13 @@ export default function WorksheetShop({
                         className="worksheet-card__media-click"
                         aria-label={`Open ${product.title}`}
                       >
-                        {isAndroidDevice ? (
+                        {thumbnailUrl ? (
+                          <img
+                            src={thumbnailUrl}
+                            alt={`${product.title} thumbnail`}
+                            loading="lazy"
+                          />
+                        ) : isAndroidDevice ? (
                           <div className="worksheet-card__thumb-android">
                             <span>PDF Preview</span>
                           </div>
@@ -1125,7 +1148,9 @@ export default function WorksheetShop({
                       </button>
                     </div>
 
-                    <p className="worksheet-card__age">{product.ageLabel || "AGE 3+"}</p>
+                    {!product.hideAgeLabel && product.ageLabel && (
+                      <p className="worksheet-card__age">{product.ageLabel}</p>
+                    )}
                     <h3 className="worksheet-card__title">
                       <Link href={`/product/${product.id}`}>{product.title}</Link>
                     </h3>
@@ -1205,8 +1230,26 @@ export default function WorksheetShop({
                 Close
               </button>
             </header>
-            <p className="worksheet-preview-modal__hint">Preview shows page 1 only.</p>
-            {!previewLoadFailed ? (
+            <p className="worksheet-preview-modal__hint">
+              Preview shows cover image
+              {previewState?.showPreviewPage ? " and first-page of the pdf." : "."}
+            </p>
+            {previewState?.imageUrl ? (
+              <div className="worksheet-preview-modal__pages">
+                <img
+                  className="worksheet-preview-modal__page-image"
+                  src={previewState.imageUrl}
+                  alt={`${previewState.title} cover`}
+                />
+                {Boolean(previewState.showPreviewPage && previewState.previewImageUrl) && (
+                  <img
+                    className="worksheet-preview-modal__page-image"
+                    src={previewState.previewImageUrl}
+                    alt={`${previewState.title} first page`}
+                  />
+                )}
+              </div>
+            ) : !previewLoadFailed ? (
               <iframe
                 className="worksheet-preview-modal__frame"
                 src={`${getPreviewUrl(previewState.storageKey, 1)}#page=1&view=FitH,110&toolbar=0&navpanes=0&scrollbar=0`}

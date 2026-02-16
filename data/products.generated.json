@@ -10,7 +10,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Bundle-DS62 BD English Grammar Adjectives Fun Lab-219.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-bd-english-grammar-articles-quest-zone",
@@ -23,7 +27,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Bundle-DS62 BD English Grammar Articles Quest Zone-229.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-bd-english-grammar-have-has-had-quest-zone",
@@ -36,7 +44,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Bundle-DS62 BD English Grammar Have Has Had Quest Zone-229.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-bd-english-grammar-is-am-are-spark-edition",
@@ -49,7 +61,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Bundle-DS62 BD English Grammar Is Am Are Spark Edition-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-bd-english-grammar-noun-spark-edition",
@@ -62,7 +78,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Bundle-DS62 BD English Grammar Noun Spark Edition-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-bd-english-grammar-opposites-smart-drill",
@@ -75,7 +95,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Bundle-DS62 BD English Grammar Opposites Smart Drill-239.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-bd-english-grammar-prepositions-power-pack",
@@ -88,7 +112,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Bundle-DS62 BD English Grammar Prepositions Power Pack-209.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-bd-english-grammar-pronoun-power-pack",
@@ -101,7 +129,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Bundle-DS62 BD English Grammar Pronoun Power Pack-209.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-bd-english-grammar-singular-plural-prime-set",
@@ -114,7 +146,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Bundle-DS62 BD English Grammar Singular Plural Prime Set-249.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-bd-english-grammar-verb-fun-lab",
@@ -127,7 +163,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Bundle-DS62 BD English Grammar Verb Fun Lab-219.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-bd-english-poems-fun-lab",
@@ -140,7 +180,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Bundle-DS62 BD English Poems Fun Lab-169.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-bd-english-reading-spark-edition",
@@ -153,7 +197,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Bundle-DS62 BD English Reading Spark Edition-149.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-bd-english-sight-words-quest-zone",
@@ -166,7 +214,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Bundle-DS62 BD English Sight Words Quest Zone-179.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-bd-english-writing-power-pack",
@@ -179,7 +231,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Bundle-DS62 BD English Writing Power Pack-159.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-bd-evs-animals-fun-lab",
@@ -192,7 +248,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Bundle-DS62 BD EVS Animals Fun Lab-179.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-bd-evs-environment-spark-edition",
@@ -205,7 +265,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Bundle-DS62 BD EVS Environment Spark Edition-159.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-bd-evs-food-smart-drill",
@@ -218,7 +282,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Bundle-DS62 BD EVS Food Smart Drill-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-bd-evs-plants-power-pack",
@@ -231,7 +299,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Bundle-DS62 BD EVS Plants Power Pack-169.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-bd-evs-water-quest-zone",
@@ -244,7 +316,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Bundle-DS62 BD EVS Water Quest Zone-189.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-bd-maths-addition-power-pack",
@@ -257,7 +333,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Bundle-DS62 BD Maths Addition Power Pack-179.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-bd-maths-measurement-smart-drill",
@@ -270,7 +350,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Bundle-DS62 BD Maths Measurement Smart Drill-209.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-bd-maths-numbers-spark-edition",
@@ -283,7 +367,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Bundle-DS62 BD Maths Numbers Spark Edition-169.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-bd-maths-shapes-quest-zone",
@@ -296,7 +384,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Bundle-DS62 BD Maths Shapes Quest Zone-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-bd-maths-subtraction-fun-lab",
@@ -309,7 +401,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Bundle-DS62 BD Maths Subtraction Fun Lab-189.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-ut-english-grammar-adjectives-fun-lab",
@@ -322,7 +418,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Exams-DS62 UT English Grammar Adjectives Fun Lab-219.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-ut-english-grammar-articles-quest-zone",
@@ -335,7 +435,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Exams-DS62 UT English Grammar Articles Quest Zone-229.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-ut-english-grammar-have-has-had-quest-zone",
@@ -348,7 +452,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Exams-DS62 UT English Grammar Have Has Had Quest Zone-229.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-ut-english-grammar-is-am-are-spark-edition",
@@ -361,7 +469,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Exams-DS62 UT English Grammar Is Am Are Spark Edition-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-ut-english-grammar-noun-spark-edition",
@@ -374,7 +486,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Exams-DS62 UT English Grammar Noun Spark Edition-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-ut-english-grammar-opposites-smart-drill",
@@ -387,7 +503,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Exams-DS62 UT English Grammar Opposites Smart Drill-239.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-ut-english-grammar-prepositions-power-pack",
@@ -400,7 +520,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Exams-DS62 UT English Grammar Prepositions Power Pack-209.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-ut-english-grammar-pronoun-power-pack",
@@ -413,7 +537,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Exams-DS62 UT English Grammar Pronoun Power Pack-209.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-ut-english-grammar-singular-plural-prime-set",
@@ -426,7 +554,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Exams-DS62 UT English Grammar Singular Plural Prime Set-249.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-ut-english-grammar-verb-fun-lab",
@@ -439,7 +571,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Exams-DS62 UT English Grammar Verb Fun Lab-219.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-ut-english-poems-fun-lab",
@@ -452,7 +588,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Exams-DS62 UT English Poems Fun Lab-169.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-ut-english-reading-spark-edition",
@@ -465,7 +605,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Exams-DS62 UT English Reading Spark Edition-149.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-ut-english-sight-words-quest-zone",
@@ -478,7 +622,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Exams-DS62 UT English Sight Words Quest Zone-179.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-ut-english-writing-power-pack",
@@ -491,7 +639,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Exams-DS62 UT English Writing Power Pack-159.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-ut-evs-animals-fun-lab",
@@ -504,7 +656,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Exams-DS62 UT EVS Animals Fun Lab-179.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-ut-evs-environment-spark-edition",
@@ -517,7 +673,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Exams-DS62 UT EVS Environment Spark Edition-159.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-ut-evs-food-smart-drill",
@@ -530,7 +690,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Exams-DS62 UT EVS Food Smart Drill-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-ut-evs-plants-power-pack",
@@ -543,7 +707,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Exams-DS62 UT EVS Plants Power Pack-169.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-ut-evs-water-quest-zone",
@@ -556,7 +724,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Exams-DS62 UT EVS Water Quest Zone-189.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-ut-maths-addition-power-pack",
@@ -569,7 +741,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Exams-DS62 UT Maths Addition Power Pack-179.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-ut-maths-measurement-smart-drill",
@@ -582,7 +758,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Exams-DS62 UT Maths Measurement Smart Drill-209.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-ut-maths-numbers-spark-edition",
@@ -595,7 +775,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Exams-DS62 UT Maths Numbers Spark Edition-169.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-ut-maths-shapes-quest-zone",
@@ -608,7 +792,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Exams-DS62 UT Maths Shapes Quest Zone-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-ut-maths-subtraction-fun-lab",
@@ -621,7 +809,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Exams-DS62 UT Maths Subtraction Fun Lab-189.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-fy-english-grammar-adjectives-fun-lab",
@@ -634,7 +826,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Final Year Exam-DS62 FY English Grammar Adjectives Fun Lab-219.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-fy-english-grammar-articles-quest-zone",
@@ -647,7 +843,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Final Year Exam-DS62 FY English Grammar Articles Quest Zone-229.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-fy-english-grammar-have-has-had-quest-zone",
@@ -660,7 +860,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Final Year Exam-DS62 FY English Grammar Have Has Had Quest Zone-229.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-fy-english-grammar-is-am-are-spark-edition",
@@ -673,7 +877,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Final Year Exam-DS62 FY English Grammar Is Am Are Spark Edition-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-fy-english-grammar-noun-spark-edition",
@@ -686,7 +894,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Final Year Exam-DS62 FY English Grammar Noun Spark Edition-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-fy-english-grammar-opposites-smart-drill",
@@ -699,7 +911,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Final Year Exam-DS62 FY English Grammar Opposites Smart Drill-239.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-fy-english-grammar-prepositions-power-pack",
@@ -712,7 +928,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Final Year Exam-DS62 FY English Grammar Prepositions Power Pack-209.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-fy-english-grammar-pronoun-power-pack",
@@ -725,7 +945,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Final Year Exam-DS62 FY English Grammar Pronoun Power Pack-209.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-fy-english-grammar-singular-plural-prime-set",
@@ -738,7 +962,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Final Year Exam-DS62 FY English Grammar Singular Plural Prime Set-249.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-fy-english-grammar-verb-fun-lab",
@@ -751,7 +979,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Final Year Exam-DS62 FY English Grammar Verb Fun Lab-219.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-fy-english-poems-fun-lab",
@@ -764,7 +996,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Final Year Exam-DS62 FY English Poems Fun Lab-169.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-fy-english-reading-spark-edition",
@@ -777,7 +1013,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Final Year Exam-DS62 FY English Reading Spark Edition-149.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-fy-english-sight-words-quest-zone",
@@ -790,7 +1030,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Final Year Exam-DS62 FY English Sight Words Quest Zone-179.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-fy-english-writing-power-pack",
@@ -803,7 +1047,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Final Year Exam-DS62 FY English Writing Power Pack-159.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-fy-evs-animals-fun-lab",
@@ -816,7 +1064,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Final Year Exam-DS62 FY EVS Animals Fun Lab-179.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-fy-evs-environment-spark-edition",
@@ -829,7 +1081,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Final Year Exam-DS62 FY EVS Environment Spark Edition-159.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-fy-evs-food-smart-drill",
@@ -842,7 +1098,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Final Year Exam-DS62 FY EVS Food Smart Drill-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-fy-evs-plants-power-pack",
@@ -855,7 +1115,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Final Year Exam-DS62 FY EVS Plants Power Pack-169.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-fy-evs-water-quest-zone",
@@ -868,7 +1132,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Final Year Exam-DS62 FY EVS Water Quest Zone-189.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-fy-maths-addition-power-pack",
@@ -881,7 +1149,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Final Year Exam-DS62 FY Maths Addition Power Pack-179.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-fy-maths-measurement-smart-drill",
@@ -894,7 +1166,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Final Year Exam-DS62 FY Maths Measurement Smart Drill-209.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-fy-maths-numbers-spark-edition",
@@ -907,7 +1183,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Final Year Exam-DS62 FY Maths Numbers Spark Edition-169.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-fy-maths-shapes-quest-zone",
@@ -920,7 +1200,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Final Year Exam-DS62 FY Maths Shapes Quest Zone-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-fy-maths-subtraction-fun-lab",
@@ -933,7 +1217,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Final Year Exam-DS62 FY Maths Subtraction Fun Lab-189.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-hy-english-grammar-adjectives-fun-lab",
@@ -946,7 +1234,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Half Year Exam-DS62 HY English Grammar Adjectives Fun Lab-219.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-hy-english-grammar-articles-quest-zone",
@@ -959,7 +1251,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Half Year Exam-DS62 HY English Grammar Articles Quest Zone-229.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-hy-english-grammar-have-has-had-quest-zone",
@@ -972,7 +1268,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Half Year Exam-DS62 HY English Grammar Have Has Had Quest Zone-229.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-hy-english-grammar-is-am-are-spark-edition",
@@ -985,7 +1285,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Half Year Exam-DS62 HY English Grammar Is Am Are Spark Edition-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-hy-english-grammar-noun-spark-edition",
@@ -998,7 +1302,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Half Year Exam-DS62 HY English Grammar Noun Spark Edition-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-hy-english-grammar-opposites-smart-drill",
@@ -1011,7 +1319,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Half Year Exam-DS62 HY English Grammar Opposites Smart Drill-239.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-hy-english-grammar-prepositions-power-pack",
@@ -1024,7 +1336,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Half Year Exam-DS62 HY English Grammar Prepositions Power Pack-209.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-hy-english-grammar-pronoun-power-pack",
@@ -1037,7 +1353,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Half Year Exam-DS62 HY English Grammar Pronoun Power Pack-209.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-hy-english-grammar-singular-plural-prime-set",
@@ -1050,7 +1370,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Half Year Exam-DS62 HY English Grammar Singular Plural Prime Set-249.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-hy-english-grammar-verb-fun-lab",
@@ -1063,7 +1387,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Half Year Exam-DS62 HY English Grammar Verb Fun Lab-219.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-hy-english-poems-fun-lab",
@@ -1076,7 +1404,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Half Year Exam-DS62 HY English Poems Fun Lab-169.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-hy-english-reading-spark-edition",
@@ -1089,7 +1421,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Half Year Exam-DS62 HY English Reading Spark Edition-149.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-hy-english-sight-words-quest-zone",
@@ -1102,7 +1438,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Half Year Exam-DS62 HY English Sight Words Quest Zone-179.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-hy-english-writing-power-pack",
@@ -1115,7 +1455,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Half Year Exam-DS62 HY English Writing Power Pack-159.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-hy-evs-animals-fun-lab",
@@ -1128,7 +1472,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Half Year Exam-DS62 HY EVS Animals Fun Lab-179.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-hy-evs-environment-spark-edition",
@@ -1141,7 +1489,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Half Year Exam-DS62 HY EVS Environment Spark Edition-159.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-hy-evs-food-smart-drill",
@@ -1154,7 +1506,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Half Year Exam-DS62 HY EVS Food Smart Drill-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-hy-evs-plants-power-pack",
@@ -1167,7 +1523,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Half Year Exam-DS62 HY EVS Plants Power Pack-169.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-hy-evs-water-quest-zone",
@@ -1180,7 +1540,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Half Year Exam-DS62 HY EVS Water Quest Zone-189.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-hy-maths-addition-power-pack",
@@ -1193,7 +1557,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Half Year Exam-DS62 HY Maths Addition Power Pack-179.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-hy-maths-measurement-smart-drill",
@@ -1206,7 +1574,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Half Year Exam-DS62 HY Maths Measurement Smart Drill-209.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-hy-maths-numbers-spark-edition",
@@ -1219,7 +1591,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Half Year Exam-DS62 HY Maths Numbers Spark Edition-169.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-hy-maths-shapes-quest-zone",
@@ -1232,7 +1608,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Half Year Exam-DS62 HY Maths Shapes Quest Zone-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-hy-maths-subtraction-fun-lab",
@@ -1245,7 +1625,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Half Year Exam-DS62 HY Maths Subtraction Fun Lab-189.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-wk-english-grammar-adjectives-fun-lab",
@@ -1258,7 +1642,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Worksheets-DS62 WK English Grammar Adjectives Fun Lab-219.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-wk-english-grammar-articles-quest-zone",
@@ -1271,7 +1659,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Worksheets-DS62 WK English Grammar Articles Quest Zone-229.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-wk-english-grammar-have-has-had-quest-zone",
@@ -1284,7 +1676,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Worksheets-DS62 WK English Grammar Have Has Had Quest Zone-229.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-wk-english-grammar-is-am-are-spark-edition",
@@ -1297,7 +1693,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Worksheets-DS62 WK English Grammar Is Am Are Spark Edition-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-wk-english-grammar-noun-spark-edition",
@@ -1310,7 +1710,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Worksheets-DS62 WK English Grammar Noun Spark Edition-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-wk-english-grammar-opposites-smart-drill",
@@ -1323,7 +1727,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Worksheets-DS62 WK English Grammar Opposites Smart Drill-239.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-wk-english-grammar-prepositions-power-pack",
@@ -1336,7 +1744,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Worksheets-DS62 WK English Grammar Prepositions Power Pack-209.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-wk-english-grammar-pronoun-power-pack",
@@ -1349,7 +1761,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Worksheets-DS62 WK English Grammar Pronoun Power Pack-209.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-wk-english-grammar-singular-plural-prime-set",
@@ -1362,7 +1778,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Worksheets-DS62 WK English Grammar Singular Plural Prime Set-249.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-wk-english-grammar-verb-fun-lab",
@@ -1375,7 +1795,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Worksheets-DS62 WK English Grammar Verb Fun Lab-219.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-wk-english-poems-fun-lab",
@@ -1388,7 +1812,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Worksheets-DS62 WK English Poems Fun Lab-169.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-wk-english-reading-spark-edition",
@@ -1401,7 +1829,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Worksheets-DS62 WK English Reading Spark Edition-149.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-wk-english-sight-words-quest-zone",
@@ -1414,7 +1846,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Worksheets-DS62 WK English Sight Words Quest Zone-179.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-wk-english-writing-power-pack",
@@ -1427,7 +1863,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Worksheets-DS62 WK English Writing Power Pack-159.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-wk-evs-animals-fun-lab",
@@ -1440,7 +1880,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Worksheets-DS62 WK EVS Animals Fun Lab-179.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-wk-evs-environment-spark-edition",
@@ -1453,7 +1897,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Worksheets-DS62 WK EVS Environment Spark Edition-159.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-wk-evs-food-smart-drill",
@@ -1466,7 +1914,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Worksheets-DS62 WK EVS Food Smart Drill-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-wk-evs-plants-power-pack",
@@ -1479,7 +1931,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Worksheets-DS62 WK EVS Plants Power Pack-169.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-wk-evs-water-quest-zone",
@@ -1492,7 +1948,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Worksheets-DS62 WK EVS Water Quest Zone-189.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-wk-maths-addition-power-pack",
@@ -1505,7 +1965,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Worksheets-DS62 WK Maths Addition Power Pack-179.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-wk-maths-measurement-smart-drill",
@@ -1518,7 +1982,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Worksheets-DS62 WK Maths Measurement Smart Drill-209.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-wk-maths-numbers-spark-edition",
@@ -1531,7 +1999,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Worksheets-DS62 WK Maths Numbers Spark Edition-169.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-wk-maths-shapes-quest-zone",
@@ -1544,7 +2016,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Worksheets-DS62 WK Maths Shapes Quest Zone-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-1-ds62-wk-maths-subtraction-fun-lab",
@@ -1557,7 +2033,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 1-Worksheets-DS62 WK Maths Subtraction Fun Lab-189.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-bd-english-grammar-adjectives-fun-lab",
@@ -1570,7 +2050,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Bundle-DS62 BD English Grammar Adjectives Fun Lab-219.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-bd-english-grammar-articles-quest-zone",
@@ -1583,7 +2067,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Bundle-DS62 BD English Grammar Articles Quest Zone-229.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-bd-english-grammar-have-has-had-quest-zone",
@@ -1596,7 +2084,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Bundle-DS62 BD English Grammar Have Has Had Quest Zone-229.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-bd-english-grammar-is-am-are-spark-edition",
@@ -1609,7 +2101,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Bundle-DS62 BD English Grammar Is Am Are Spark Edition-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-bd-english-grammar-noun-spark-edition",
@@ -1622,7 +2118,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Bundle-DS62 BD English Grammar Noun Spark Edition-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-bd-english-grammar-opposites-smart-drill",
@@ -1635,7 +2135,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Bundle-DS62 BD English Grammar Opposites Smart Drill-239.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-bd-english-grammar-prepositions-power-pack",
@@ -1648,7 +2152,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Bundle-DS62 BD English Grammar Prepositions Power Pack-209.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-bd-english-grammar-pronoun-power-pack",
@@ -1661,7 +2169,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Bundle-DS62 BD English Grammar Pronoun Power Pack-209.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-bd-english-grammar-singular-plural-prime-set",
@@ -1674,7 +2186,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Bundle-DS62 BD English Grammar Singular Plural Prime Set-249.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-bd-english-grammar-verb-fun-lab",
@@ -1687,7 +2203,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Bundle-DS62 BD English Grammar Verb Fun Lab-219.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-bd-english-poems-fun-lab",
@@ -1700,7 +2220,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Bundle-DS62 BD English Poems Fun Lab-169.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-bd-english-reading-spark-edition",
@@ -1713,7 +2237,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Bundle-DS62 BD English Reading Spark Edition-149.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-bd-english-sight-words-quest-zone",
@@ -1726,7 +2254,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Bundle-DS62 BD English Sight Words Quest Zone-179.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-bd-english-writing-power-pack",
@@ -1739,7 +2271,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Bundle-DS62 BD English Writing Power Pack-159.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-bd-evs-animals-fun-lab",
@@ -1752,7 +2288,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Bundle-DS62 BD EVS Animals Fun Lab-179.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-bd-evs-environment-spark-edition",
@@ -1765,7 +2305,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Bundle-DS62 BD EVS Environment Spark Edition-159.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-bd-evs-food-smart-drill",
@@ -1778,7 +2322,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Bundle-DS62 BD EVS Food Smart Drill-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-bd-evs-plants-power-pack",
@@ -1791,7 +2339,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Bundle-DS62 BD EVS Plants Power Pack-169.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-bd-evs-water-quest-zone",
@@ -1804,7 +2356,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Bundle-DS62 BD EVS Water Quest Zone-189.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-bd-maths-addition-power-pack",
@@ -1817,7 +2373,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Bundle-DS62 BD Maths Addition Power Pack-179.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-bd-maths-measurement-smart-drill",
@@ -1830,7 +2390,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Bundle-DS62 BD Maths Measurement Smart Drill-209.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-bd-maths-numbers-spark-edition",
@@ -1843,7 +2407,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Bundle-DS62 BD Maths Numbers Spark Edition-169.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-bd-maths-shapes-quest-zone",
@@ -1856,7 +2424,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Bundle-DS62 BD Maths Shapes Quest Zone-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-bd-maths-subtraction-fun-lab",
@@ -1869,7 +2441,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Bundle-DS62 BD Maths Subtraction Fun Lab-189.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-ut-english-grammar-adjectives-fun-lab",
@@ -1882,7 +2458,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Exams-DS62 UT English Grammar Adjectives Fun Lab-219.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-ut-english-grammar-articles-quest-zone",
@@ -1895,7 +2475,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Exams-DS62 UT English Grammar Articles Quest Zone-229.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-ut-english-grammar-have-has-had-quest-zone",
@@ -1908,7 +2492,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Exams-DS62 UT English Grammar Have Has Had Quest Zone-229.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-ut-english-grammar-is-am-are-spark-edition",
@@ -1921,7 +2509,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Exams-DS62 UT English Grammar Is Am Are Spark Edition-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-ut-english-grammar-noun-spark-edition",
@@ -1934,7 +2526,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Exams-DS62 UT English Grammar Noun Spark Edition-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-ut-english-grammar-opposites-smart-drill",
@@ -1947,7 +2543,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Exams-DS62 UT English Grammar Opposites Smart Drill-239.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-ut-english-grammar-prepositions-power-pack",
@@ -1960,7 +2560,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Exams-DS62 UT English Grammar Prepositions Power Pack-209.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-ut-english-grammar-pronoun-power-pack",
@@ -1973,7 +2577,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Exams-DS62 UT English Grammar Pronoun Power Pack-209.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-ut-english-grammar-singular-plural-prime-set",
@@ -1986,7 +2594,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Exams-DS62 UT English Grammar Singular Plural Prime Set-249.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-ut-english-grammar-verb-fun-lab",
@@ -1999,7 +2611,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Exams-DS62 UT English Grammar Verb Fun Lab-219.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-ut-english-poems-fun-lab",
@@ -2012,7 +2628,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Exams-DS62 UT English Poems Fun Lab-169.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-ut-english-reading-spark-edition",
@@ -2025,7 +2645,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Exams-DS62 UT English Reading Spark Edition-149.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-ut-english-sight-words-quest-zone",
@@ -2038,7 +2662,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Exams-DS62 UT English Sight Words Quest Zone-179.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-ut-english-writing-power-pack",
@@ -2051,7 +2679,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Exams-DS62 UT English Writing Power Pack-159.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-ut-evs-animals-fun-lab",
@@ -2064,7 +2696,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Exams-DS62 UT EVS Animals Fun Lab-179.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-ut-evs-environment-spark-edition",
@@ -2077,7 +2713,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Exams-DS62 UT EVS Environment Spark Edition-159.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-ut-evs-food-smart-drill",
@@ -2090,7 +2730,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Exams-DS62 UT EVS Food Smart Drill-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-ut-evs-plants-power-pack",
@@ -2103,7 +2747,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Exams-DS62 UT EVS Plants Power Pack-169.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-ut-evs-water-quest-zone",
@@ -2116,7 +2764,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Exams-DS62 UT EVS Water Quest Zone-189.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-ut-maths-addition-power-pack",
@@ -2129,7 +2781,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Exams-DS62 UT Maths Addition Power Pack-179.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-ut-maths-measurement-smart-drill",
@@ -2142,7 +2798,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Exams-DS62 UT Maths Measurement Smart Drill-209.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-ut-maths-numbers-spark-edition",
@@ -2155,7 +2815,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Exams-DS62 UT Maths Numbers Spark Edition-169.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-ut-maths-shapes-quest-zone",
@@ -2168,7 +2832,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Exams-DS62 UT Maths Shapes Quest Zone-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-ut-maths-subtraction-fun-lab",
@@ -2181,7 +2849,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Exams-DS62 UT Maths Subtraction Fun Lab-189.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-fy-english-grammar-adjectives-fun-lab",
@@ -2194,7 +2866,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Final Year Exam-DS62 FY English Grammar Adjectives Fun Lab-219.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-fy-english-grammar-articles-quest-zone",
@@ -2207,7 +2883,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Final Year Exam-DS62 FY English Grammar Articles Quest Zone-229.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-fy-english-grammar-have-has-had-quest-zone",
@@ -2220,7 +2900,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Final Year Exam-DS62 FY English Grammar Have Has Had Quest Zone-229.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-fy-english-grammar-is-am-are-spark-edition",
@@ -2233,7 +2917,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Final Year Exam-DS62 FY English Grammar Is Am Are Spark Edition-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-fy-english-grammar-noun-spark-edition",
@@ -2246,7 +2934,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Final Year Exam-DS62 FY English Grammar Noun Spark Edition-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-fy-english-grammar-opposites-smart-drill",
@@ -2259,7 +2951,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Final Year Exam-DS62 FY English Grammar Opposites Smart Drill-239.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-fy-english-grammar-prepositions-power-pack",
@@ -2272,7 +2968,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Final Year Exam-DS62 FY English Grammar Prepositions Power Pack-209.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-fy-english-grammar-pronoun-power-pack",
@@ -2285,7 +2985,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Final Year Exam-DS62 FY English Grammar Pronoun Power Pack-209.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-fy-english-grammar-singular-plural-prime-set",
@@ -2298,7 +3002,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Final Year Exam-DS62 FY English Grammar Singular Plural Prime Set-249.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-fy-english-grammar-verb-fun-lab",
@@ -2311,7 +3019,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Final Year Exam-DS62 FY English Grammar Verb Fun Lab-219.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-fy-english-poems-fun-lab",
@@ -2324,7 +3036,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Final Year Exam-DS62 FY English Poems Fun Lab-169.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-fy-english-reading-spark-edition",
@@ -2337,7 +3053,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Final Year Exam-DS62 FY English Reading Spark Edition-149.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-fy-english-sight-words-quest-zone",
@@ -2350,7 +3070,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Final Year Exam-DS62 FY English Sight Words Quest Zone-179.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-fy-english-writing-power-pack",
@@ -2363,7 +3087,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Final Year Exam-DS62 FY English Writing Power Pack-159.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-fy-evs-animals-fun-lab",
@@ -2376,7 +3104,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Final Year Exam-DS62 FY EVS Animals Fun Lab-179.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-fy-evs-environment-spark-edition",
@@ -2389,7 +3121,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Final Year Exam-DS62 FY EVS Environment Spark Edition-159.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-fy-evs-food-smart-drill",
@@ -2402,7 +3138,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Final Year Exam-DS62 FY EVS Food Smart Drill-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-fy-evs-plants-power-pack",
@@ -2415,7 +3155,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Final Year Exam-DS62 FY EVS Plants Power Pack-169.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-fy-evs-water-quest-zone",
@@ -2428,7 +3172,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Final Year Exam-DS62 FY EVS Water Quest Zone-189.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-fy-maths-addition-power-pack",
@@ -2441,7 +3189,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Final Year Exam-DS62 FY Maths Addition Power Pack-179.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-fy-maths-measurement-smart-drill",
@@ -2454,7 +3206,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Final Year Exam-DS62 FY Maths Measurement Smart Drill-209.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-fy-maths-numbers-spark-edition",
@@ -2467,7 +3223,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Final Year Exam-DS62 FY Maths Numbers Spark Edition-169.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-fy-maths-shapes-quest-zone",
@@ -2480,7 +3240,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Final Year Exam-DS62 FY Maths Shapes Quest Zone-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-fy-maths-subtraction-fun-lab",
@@ -2493,7 +3257,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Final Year Exam-DS62 FY Maths Subtraction Fun Lab-189.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-hy-english-grammar-adjectives-fun-lab",
@@ -2506,7 +3274,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Half Year Exam-DS62 HY English Grammar Adjectives Fun Lab-219.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-hy-english-grammar-articles-quest-zone",
@@ -2519,7 +3291,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Half Year Exam-DS62 HY English Grammar Articles Quest Zone-229.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-hy-english-grammar-have-has-had-quest-zone",
@@ -2532,7 +3308,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Half Year Exam-DS62 HY English Grammar Have Has Had Quest Zone-229.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-hy-english-grammar-is-am-are-spark-edition",
@@ -2545,7 +3325,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Half Year Exam-DS62 HY English Grammar Is Am Are Spark Edition-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-hy-english-grammar-noun-spark-edition",
@@ -2558,7 +3342,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Half Year Exam-DS62 HY English Grammar Noun Spark Edition-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-hy-english-grammar-opposites-smart-drill",
@@ -2571,7 +3359,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Half Year Exam-DS62 HY English Grammar Opposites Smart Drill-239.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-hy-english-grammar-prepositions-power-pack",
@@ -2584,7 +3376,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Half Year Exam-DS62 HY English Grammar Prepositions Power Pack-209.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-hy-english-grammar-pronoun-power-pack",
@@ -2597,7 +3393,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Half Year Exam-DS62 HY English Grammar Pronoun Power Pack-209.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-hy-english-grammar-singular-plural-prime-set",
@@ -2610,7 +3410,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Half Year Exam-DS62 HY English Grammar Singular Plural Prime Set-249.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-hy-english-grammar-verb-fun-lab",
@@ -2623,7 +3427,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Half Year Exam-DS62 HY English Grammar Verb Fun Lab-219.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-hy-english-poems-fun-lab",
@@ -2636,7 +3444,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Half Year Exam-DS62 HY English Poems Fun Lab-169.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-hy-english-reading-spark-edition",
@@ -2649,7 +3461,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Half Year Exam-DS62 HY English Reading Spark Edition-149.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-hy-english-sight-words-quest-zone",
@@ -2662,7 +3478,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Half Year Exam-DS62 HY English Sight Words Quest Zone-179.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-hy-english-writing-power-pack",
@@ -2675,7 +3495,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Half Year Exam-DS62 HY English Writing Power Pack-159.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-hy-evs-animals-fun-lab",
@@ -2688,7 +3512,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Half Year Exam-DS62 HY EVS Animals Fun Lab-179.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-hy-evs-environment-spark-edition",
@@ -2701,7 +3529,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Half Year Exam-DS62 HY EVS Environment Spark Edition-159.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-hy-evs-food-smart-drill",
@@ -2714,7 +3546,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Half Year Exam-DS62 HY EVS Food Smart Drill-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-hy-evs-plants-power-pack",
@@ -2727,7 +3563,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Half Year Exam-DS62 HY EVS Plants Power Pack-169.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-hy-evs-water-quest-zone",
@@ -2740,7 +3580,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Half Year Exam-DS62 HY EVS Water Quest Zone-189.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-hy-maths-addition-power-pack",
@@ -2753,7 +3597,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Half Year Exam-DS62 HY Maths Addition Power Pack-179.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-hy-maths-measurement-smart-drill",
@@ -2766,7 +3614,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Half Year Exam-DS62 HY Maths Measurement Smart Drill-209.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-hy-maths-numbers-spark-edition",
@@ -2779,7 +3631,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Half Year Exam-DS62 HY Maths Numbers Spark Edition-169.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-hy-maths-shapes-quest-zone",
@@ -2792,7 +3648,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Half Year Exam-DS62 HY Maths Shapes Quest Zone-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-hy-maths-subtraction-fun-lab",
@@ -2805,7 +3665,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Half Year Exam-DS62 HY Maths Subtraction Fun Lab-189.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-wk-english-grammar-adjectives-fun-lab",
@@ -2818,7 +3682,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Worksheets-DS62 WK English Grammar Adjectives Fun Lab-219.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-wk-english-grammar-articles-quest-zone",
@@ -2831,7 +3699,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Worksheets-DS62 WK English Grammar Articles Quest Zone-229.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-wk-english-grammar-have-has-had-quest-zone",
@@ -2844,7 +3716,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Worksheets-DS62 WK English Grammar Have Has Had Quest Zone-229.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-wk-english-grammar-is-am-are-spark-edition",
@@ -2857,7 +3733,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Worksheets-DS62 WK English Grammar Is Am Are Spark Edition-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-wk-english-grammar-noun-spark-edition",
@@ -2870,7 +3750,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Worksheets-DS62 WK English Grammar Noun Spark Edition-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-wk-english-grammar-opposites-smart-drill",
@@ -2883,7 +3767,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Worksheets-DS62 WK English Grammar Opposites Smart Drill-239.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-wk-english-grammar-prepositions-power-pack",
@@ -2896,7 +3784,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Worksheets-DS62 WK English Grammar Prepositions Power Pack-209.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-wk-english-grammar-pronoun-power-pack",
@@ -2909,7 +3801,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Worksheets-DS62 WK English Grammar Pronoun Power Pack-209.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-wk-english-grammar-singular-plural-prime-set",
@@ -2922,7 +3818,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Worksheets-DS62 WK English Grammar Singular Plural Prime Set-249.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-wk-english-grammar-verb-fun-lab",
@@ -2935,7 +3835,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Worksheets-DS62 WK English Grammar Verb Fun Lab-219.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-wk-english-poems-fun-lab",
@@ -2948,7 +3852,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Worksheets-DS62 WK English Poems Fun Lab-169.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-wk-english-reading-spark-edition",
@@ -2961,7 +3869,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Worksheets-DS62 WK English Reading Spark Edition-149.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-wk-english-sight-words-quest-zone",
@@ -2974,7 +3886,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Worksheets-DS62 WK English Sight Words Quest Zone-179.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-wk-english-writing-power-pack",
@@ -2987,7 +3903,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Worksheets-DS62 WK English Writing Power Pack-159.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-wk-evs-animals-fun-lab",
@@ -3000,7 +3920,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Worksheets-DS62 WK EVS Animals Fun Lab-179.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-wk-evs-environment-spark-edition",
@@ -3013,7 +3937,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Worksheets-DS62 WK EVS Environment Spark Edition-159.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-wk-evs-food-smart-drill",
@@ -3026,7 +3954,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Worksheets-DS62 WK EVS Food Smart Drill-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-wk-evs-plants-power-pack",
@@ -3039,7 +3971,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Worksheets-DS62 WK EVS Plants Power Pack-169.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-wk-evs-water-quest-zone",
@@ -3052,7 +3988,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Worksheets-DS62 WK EVS Water Quest Zone-189.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-wk-maths-addition-power-pack",
@@ -3065,7 +4005,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Worksheets-DS62 WK Maths Addition Power Pack-179.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-wk-maths-measurement-smart-drill",
@@ -3078,7 +4022,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Worksheets-DS62 WK Maths Measurement Smart Drill-209.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-wk-maths-numbers-spark-edition",
@@ -3091,7 +4039,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Worksheets-DS62 WK Maths Numbers Spark Edition-169.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-wk-maths-shapes-quest-zone",
@@ -3104,7 +4056,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Worksheets-DS62 WK Maths Shapes Quest Zone-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-2-ds62-wk-maths-subtraction-fun-lab",
@@ -3117,7 +4073,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 2-Worksheets-DS62 WK Maths Subtraction Fun Lab-189.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-bd-english-grammar-adjectives-fun-lab",
@@ -3130,7 +4090,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Bundle-DS62 BD English Grammar Adjectives Fun Lab-219.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-bd-english-grammar-articles-quest-zone",
@@ -3143,7 +4107,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Bundle-DS62 BD English Grammar Articles Quest Zone-229.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-bd-english-grammar-have-has-had-quest-zone",
@@ -3156,7 +4124,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Bundle-DS62 BD English Grammar Have Has Had Quest Zone-229.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-bd-english-grammar-is-am-are-spark-edition",
@@ -3169,7 +4141,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Bundle-DS62 BD English Grammar Is Am Are Spark Edition-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-bd-english-grammar-noun-spark-edition",
@@ -3182,7 +4158,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Bundle-DS62 BD English Grammar Noun Spark Edition-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-bd-english-grammar-opposites-smart-drill",
@@ -3195,7 +4175,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Bundle-DS62 BD English Grammar Opposites Smart Drill-239.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-bd-english-grammar-prepositions-power-pack",
@@ -3208,7 +4192,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Bundle-DS62 BD English Grammar Prepositions Power Pack-209.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-bd-english-grammar-pronoun-power-pack",
@@ -3221,7 +4209,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Bundle-DS62 BD English Grammar Pronoun Power Pack-209.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-bd-english-grammar-singular-plural-prime-set",
@@ -3234,7 +4226,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Bundle-DS62 BD English Grammar Singular Plural Prime Set-249.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-bd-english-grammar-verb-fun-lab",
@@ -3247,7 +4243,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Bundle-DS62 BD English Grammar Verb Fun Lab-219.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-bd-english-poems-fun-lab",
@@ -3260,7 +4260,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Bundle-DS62 BD English Poems Fun Lab-169.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-bd-english-reading-spark-edition",
@@ -3273,7 +4277,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Bundle-DS62 BD English Reading Spark Edition-149.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-bd-english-sight-words-quest-zone",
@@ -3286,7 +4294,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Bundle-DS62 BD English Sight Words Quest Zone-179.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-bd-english-writing-power-pack",
@@ -3299,7 +4311,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Bundle-DS62 BD English Writing Power Pack-159.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-bd-evs-animals-fun-lab",
@@ -3312,7 +4328,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Bundle-DS62 BD EVS Animals Fun Lab-179.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-bd-evs-environment-spark-edition",
@@ -3325,7 +4345,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Bundle-DS62 BD EVS Environment Spark Edition-159.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-bd-evs-food-smart-drill",
@@ -3338,7 +4362,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Bundle-DS62 BD EVS Food Smart Drill-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-bd-evs-plants-power-pack",
@@ -3351,7 +4379,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Bundle-DS62 BD EVS Plants Power Pack-169.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-bd-evs-water-quest-zone",
@@ -3364,7 +4396,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Bundle-DS62 BD EVS Water Quest Zone-189.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-bd-maths-addition-power-pack",
@@ -3377,7 +4413,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Bundle-DS62 BD Maths Addition Power Pack-179.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-bd-maths-measurement-smart-drill",
@@ -3390,7 +4430,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Bundle-DS62 BD Maths Measurement Smart Drill-209.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-bd-maths-numbers-spark-edition",
@@ -3403,7 +4447,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Bundle-DS62 BD Maths Numbers Spark Edition-169.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-bd-maths-shapes-quest-zone",
@@ -3416,7 +4464,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Bundle-DS62 BD Maths Shapes Quest Zone-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-bd-maths-subtraction-fun-lab",
@@ -3429,7 +4481,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Bundle-DS62 BD Maths Subtraction Fun Lab-189.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-ut-english-grammar-adjectives-fun-lab",
@@ -3442,7 +4498,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Exams-DS62 UT English Grammar Adjectives Fun Lab-219.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-ut-english-grammar-articles-quest-zone",
@@ -3455,7 +4515,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Exams-DS62 UT English Grammar Articles Quest Zone-229.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-ut-english-grammar-have-has-had-quest-zone",
@@ -3468,7 +4532,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Exams-DS62 UT English Grammar Have Has Had Quest Zone-229.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-ut-english-grammar-is-am-are-spark-edition",
@@ -3481,7 +4549,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Exams-DS62 UT English Grammar Is Am Are Spark Edition-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-ut-english-grammar-noun-spark-edition",
@@ -3494,7 +4566,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Exams-DS62 UT English Grammar Noun Spark Edition-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-ut-english-grammar-opposites-smart-drill",
@@ -3507,7 +4583,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Exams-DS62 UT English Grammar Opposites Smart Drill-239.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-ut-english-grammar-prepositions-power-pack",
@@ -3520,7 +4600,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Exams-DS62 UT English Grammar Prepositions Power Pack-209.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-ut-english-grammar-pronoun-power-pack",
@@ -3533,7 +4617,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Exams-DS62 UT English Grammar Pronoun Power Pack-209.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-ut-english-grammar-singular-plural-prime-set",
@@ -3546,7 +4634,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Exams-DS62 UT English Grammar Singular Plural Prime Set-249.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-ut-english-grammar-verb-fun-lab",
@@ -3559,7 +4651,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Exams-DS62 UT English Grammar Verb Fun Lab-219.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-ut-english-poems-fun-lab",
@@ -3572,7 +4668,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Exams-DS62 UT English Poems Fun Lab-169.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-ut-english-reading-spark-edition",
@@ -3585,7 +4685,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Exams-DS62 UT English Reading Spark Edition-149.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-ut-english-sight-words-quest-zone",
@@ -3598,7 +4702,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Exams-DS62 UT English Sight Words Quest Zone-179.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-ut-english-writing-power-pack",
@@ -3611,7 +4719,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Exams-DS62 UT English Writing Power Pack-159.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-ut-evs-animals-fun-lab",
@@ -3624,7 +4736,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Exams-DS62 UT EVS Animals Fun Lab-179.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-ut-evs-environment-spark-edition",
@@ -3637,7 +4753,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Exams-DS62 UT EVS Environment Spark Edition-159.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-ut-evs-food-smart-drill",
@@ -3650,7 +4770,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Exams-DS62 UT EVS Food Smart Drill-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-ut-evs-plants-power-pack",
@@ -3663,7 +4787,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Exams-DS62 UT EVS Plants Power Pack-169.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-ut-evs-water-quest-zone",
@@ -3676,7 +4804,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Exams-DS62 UT EVS Water Quest Zone-189.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-ut-maths-addition-power-pack",
@@ -3689,7 +4821,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Exams-DS62 UT Maths Addition Power Pack-179.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-ut-maths-measurement-smart-drill",
@@ -3702,7 +4838,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Exams-DS62 UT Maths Measurement Smart Drill-209.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-ut-maths-numbers-spark-edition",
@@ -3715,7 +4855,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Exams-DS62 UT Maths Numbers Spark Edition-169.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-ut-maths-shapes-quest-zone",
@@ -3728,7 +4872,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Exams-DS62 UT Maths Shapes Quest Zone-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-ut-maths-subtraction-fun-lab",
@@ -3741,7 +4889,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Exams-DS62 UT Maths Subtraction Fun Lab-189.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-fy-english-grammar-adjectives-fun-lab",
@@ -3754,7 +4906,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Final Year Exam-DS62 FY English Grammar Adjectives Fun Lab-219.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-fy-english-grammar-articles-quest-zone",
@@ -3767,7 +4923,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Final Year Exam-DS62 FY English Grammar Articles Quest Zone-229.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-fy-english-grammar-have-has-had-quest-zone",
@@ -3780,7 +4940,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Final Year Exam-DS62 FY English Grammar Have Has Had Quest Zone-229.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-fy-english-grammar-is-am-are-spark-edition",
@@ -3793,7 +4957,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Final Year Exam-DS62 FY English Grammar Is Am Are Spark Edition-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-fy-english-grammar-noun-spark-edition",
@@ -3806,7 +4974,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Final Year Exam-DS62 FY English Grammar Noun Spark Edition-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-fy-english-grammar-opposites-smart-drill",
@@ -3819,7 +4991,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Final Year Exam-DS62 FY English Grammar Opposites Smart Drill-239.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-fy-english-grammar-prepositions-power-pack",
@@ -3832,7 +5008,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Final Year Exam-DS62 FY English Grammar Prepositions Power Pack-209.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-fy-english-grammar-pronoun-power-pack",
@@ -3845,7 +5025,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Final Year Exam-DS62 FY English Grammar Pronoun Power Pack-209.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-fy-english-grammar-singular-plural-prime-set",
@@ -3858,7 +5042,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Final Year Exam-DS62 FY English Grammar Singular Plural Prime Set-249.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-fy-english-grammar-verb-fun-lab",
@@ -3871,7 +5059,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Final Year Exam-DS62 FY English Grammar Verb Fun Lab-219.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-fy-english-poems-fun-lab",
@@ -3884,7 +5076,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Final Year Exam-DS62 FY English Poems Fun Lab-169.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-fy-english-reading-spark-edition",
@@ -3897,7 +5093,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Final Year Exam-DS62 FY English Reading Spark Edition-149.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-fy-english-sight-words-quest-zone",
@@ -3910,7 +5110,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Final Year Exam-DS62 FY English Sight Words Quest Zone-179.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-fy-english-writing-power-pack",
@@ -3923,7 +5127,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Final Year Exam-DS62 FY English Writing Power Pack-159.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-fy-evs-animals-fun-lab",
@@ -3936,7 +5144,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Final Year Exam-DS62 FY EVS Animals Fun Lab-179.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-fy-evs-environment-spark-edition",
@@ -3949,7 +5161,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Final Year Exam-DS62 FY EVS Environment Spark Edition-159.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-fy-evs-food-smart-drill",
@@ -3962,7 +5178,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Final Year Exam-DS62 FY EVS Food Smart Drill-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-fy-evs-plants-power-pack",
@@ -3975,7 +5195,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Final Year Exam-DS62 FY EVS Plants Power Pack-169.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-fy-evs-water-quest-zone",
@@ -3988,7 +5212,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Final Year Exam-DS62 FY EVS Water Quest Zone-189.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-fy-maths-addition-power-pack",
@@ -4001,7 +5229,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Final Year Exam-DS62 FY Maths Addition Power Pack-179.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-fy-maths-measurement-smart-drill",
@@ -4014,7 +5246,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Final Year Exam-DS62 FY Maths Measurement Smart Drill-209.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-fy-maths-numbers-spark-edition",
@@ -4027,7 +5263,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Final Year Exam-DS62 FY Maths Numbers Spark Edition-169.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-fy-maths-shapes-quest-zone",
@@ -4040,7 +5280,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Final Year Exam-DS62 FY Maths Shapes Quest Zone-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-fy-maths-subtraction-fun-lab",
@@ -4053,7 +5297,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Final Year Exam-DS62 FY Maths Subtraction Fun Lab-189.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-hy-english-grammar-adjectives-fun-lab",
@@ -4066,7 +5314,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Half Year Exam-DS62 HY English Grammar Adjectives Fun Lab-219.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-hy-english-grammar-articles-quest-zone",
@@ -4079,7 +5331,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Half Year Exam-DS62 HY English Grammar Articles Quest Zone-229.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-hy-english-grammar-have-has-had-quest-zone",
@@ -4092,7 +5348,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Half Year Exam-DS62 HY English Grammar Have Has Had Quest Zone-229.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-hy-english-grammar-is-am-are-spark-edition",
@@ -4105,7 +5365,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Half Year Exam-DS62 HY English Grammar Is Am Are Spark Edition-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-hy-english-grammar-noun-spark-edition",
@@ -4118,7 +5382,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Half Year Exam-DS62 HY English Grammar Noun Spark Edition-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-hy-english-grammar-opposites-smart-drill",
@@ -4131,7 +5399,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Half Year Exam-DS62 HY English Grammar Opposites Smart Drill-239.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-hy-english-grammar-prepositions-power-pack",
@@ -4144,7 +5416,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Half Year Exam-DS62 HY English Grammar Prepositions Power Pack-209.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-hy-english-grammar-pronoun-power-pack",
@@ -4157,7 +5433,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Half Year Exam-DS62 HY English Grammar Pronoun Power Pack-209.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-hy-english-grammar-singular-plural-prime-set",
@@ -4170,7 +5450,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Half Year Exam-DS62 HY English Grammar Singular Plural Prime Set-249.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-hy-english-grammar-verb-fun-lab",
@@ -4183,7 +5467,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Half Year Exam-DS62 HY English Grammar Verb Fun Lab-219.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-hy-english-poems-fun-lab",
@@ -4196,7 +5484,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Half Year Exam-DS62 HY English Poems Fun Lab-169.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-hy-english-reading-spark-edition",
@@ -4209,7 +5501,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Half Year Exam-DS62 HY English Reading Spark Edition-149.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-hy-english-sight-words-quest-zone",
@@ -4222,7 +5518,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Half Year Exam-DS62 HY English Sight Words Quest Zone-179.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-hy-english-writing-power-pack",
@@ -4235,7 +5535,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Half Year Exam-DS62 HY English Writing Power Pack-159.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-hy-evs-animals-fun-lab",
@@ -4248,7 +5552,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Half Year Exam-DS62 HY EVS Animals Fun Lab-179.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-hy-evs-environment-spark-edition",
@@ -4261,7 +5569,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Half Year Exam-DS62 HY EVS Environment Spark Edition-159.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-hy-evs-food-smart-drill",
@@ -4274,7 +5586,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Half Year Exam-DS62 HY EVS Food Smart Drill-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-hy-evs-plants-power-pack",
@@ -4287,7 +5603,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Half Year Exam-DS62 HY EVS Plants Power Pack-169.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-hy-evs-water-quest-zone",
@@ -4300,7 +5620,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Half Year Exam-DS62 HY EVS Water Quest Zone-189.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-hy-maths-addition-power-pack",
@@ -4313,7 +5637,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Half Year Exam-DS62 HY Maths Addition Power Pack-179.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-hy-maths-measurement-smart-drill",
@@ -4326,7 +5654,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Half Year Exam-DS62 HY Maths Measurement Smart Drill-209.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-hy-maths-numbers-spark-edition",
@@ -4339,7 +5671,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Half Year Exam-DS62 HY Maths Numbers Spark Edition-169.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-hy-maths-shapes-quest-zone",
@@ -4352,7 +5688,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Half Year Exam-DS62 HY Maths Shapes Quest Zone-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-hy-maths-subtraction-fun-lab",
@@ -4365,7 +5705,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Half Year Exam-DS62 HY Maths Subtraction Fun Lab-189.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-wk-english-grammar-adjectives-fun-lab",
@@ -4378,7 +5722,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Worksheets-DS62 WK English Grammar Adjectives Fun Lab-219.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-wk-english-grammar-articles-quest-zone",
@@ -4391,7 +5739,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Worksheets-DS62 WK English Grammar Articles Quest Zone-229.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-wk-english-grammar-have-has-had-quest-zone",
@@ -4404,7 +5756,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Worksheets-DS62 WK English Grammar Have Has Had Quest Zone-229.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-wk-english-grammar-is-am-are-spark-edition",
@@ -4417,7 +5773,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Worksheets-DS62 WK English Grammar Is Am Are Spark Edition-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-wk-english-grammar-noun-spark-edition",
@@ -4430,7 +5790,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Worksheets-DS62 WK English Grammar Noun Spark Edition-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-wk-english-grammar-opposites-smart-drill",
@@ -4443,7 +5807,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Worksheets-DS62 WK English Grammar Opposites Smart Drill-239.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-wk-english-grammar-prepositions-power-pack",
@@ -4456,7 +5824,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Worksheets-DS62 WK English Grammar Prepositions Power Pack-209.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-wk-english-grammar-pronoun-power-pack",
@@ -4469,7 +5841,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Worksheets-DS62 WK English Grammar Pronoun Power Pack-209.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-wk-english-grammar-singular-plural-prime-set",
@@ -4482,7 +5858,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Worksheets-DS62 WK English Grammar Singular Plural Prime Set-249.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-wk-english-grammar-verb-fun-lab",
@@ -4495,7 +5875,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Worksheets-DS62 WK English Grammar Verb Fun Lab-219.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-wk-english-poems-fun-lab",
@@ -4508,7 +5892,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Worksheets-DS62 WK English Poems Fun Lab-169.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-wk-english-reading-spark-edition",
@@ -4521,7 +5909,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Worksheets-DS62 WK English Reading Spark Edition-149.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-wk-english-sight-words-quest-zone",
@@ -4534,7 +5926,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Worksheets-DS62 WK English Sight Words Quest Zone-179.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-wk-english-writing-power-pack",
@@ -4547,7 +5943,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Worksheets-DS62 WK English Writing Power Pack-159.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-wk-evs-animals-fun-lab",
@@ -4560,7 +5960,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Worksheets-DS62 WK EVS Animals Fun Lab-179.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-wk-evs-environment-spark-edition",
@@ -4573,7 +5977,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Worksheets-DS62 WK EVS Environment Spark Edition-159.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-wk-evs-food-smart-drill",
@@ -4586,7 +5994,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Worksheets-DS62 WK EVS Food Smart Drill-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-wk-evs-plants-power-pack",
@@ -4599,7 +6011,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Worksheets-DS62 WK EVS Plants Power Pack-169.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-wk-evs-water-quest-zone",
@@ -4612,7 +6028,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Worksheets-DS62 WK EVS Water Quest Zone-189.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-wk-maths-addition-power-pack",
@@ -4625,7 +6045,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Worksheets-DS62 WK Maths Addition Power Pack-179.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-wk-maths-measurement-smart-drill",
@@ -4638,7 +6062,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Worksheets-DS62 WK Maths Measurement Smart Drill-209.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-wk-maths-numbers-spark-edition",
@@ -4651,7 +6079,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Worksheets-DS62 WK Maths Numbers Spark Edition-169.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-wk-maths-shapes-quest-zone",
@@ -4664,7 +6096,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Worksheets-DS62 WK Maths Shapes Quest Zone-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "class-3-ds62-wk-maths-subtraction-fun-lab",
@@ -4677,7 +6113,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "Class 3-Worksheets-DS62 WK Maths Subtraction Fun Lab-189.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "lkg-ds62-bd-english-grammar-adjectives-fun-lab",
@@ -4690,7 +6130,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "LKG-Bundle-DS62 BD English Grammar Adjectives Fun Lab-219.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "lkg-ds62-bd-english-grammar-articles-quest-zone",
@@ -4703,7 +6147,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "LKG-Bundle-DS62 BD English Grammar Articles Quest Zone-229.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "lkg-ds62-bd-english-grammar-have-has-had-quest-zone",
@@ -4716,7 +6164,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "LKG-Bundle-DS62 BD English Grammar Have Has Had Quest Zone-229.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "lkg-ds62-bd-english-grammar-is-am-are-spark-edition",
@@ -4729,7 +6181,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "LKG-Bundle-DS62 BD English Grammar Is Am Are Spark Edition-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "lkg-ds62-bd-english-grammar-noun-spark-edition",
@@ -4742,7 +6198,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "LKG-Bundle-DS62 BD English Grammar Noun Spark Edition-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "lkg-ds62-bd-english-grammar-opposites-smart-drill",
@@ -4755,7 +6215,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "LKG-Bundle-DS62 BD English Grammar Opposites Smart Drill-239.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "lkg-ds62-bd-english-grammar-prepositions-power-pack",
@@ -4768,7 +6232,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "LKG-Bundle-DS62 BD English Grammar Prepositions Power Pack-209.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "lkg-ds62-bd-english-grammar-pronoun-power-pack",
@@ -4781,7 +6249,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "LKG-Bundle-DS62 BD English Grammar Pronoun Power Pack-209.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "lkg-ds62-bd-english-grammar-singular-plural-prime-set",
@@ -4794,7 +6266,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "LKG-Bundle-DS62 BD English Grammar Singular Plural Prime Set-249.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "lkg-ds62-bd-english-grammar-verb-fun-lab",
@@ -4807,7 +6283,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "LKG-Bundle-DS62 BD English Grammar Verb Fun Lab-219.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "lkg-ds62-bd-english-poems-fun-lab",
@@ -4820,7 +6300,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "LKG-Bundle-DS62 BD English Poems Fun Lab-169.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "lkg-ds62-bd-english-reading-spark-edition",
@@ -4833,7 +6317,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "LKG-Bundle-DS62 BD English Reading Spark Edition-149.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "lkg-ds62-bd-english-sight-words-quest-zone",
@@ -4846,7 +6334,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "LKG-Bundle-DS62 BD English Sight Words Quest Zone-179.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "lkg-ds62-bd-english-writing-power-pack",
@@ -4859,7 +6351,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "LKG-Bundle-DS62 BD English Writing Power Pack-159.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "lkg-ds62-bd-evs-animals-fun-lab",
@@ -4872,7 +6368,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "LKG-Bundle-DS62 BD EVS Animals Fun Lab-179.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "lkg-ds62-bd-evs-environment-spark-edition",
@@ -4885,7 +6385,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "LKG-Bundle-DS62 BD EVS Environment Spark Edition-159.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "lkg-ds62-bd-evs-food-smart-drill",
@@ -4898,7 +6402,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "LKG-Bundle-DS62 BD EVS Food Smart Drill-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "lkg-ds62-bd-evs-plants-power-pack",
@@ -4911,7 +6419,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "LKG-Bundle-DS62 BD EVS Plants Power Pack-169.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "lkg-ds62-bd-evs-water-quest-zone",
@@ -4924,7 +6436,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "LKG-Bundle-DS62 BD EVS Water Quest Zone-189.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "lkg-ds62-bd-maths-addition-power-pack",
@@ -4937,7 +6453,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "LKG-Bundle-DS62 BD Maths Addition Power Pack-179.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "lkg-ds62-bd-maths-measurement-smart-drill",
@@ -4950,7 +6470,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "LKG-Bundle-DS62 BD Maths Measurement Smart Drill-209.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "lkg-ds62-bd-maths-numbers-spark-edition",
@@ -4963,7 +6487,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "LKG-Bundle-DS62 BD Maths Numbers Spark Edition-169.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "lkg-ds62-bd-maths-shapes-quest-zone",
@@ -4976,7 +6504,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "LKG-Bundle-DS62 BD Maths Shapes Quest Zone-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "lkg-ds62-bd-maths-subtraction-fun-lab",
@@ -4989,7 +6521,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "LKG-Bundle-DS62 BD Maths Subtraction Fun Lab-189.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "lkg-ds62-ut-english-grammar-adjectives-fun-lab",
@@ -5002,7 +6538,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "LKG-Exams-DS62 UT English Grammar Adjectives Fun Lab-219.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "lkg-ds62-ut-english-grammar-articles-quest-zone",
@@ -5015,7 +6555,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "LKG-Exams-DS62 UT English Grammar Articles Quest Zone-229.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "lkg-ds62-ut-english-grammar-have-has-had-quest-zone",
@@ -5028,7 +6572,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "LKG-Exams-DS62 UT English Grammar Have Has Had Quest Zone-229.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "lkg-ds62-ut-english-grammar-is-am-are-spark-edition",
@@ -5041,7 +6589,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "LKG-Exams-DS62 UT English Grammar Is Am Are Spark Edition-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "lkg-ds62-ut-english-grammar-noun-spark-edition",
@@ -5054,7 +6606,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "LKG-Exams-DS62 UT English Grammar Noun Spark Edition-199.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "lkg-ds62-ut-english-grammar-opposites-smart-drill",
@@ -5067,7 +6623,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "LKG-Exams-DS62 UT English Grammar Opposites Smart Drill-239.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "lkg-ds62-ut-english-grammar-prepositions-power-pack",
@@ -5080,7 +6640,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "LKG-Exams-DS62 UT English Grammar Prepositions Power Pack-209.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "lkg-ds62-ut-english-grammar-pronoun-power-pack",
@@ -5093,7 +6657,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "LKG-Exams-DS62 UT English Grammar Pronoun Power Pack-209.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "lkg-ds62-ut-english-grammar-singular-plural-prime-set",
@@ -5106,7 +6674,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "LKG-Exams-DS62 UT English Grammar Singular Plural Prime Set-249.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "lkg-ds62-ut-english-grammar-verb-fun-lab",
@@ -5119,7 +6691,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "LKG-Exams-DS62 UT English Grammar Verb Fun Lab-219.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "lkg-ds62-ut-english-poems-fun-lab",
@@ -5132,7 +6708,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "LKG-Exams-DS62 UT English Poems Fun Lab-169.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "lkg-ds62-ut-english-reading-spark-edition",
@@ -5145,7 +6725,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "LKG-Exams-DS62 UT English Reading Spark Edition-149.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "lkg-ds62-ut-english-sight-words-quest-zone",
@@ -5158,7 +6742,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "LKG-Exams-DS62 UT English Sight Words Quest Zone-179.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "lkg-ds62-ut-english-writing-power-pack",
@@ -5171,7 +6759,11 @@
     "ageLabel": "AGE 3+",
     "storageKey": "LKG-Exams-DS62 UT English Writing Power Pack-159.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   },
   {
     "id": "lkg-ds62-ut-evs-animals-fun-lab",
@@ -5184,6 +6776,10 @@
     "ageLabel": "AGE 3+",
     "storageKey": "LKG-Exams-DS62 UT EVS Animals Fun Lab-179.pdf",
     "imageUrl": "",
-    "pages": 2
+    "pages": 2,
+    "subject": "",
+    "topic": "",
+    "previewImageUrl": "",
+    "showPreviewPage": false
   }
 ]

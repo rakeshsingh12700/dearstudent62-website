@@ -1,4 +1,4 @@
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, query, where } from "firebase/firestore";
 
 import { db } from "../../firebase/config";
 import products from "../../data/products";
@@ -120,9 +120,24 @@ export default async function handler(req, res) {
     mergedByProduct.set(productId, existing + quantity);
   });
 
+  const productIds = Array.from(mergedByProduct.keys()).filter(Boolean);
+  const runtimeProducts = await Promise.all(
+    productIds.map(async (productId) => {
+      try {
+        const snapshot = await getDoc(doc(db, "products", productId));
+        return snapshot.exists() ? { id: snapshot.id, ...snapshot.data() } : null;
+      } catch {
+        return null;
+      }
+    })
+  );
+  const runtimeById = new Map(
+    runtimeProducts.filter(Boolean).map((item) => [String(item.id || "").trim(), item])
+  );
+
   const lineItems = Array.from(mergedByProduct.entries()).map(
     ([productId, quantity]) => {
-      const product = products.find((item) => item.id === productId);
+      const product = runtimeById.get(productId) || products.find((item) => item.id === productId);
       const amount = Number(product?.price || 0);
       return {
         productId,
