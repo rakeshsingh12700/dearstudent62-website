@@ -159,7 +159,12 @@ export default function Navbar() {
               aria-label={user ? "Account menu" : "Login"}
               onClick={() => {
                 setMobileMenuOpen(false);
-                setMobileProfileOpen((prev) => !prev);
+                if (user) {
+                  setMobileProfileOpen((prev) => !prev);
+                  return;
+                }
+                setMobileProfileOpen(false);
+                router.push("/auth");
               }}
             >
               {user ? <span className="navbar__mobile-initial">{userInitial}</span> : "Login"}
