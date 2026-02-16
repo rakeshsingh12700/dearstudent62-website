@@ -1,0 +1,14 @@
+---
+description: Minimal, clean code — no over-engineering. Keep things fast and scalable.
+alwaysApply: true
+---
+
+# Code style
+
+- **Minimal**: Prefer the smallest change that works. No extra abstractions, layers, or "future-proof" code until needed.
+- **Clean**: Clear names, few moving parts. Remove dead code and unused styles/imports.
+- **No over-engineering**: No premature patterns, factories, or generic utilities. Solve the current problem.
+- **Fast**: Avoid unnecessary work (extra renders, API calls, large bundles). Reuse what exists.
+- **Scalable**: Structure that’s easy to extend later (clear files, simple data flow). Don’t add complexity for hypothetical scale.
+
+When in doubt, ship the simpler version.

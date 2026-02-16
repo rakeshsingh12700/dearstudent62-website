@@ -95,12 +95,14 @@ function normalizeReviewItem(raw, id) {
   const review = String(raw?.review || "").trim();
   const rating = normalizeRating(raw?.rating);
   const updatedAtMs = toDateMs(raw?.updatedAt || raw?.createdAt);
+  const displayName = String(raw?.displayName || "").trim();
 
   return {
     id: String(id || "").trim(),
     productId: String(raw?.productId || "").trim(),
     userId: String(raw?.userId || "").trim(),
     email: String(raw?.email || "").trim().toLowerCase(),
+    displayName: displayName || null,
     rating,
     review,
     hasReview: Boolean(review),
@@ -172,6 +174,7 @@ export default async function handler(req, res) {
         item.productId,
         item.productTitle,
         item.email,
+        item.displayName,
         item.userId,
         item.review,
       ]

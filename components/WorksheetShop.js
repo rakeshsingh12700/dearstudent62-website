@@ -1350,7 +1350,7 @@ export default function WorksheetShop({
                     <h3 className="worksheet-card__title">
                       <Link href={`/product/${product.id}`}>{product.title}</Link>
                     </h3>
-                    <p className="worksheet-card__meta">
+                    <p className="worksheet-card__meta" aria-label={ratingStats.ratingCount > 0 ? `${product.pages || 0} fun pages, Age ${ageLabel || ""}, Rating ${formatRatingAverage(ratingStats)} out of 5, ${ratingStats.ratingCount} review${ratingStats.ratingCount === 1 ? "" : "s"}` : undefined}>
                       <span>{product.pages || 0} fun pages</span>
                       {ageLabel ? (
                         <>
@@ -1360,17 +1360,20 @@ export default function WorksheetShop({
                           <span>{ageLabel}</span>
                         </>
                       ) : null}
+                      {ratingStats.ratingCount > 0 && (
+                        <>
+                          <span className="worksheet-card__meta-sep" aria-hidden="true">
+                            •
+                          </span>
+                          <span className="worksheet-card__rating-inline">
+                            <span className="worksheet-card__rating-stars">
+                              {buildRatingStars(ratingStats.averageRating)}
+                            </span>
+                            <span className="worksheet-card__rating-count">({ratingStats.ratingCount})</span>
+                          </span>
+                        </>
+                      )}
                     </p>
-                    {ratingStats.ratingCount > 0 && (
-                      <p className="worksheet-card__rating">
-                        <span className="worksheet-card__rating-stars">
-                          {buildRatingStars(ratingStats.averageRating)}
-                        </span>
-                        <span>
-                          {formatRatingAverage(ratingStats)} ({ratingStats.ratingCount})
-                        </span>
-                      </p>
-                    )}
                     <div className="worksheet-card__footer">
                       <p className="worksheet-card__price">₹{product.price}</p>
                       <div className="worksheet-card__actions">

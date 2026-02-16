@@ -388,7 +388,10 @@ export default function AdminReviewsPage() {
                               </p>
 
                               <div className="admin-submission-meta admin-review-item__meta">
-                                <span>Email: {item?.email || "Not provided"}</span>
+                                <span className="admin-review-item__reviewer">
+                                  Reviewer: {item?.displayName || item?.email || "Not provided"}
+                                </span>
+                                <span>Email: {item?.email || "—"}</span>
                                 <span>Product ID: {item?.productId || "Unknown"}</span>
                                 <span>Updated: {formatReviewDate(item?.updatedAt)}</span>
                                 <span className="admin-submission-id">ID: {item.id}</span>
