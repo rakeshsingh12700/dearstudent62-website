@@ -442,6 +442,13 @@ export default function Checkout() {
                 <li>Order stays available in My Purchases.</li>
                 <li>Secured by Razorpay.</li>
               </ul>
+
+              <div className="checkout-support-card">
+                <p>Need help with payment or access?</p>
+                <Link href="/contact-us" className="btn btn-secondary">
+                  Contact Support
+                </Link>
+              </div>
             </aside>
           </div>
         </section>

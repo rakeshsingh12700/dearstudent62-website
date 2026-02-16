@@ -322,6 +322,13 @@ export default function MyPurchases() {
             </Link>
           </header>
 
+          <section className="my-purchases-support-card">
+            <p>Missing a download, invoice, or payment update?</p>
+            <Link href="/contact-us" className="btn btn-secondary">
+              Contact Support
+            </Link>
+          </section>
+
           {!user?.email && (
             <section className="my-purchases-login-card">
               <h2>Login to unlock your purchases</h2>

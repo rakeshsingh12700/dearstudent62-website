@@ -328,9 +328,9 @@ export default function Navbar() {
                   {item.label}
                 </Link>
               ))}
-              <div className="navbar__mobile-group-title">Account</div>
-              {user ? (
+              {user && (
                 <>
+                  <div className="navbar__mobile-group-title">Account</div>
                   <Link href="/my-purchases" onClick={() => setMobileMenuOpen(false)}>
                     My History
                   </Link>
@@ -338,10 +338,6 @@ export default function Navbar() {
                     Logout
                   </button>
                 </>
-              ) : (
-                <Link href="/auth" onClick={() => setMobileMenuOpen(false)}>
-                  Login
-                </Link>
               )}
             </div>
           </aside>
