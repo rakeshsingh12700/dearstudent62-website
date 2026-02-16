@@ -1,5 +1,6 @@
 import { collection, doc, getDoc, getDocs, limit, query } from "firebase/firestore";
 import { db } from "../../firebase/config";
+import { normalizeRatingStats } from "../../lib/productRatings";
 
 function toSlug(value) {
   return String(value || "")
@@ -9,11 +10,18 @@ function toSlug(value) {
     .replace(/^-+|-+$/g, "");
 }
 
-function normalizeProduct(raw, fallbackId = "") {
+function mergeRatingStats(rawProduct, rawStats) {
+  const fromStats = normalizeRatingStats(rawStats || {});
+  if (fromStats.ratingCount > 0) return fromStats;
+  return normalizeRatingStats(rawProduct || {});
+}
+
+function normalizeProduct(raw, fallbackId = "", rawStats = null) {
   const id = String(raw?.id || fallbackId || "").trim();
   const storageKey = String(raw?.storageKey || "").trim();
   const imageUrl = String(raw?.imageUrl || "").trim();
   const previewImageUrl = String(raw?.previewImageUrl || "").trim();
+  const ratingStats = mergeRatingStats(raw, rawStats);
 
   return {
     id,
@@ -33,6 +41,8 @@ function normalizeProduct(raw, fallbackId = "") {
     previewImageUrl,
     showPreviewPage: Boolean(raw?.showPreviewPage && previewImageUrl),
     pages: Number.isFinite(Number(raw?.pages)) ? Number(raw.pages) : 1,
+    averageRating: ratingStats.averageRating,
+    ratingCount: ratingStats.ratingCount,
   };
 }
 
@@ -46,13 +56,19 @@ export default async function handler(req, res) {
     const idsRaw = String(req.query.ids || "").trim();
 
     if (id) {
-      const ref = doc(db, "products", id);
-      const snapshot = await getDoc(ref);
+      const [snapshot, ratingSnapshot] = await Promise.all([
+        getDoc(doc(db, "products", id)),
+        getDoc(doc(db, "product_rating_stats", id)),
+      ]);
       if (!snapshot.exists()) {
         return res.status(404).json({ error: "Product not found" });
       }
       return res.status(200).json({
-        product: normalizeProduct(snapshot.data(), snapshot.id),
+        product: normalizeProduct(
+          snapshot.data(),
+          snapshot.id,
+          ratingSnapshot.exists() ? ratingSnapshot.data() : null
+        ),
       });
     }
 
@@ -69,19 +85,28 @@ export default async function handler(req, res) {
 
       const snapshots = await Promise.all(
         ids.map(async (productId) => {
-          const ref = doc(db, "products", productId);
-          const snap = await getDoc(ref);
-          return snap.exists() ? normalizeProduct(snap.data(), snap.id) : null;
+          const [snap, ratingSnap] = await Promise.all([
+            getDoc(doc(db, "products", productId)),
+            getDoc(doc(db, "product_rating_stats", productId)),
+          ]);
+          return snap.exists()
+            ? normalizeProduct(snap.data(), snap.id, ratingSnap.exists() ? ratingSnap.data() : null)
+            : null;
         })
       );
 
       return res.status(200).json({ products: snapshots.filter(Boolean) });
     }
 
-    const productsQuery = query(collection(db, "products"), limit(1000));
-    const snapshot = await getDocs(productsQuery);
+    const [snapshot, ratingsSnapshot] = await Promise.all([
+      getDocs(query(collection(db, "products"), limit(1000))),
+      getDocs(query(collection(db, "product_rating_stats"), limit(2000))),
+    ]);
+    const ratingStatsByProductId = new Map(
+      ratingsSnapshot.docs.map((ratingDoc) => [ratingDoc.id, ratingDoc.data()])
+    );
     const products = snapshot.docs
-      .map((item) => normalizeProduct(item.data(), item.id))
+      .map((item) => normalizeProduct(item.data(), item.id, ratingStatsByProductId.get(item.id)))
       .filter((item) => item.id && item.storageKey);
 
     return res.status(200).json({ products });

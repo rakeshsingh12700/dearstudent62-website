@@ -7,6 +7,7 @@ import {
   getPreviewUrl,
   getThumbnailUrl,
 } from "../lib/productAssetUrls";
+import { buildRatingStars, formatRatingAverage, normalizeRatingStats } from "../lib/productRatings";
 import { getSubjectBadgeClass, getSubjectLabel } from "../lib/subjectBadge";
 
 const CLASS_OPTIONS = [
@@ -1269,6 +1270,7 @@ export default function WorksheetShop({
                 const singlePagePreviewUrl = getPreviewUrl(product.storageKey, 1);
                 const thumbnailUrl = getThumbnailUrl(product.storageKey, product.imageUrl);
                 const ageLabel = !product.hideAgeLabel && product.ageLabel ? product.ageLabel : "";
+                const ratingStats = normalizeRatingStats(product);
                 return (
                   <article className="worksheet-card" key={product.id}>
                     <div className="worksheet-card__media worksheet-card__media--pdf">
@@ -1359,6 +1361,16 @@ export default function WorksheetShop({
                         </>
                       ) : null}
                     </p>
+                    {ratingStats.ratingCount > 0 && (
+                      <p className="worksheet-card__rating">
+                        <span className="worksheet-card__rating-stars">
+                          {buildRatingStars(ratingStats.averageRating)}
+                        </span>
+                        <span>
+                          {formatRatingAverage(ratingStats)} ({ratingStats.ratingCount})
+                        </span>
+                      </p>
+                    )}
                     <div className="worksheet-card__footer">
                       <p className="worksheet-card__price">₹{product.price}</p>
                       <div className="worksheet-card__actions">

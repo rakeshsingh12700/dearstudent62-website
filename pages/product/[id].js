@@ -6,6 +6,7 @@ import products from "../../data/products";
 import { useAuth } from "../../context/AuthContext";
 import { hasPurchased } from "../../firebase/purchases";
 import { getPreviewUrl, getThumbnailUrl } from "../../lib/productAssetUrls";
+import { buildRatingStars, formatRatingAverage, normalizeRatingStats } from "../../lib/productRatings";
 
 const CART_STORAGE_KEY = "ds-worksheet-cart-v1";
 
@@ -128,6 +129,11 @@ export default function ProductPage() {
   const [runtimeProduct, setRuntimeProduct] = useState(null);
   const [shareLinksOpen, setShareLinksOpen] = useState(false);
   const [shareStatus, setShareStatus] = useState("");
+  const [ratingStats, setRatingStats] = useState(() => normalizeRatingStats({}));
+  const [ratingForm, setRatingForm] = useState({ rating: 0, review: "" });
+  const [ratingLoading, setRatingLoading] = useState(false);
+  const [ratingSubmitting, setRatingSubmitting] = useState(false);
+  const [ratingNotice, setRatingNotice] = useState({ type: "", text: "" });
 
   const staticProduct = products.find((item) => item.id === query.id);
   const product = runtimeProduct || staticProduct;
@@ -237,6 +243,59 @@ export default function ProductPage() {
       window.removeEventListener("click", closeShare);
     };
   }, []);
+
+  useEffect(() => {
+    setRatingStats(
+      normalizeRatingStats({
+        averageRating: product?.averageRating,
+        ratingCount: product?.ratingCount,
+      })
+    );
+  }, [product?.averageRating, product?.id, product?.ratingCount]);
+
+  useEffect(() => {
+    if (!product?.id) return;
+
+    let cancelled = false;
+    const loadRatingInfo = async () => {
+      setRatingLoading(true);
+      try {
+        const headers = {};
+        if (user) {
+          const idToken = await user.getIdToken();
+          headers.Authorization = `Bearer ${idToken}`;
+        }
+
+        const response = await fetch(
+          `/api/product-ratings?productId=${encodeURIComponent(product.id)}`,
+          { headers }
+        );
+        if (!response.ok) return;
+
+        const payload = await response.json().catch(() => ({}));
+        if (cancelled) return;
+
+        setRatingStats(normalizeRatingStats(payload?.stats || {}));
+        if (payload?.userRating) {
+          setRatingForm({
+            rating: Number(payload.userRating.rating || 0),
+            review: String(payload.userRating.review || ""),
+          });
+        } else {
+          setRatingForm({ rating: 0, review: "" });
+        }
+      } catch {
+        // Keep fallback from product data.
+      } finally {
+        if (!cancelled) setRatingLoading(false);
+      }
+    };
+
+    loadRatingInfo();
+    return () => {
+      cancelled = true;
+    };
+  }, [product?.id, user]);
 
   if (!product) {
     return (
@@ -373,6 +432,82 @@ export default function ProductPage() {
     setShareLinksOpen(false);
   };
 
+  const ratingSummaryLabel =
+    ratingStats.ratingCount > 0
+      ? `${formatRatingAverage(ratingStats)} (${ratingStats.ratingCount} rating${
+          ratingStats.ratingCount === 1 ? "" : "s"
+        })`
+      : "";
+
+  const submitRating = async (event) => {
+    event.preventDefault();
+    if (!user) {
+      setRatingNotice({
+        type: "error",
+        text: "Please login first to submit a rating.",
+      });
+      return;
+    }
+    if (!purchased) {
+      setRatingNotice({
+        type: "error",
+        text: "You can rate only worksheets you have purchased.",
+      });
+      return;
+    }
+    const rating = Number.parseInt(String(ratingForm.rating || 0), 10);
+    if (!Number.isFinite(rating) || rating < 1 || rating > 5) {
+      setRatingNotice({
+        type: "error",
+        text: "Please select a rating from 1 to 5 stars.",
+      });
+      return;
+    }
+
+    try {
+      setRatingSubmitting(true);
+      setRatingNotice({ type: "", text: "" });
+
+      const idToken = await user.getIdToken();
+      const response = await fetch("/api/product-ratings", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${idToken}`,
+        },
+        body: JSON.stringify({
+          productId: product.id,
+          rating,
+          review: String(ratingForm.review || "").trim(),
+        }),
+      });
+
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok || !payload?.ok) {
+        throw new Error(payload?.error || "Unable to submit rating right now.");
+      }
+
+      setRatingStats(normalizeRatingStats(payload?.stats || {}));
+      if (payload?.userRating) {
+        setRatingForm({
+          rating: Number(payload.userRating.rating || 0),
+          review: String(payload.userRating.review || ""),
+        });
+      }
+      setRatingNotice({
+        type: "ok",
+        text: "Thanks for your rating. Your feedback has been saved.",
+      });
+    } catch (error) {
+      setRatingNotice({
+        type: "error",
+        text: String(error?.message || "Unable to submit rating right now."),
+      });
+    } finally {
+      setRatingSubmitting(false);
+    }
+  };
+
   return (
     <>
       <Navbar />
@@ -481,6 +616,14 @@ export default function ProductPage() {
                 A playful printable set to build early confidence with structured,
                 repeatable activities.
               </p>
+              {ratingStats.ratingCount > 0 && (
+                <p className="product-rating-summary" aria-label={ratingSummaryLabel}>
+                  <span className="product-rating-summary__stars">
+                    {buildRatingStars(ratingStats.averageRating)}
+                  </span>
+                  <span>{ratingSummaryLabel}</span>
+                </p>
+              )}
 
               <div className="product-info-card__price-row">
                 <div>
@@ -513,6 +656,68 @@ export default function ProductPage() {
                     </button>
                   </div>
                 </div>
+              )}
+
+              {!checking && purchased && assetAvailable && (
+                <form className="product-rating-form" onSubmit={submitRating}>
+                  <h3>Rate This Worksheet</h3>
+                  <p className="product-rating-form__hint">
+                    Share your rating. Review text is optional and kept private for quality checks.
+                  </p>
+                  <div className="product-rating-form__stars" role="group" aria-label="Rating">
+                    {[1, 2, 3, 4, 5].map((value) => (
+                      <button
+                        key={`rate-${value}`}
+                        type="button"
+                        className={`product-rating-form__star ${
+                          ratingForm.rating >= value ? "active" : ""
+                        }`}
+                        onClick={() =>
+                          setRatingForm((prev) => ({
+                            ...prev,
+                            rating: value,
+                          }))
+                        }
+                        aria-label={`${value} star${value === 1 ? "" : "s"}`}
+                      >
+                        ★
+                      </button>
+                    ))}
+                  </div>
+                  <label htmlFor="product-rating-review">Optional review</label>
+                  <textarea
+                    id="product-rating-review"
+                    name="review"
+                    value={ratingForm.review}
+                    maxLength={1200}
+                    onChange={(event) =>
+                      setRatingForm((prev) => ({
+                        ...prev,
+                        review: event.target.value,
+                      }))
+                    }
+                    placeholder="Tell us what worked well or what can improve."
+                    rows={4}
+                  />
+                  <button
+                    type="submit"
+                    className="btn btn-secondary"
+                    disabled={ratingSubmitting || ratingLoading}
+                  >
+                    {ratingSubmitting ? "Saving..." : "Submit Rating"}
+                  </button>
+                  {ratingNotice.text && (
+                    <p
+                      className={`product-rating-form__status ${
+                        ratingNotice.type === "error"
+                          ? "product-rating-form__status--error"
+                          : "product-rating-form__status--ok"
+                      }`}
+                    >
+                      {ratingNotice.text}
+                    </p>
+                  )}
+                </form>
               )}
 
               {!checking && !purchased && assetAvailable && (

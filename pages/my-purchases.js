@@ -6,6 +6,7 @@ import { getUserPurchases } from "../firebase/purchases";
 import Navbar from "../components/Navbar";
 import products from "../data/products";
 import { getDownloadUrl } from "../lib/productAssetUrls";
+import { buildRatingStars } from "../lib/productRatings";
 import { getSubjectBadgeClass, getSubjectLabel } from "../lib/subjectBadge";
 
 const CART_STORAGE_KEY = "ds-worksheet-cart-v1";
@@ -44,6 +45,17 @@ function humanizeId(id) {
     .replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
+function normalizeUserRating(raw) {
+  const rating = Number.parseInt(String(raw?.rating || 0), 10);
+  if (!Number.isFinite(rating) || rating < 1 || rating > 5) return null;
+
+  return {
+    rating,
+    review: String(raw?.review || "").trim(),
+    updatedAt: String(raw?.updatedAt || "").trim(),
+  };
+}
+
 export default function MyPurchases() {
   const router = useRouter();
   const { user } = useAuth();
@@ -52,6 +64,12 @@ export default function MyPurchases() {
   const [runtimeProducts, setRuntimeProducts] = useState([]);
   const [error, setError] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [ratingsByProductId, setRatingsByProductId] = useState({});
+  const [ratingFormsByProductId, setRatingFormsByProductId] = useState({});
+  const [ratingPanelByItemKey, setRatingPanelByItemKey] = useState({});
+  const [ratingHoverByItemKey, setRatingHoverByItemKey] = useState({});
+  const [ratingSubmittingByItemKey, setRatingSubmittingByItemKey] = useState({});
+  const [ratingNoticeByItemKey, setRatingNoticeByItemKey] = useState({});
 
   const productById = useMemo(() => {
     const map = new Map(products.map((product) => [product.id, product]));
@@ -110,6 +128,18 @@ export default function MyPurchases() {
       })
       .sort((first, second) => second.purchasedAtMs - first.purchasedAtMs);
   }, [normalizedPurchases, productById]);
+
+  const purchasedProductIds = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          enrichedPurchases
+            .map((purchase) => String(purchase.productId || "").trim())
+            .filter(Boolean)
+        )
+      ),
+    [enrichedPurchases]
+  );
 
   const orders = useMemo(() => {
     const grouped = new Map();
@@ -229,6 +259,81 @@ export default function MyPurchases() {
     };
   }, [purchases]);
 
+  useEffect(() => {
+    if (!user || purchasedProductIds.length === 0) {
+      setRatingsByProductId({});
+      setRatingFormsByProductId({});
+      setRatingPanelByItemKey({});
+      setRatingHoverByItemKey({});
+      setRatingSubmittingByItemKey({});
+      setRatingNoticeByItemKey({});
+      return;
+    }
+
+    let cancelled = false;
+    const loadRatings = async () => {
+      try {
+        const idToken = await user.getIdToken();
+        const chunks = [];
+        for (let index = 0; index < purchasedProductIds.length; index += 40) {
+          chunks.push(purchasedProductIds.slice(index, index + 40));
+        }
+
+        const payloads = await Promise.all(
+          chunks.map(async (chunk) => {
+            const response = await fetch(
+              `/api/product-ratings?ids=${encodeURIComponent(chunk.join(","))}`,
+              {
+                headers: {
+                  Authorization: `Bearer ${idToken}`,
+                },
+              }
+            );
+            if (!response.ok) return null;
+            return response.json().catch(() => ({}));
+          })
+        );
+        if (cancelled) return;
+
+        const nextRatings = {};
+        const nextForms = {};
+
+        payloads.forEach((payload) => {
+          (Array.isArray(payload?.items) ? payload.items : []).forEach((item) => {
+            const productId = String(item?.productId || "").trim();
+            if (!productId) return;
+
+            const userRating = normalizeUserRating(item?.userRating);
+            if (userRating) nextRatings[productId] = userRating;
+
+            nextForms[productId] = {
+              rating: userRating?.rating || 0,
+              review: userRating?.review || "",
+            };
+          });
+        });
+
+        purchasedProductIds.forEach((productId) => {
+          if (nextForms[productId]) return;
+          nextForms[productId] = {
+            rating: 0,
+            review: "",
+          };
+        });
+
+        setRatingsByProductId(nextRatings);
+        setRatingFormsByProductId(nextForms);
+      } catch {
+        // Keep ratings blank and let user rate inline.
+      }
+    };
+
+    loadRatings();
+    return () => {
+      cancelled = true;
+    };
+  }, [purchasedProductIds, user]);
+
   const handleBuyAgain = (order) => {
     if (typeof window === "undefined") return;
 
@@ -304,6 +409,153 @@ export default function MyPurchases() {
       link.remove();
     } catch {
       alert("Unable to verify your login. Please login again.");
+    }
+  };
+
+  const getRatingForm = (productId) => {
+    const key = String(productId || "").trim();
+    const current = ratingFormsByProductId[key];
+    if (current) return current;
+
+    const existing = ratingsByProductId[key];
+    return {
+      rating: Number(existing?.rating || 0),
+      review: String(existing?.review || ""),
+    };
+  };
+
+  const toggleRatingPanel = ({ itemKey, productId }) => {
+    const lineKey = String(itemKey || "").trim();
+    const id = String(productId || "").trim();
+    if (!lineKey || !id) return;
+
+    setRatingPanelByItemKey((prev) => ({
+      ...prev,
+      [lineKey]: !Boolean(prev[lineKey]),
+    }));
+    setRatingNoticeByItemKey((prev) => ({
+      ...prev,
+      [lineKey]: { type: "", text: "" },
+    }));
+    setRatingFormsByProductId((prev) => ({
+      ...prev,
+      [id]:
+        prev[id] || {
+          rating: Number(ratingsByProductId[id]?.rating || 0),
+          review: String(ratingsByProductId[id]?.review || ""),
+        },
+    }));
+  };
+
+  const updateRatingForm = ({ productId, patch = {} }) => {
+    const id = String(productId || "").trim();
+    if (!id) return;
+    setRatingFormsByProductId((prev) => ({
+      ...prev,
+      [id]: {
+        ...(prev[id] || {
+          rating: Number(ratingsByProductId[id]?.rating || 0),
+          review: String(ratingsByProductId[id]?.review || ""),
+        }),
+        ...patch,
+      },
+    }));
+  };
+
+  const submitItemRating = async ({ itemKey, productId }) => {
+    const lineKey = String(itemKey || "").trim();
+    const id = String(productId || "").trim();
+    if (!lineKey || !id) return;
+
+    const currentForm = getRatingForm(id);
+    const rating = Number.parseInt(String(currentForm.rating || 0), 10);
+    if (!Number.isFinite(rating) || rating < 1 || rating > 5) {
+      setRatingNoticeByItemKey((prev) => ({
+        ...prev,
+        [lineKey]: {
+          type: "error",
+          text: "Please select a rating from 1 to 5 stars.",
+        },
+      }));
+      return;
+    }
+
+    if (!user) {
+      setRatingNoticeByItemKey((prev) => ({
+        ...prev,
+        [lineKey]: {
+          type: "error",
+          text: "Please login first to submit a rating.",
+        },
+      }));
+      return;
+    }
+
+    try {
+      setRatingSubmittingByItemKey((prev) => ({ ...prev, [lineKey]: true }));
+      setRatingNoticeByItemKey((prev) => ({ ...prev, [lineKey]: { type: "", text: "" } }));
+
+      const idToken = await user.getIdToken();
+      const response = await fetch("/api/product-ratings", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${idToken}`,
+        },
+        body: JSON.stringify({
+          productId: id,
+          rating,
+          review: String(currentForm.review || "").trim(),
+        }),
+      });
+
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok || !payload?.ok) {
+        throw new Error(String(payload?.error || "Unable to submit rating right now."));
+      }
+
+      const saved = normalizeUserRating(payload?.userRating) || {
+        rating,
+        review: String(currentForm.review || "").trim(),
+        updatedAt: "",
+      };
+
+      setRatingsByProductId((prev) => ({
+        ...prev,
+        [id]: saved,
+      }));
+      setRatingFormsByProductId((prev) => ({
+        ...prev,
+        [id]: {
+          rating: saved.rating,
+          review: saved.review,
+        },
+      }));
+      setRatingPanelByItemKey((prev) => ({
+        ...prev,
+        [lineKey]: false,
+      }));
+      setRatingHoverByItemKey((prev) => ({
+        ...prev,
+        [lineKey]: 0,
+      }));
+      setRatingNoticeByItemKey((prev) => ({
+        ...prev,
+        [lineKey]: {
+          type: "ok",
+          text: "Thank you. Your feedback helps other parents.",
+        },
+      }));
+    } catch (submitError) {
+      setRatingNoticeByItemKey((prev) => ({
+        ...prev,
+        [lineKey]: {
+          type: "error",
+          text: String(submitError?.message || "Unable to submit rating right now."),
+        },
+      }));
+    } finally {
+      setRatingSubmittingByItemKey((prev) => ({ ...prev, [lineKey]: false }));
     }
   };
 
@@ -445,50 +697,189 @@ export default function MyPurchases() {
 
                   <div className="my-order-card__body">
                     <div className="my-order-card__items">
-                      {order.items.map((item) => (
-                        <div className="my-order-item" key={`${order.orderId}-${item.id}`}>
-                          <div className="my-order-item__thumb">
-                            {item.viewHref ? (
-                              <Link
-                                href={item.viewHref}
-                                className="my-order-item__thumb-link"
-                                aria-label={`Open ${item.title}`}
-                              >
+                      {order.items.map((item) => {
+                        const itemKey = `${order.orderId}-${item.id}`;
+                        const reviewFieldId = `rating-review-${itemKey.replace(/[^a-z0-9_-]+/gi, "-")}`;
+                        const savedRating = normalizeUserRating(ratingsByProductId[item.productId]);
+                        const ratingForm = getRatingForm(item.productId);
+                        const isRated = Boolean(savedRating?.rating);
+                        const isRatingPanelOpen = Boolean(ratingPanelByItemKey[itemKey]);
+                        const hoverRating = Number(ratingHoverByItemKey[itemKey] || 0);
+                        const activeRating = hoverRating > 0 ? hoverRating : Number(ratingForm.rating || 0);
+                        const ratingNotice = ratingNoticeByItemKey[itemKey] || { type: "", text: "" };
+                        const isRatingSubmitting = Boolean(ratingSubmittingByItemKey[itemKey]);
+
+                        return (
+                          <div className="my-order-item" key={itemKey}>
+                            <div className="my-order-item__thumb">
+                              {item.viewHref ? (
+                                <Link
+                                  href={item.viewHref}
+                                  className="my-order-item__thumb-link"
+                                  aria-label={`Open ${item.title}`}
+                                >
+                                  <span className={getSubjectBadgeClass(item.subject)}>
+                                    {getSubjectLabel(item.subject)}
+                                  </span>
+                                </Link>
+                              ) : (
                                 <span className={getSubjectBadgeClass(item.subject)}>
                                   {getSubjectLabel(item.subject)}
                                 </span>
-                              </Link>
-                            ) : (
-                              <span className={getSubjectBadgeClass(item.subject)}>
-                                {getSubjectLabel(item.subject)}
-                              </span>
-                            )}
-                          </div>
-                          <div className="my-order-item__content">
-                            <h3>
-                              {item.viewHref ? (
-                                <Link href={item.viewHref}>{item.title}</Link>
-                              ) : (
-                                item.title
                               )}
-                            </h3>
-                            <p>
-                              {item.classLabel} • {item.category} •{" "}
-                              {item.pages ? `${item.pages} pages` : "Printable PDF"} • Qty{" "}
-                              {item.quantity}
-                            </p>
-                            {item.storageKey ? (
-                              <button
-                                type="button"
-                                className="btn-link"
-                                onClick={() => handleDownload(item.storageKey)}
-                              >
-                                Download PDF
-                              </button>
-                            ) : null}
+                            </div>
+                            <div className="my-order-item__content">
+                              <h3>
+                                {item.viewHref ? (
+                                  <Link href={item.viewHref}>{item.title}</Link>
+                                ) : (
+                                  item.title
+                                )}
+                              </h3>
+                              <p>
+                                {item.classLabel} • {item.category} •{" "}
+                                {item.pages ? `${item.pages} pages` : "Printable PDF"} • Qty{" "}
+                                {item.quantity}
+                              </p>
+                              <p className="my-order-item__purchased-on">
+                                Purchased on: {item.purchasedAtLabel}
+                              </p>
+
+                              {isRated && (
+                                <p className="my-order-item__your-rating">
+                                  <span>Your Rating:</span>
+                                  <strong>{buildRatingStars(savedRating.rating)}</strong>
+                                </p>
+                              )}
+
+                              <div className="my-order-item__actions-row">
+                                {item.storageKey ? (
+                                  <button
+                                    type="button"
+                                    className="btn btn-secondary my-order-item__download-btn"
+                                    onClick={() => handleDownload(item.storageKey)}
+                                  >
+                                    Download
+                                  </button>
+                                ) : null}
+                                <button
+                                  type="button"
+                                  className={`btn ${
+                                    isRated ? "btn-secondary" : "my-order-item__rate-btn"
+                                  }`}
+                                  onClick={() =>
+                                    toggleRatingPanel({
+                                      itemKey,
+                                      productId: item.productId,
+                                    })
+                                  }
+                                >
+                                  {isRated ? "Edit Rating" : "★ Rate Worksheet"}
+                                </button>
+                              </div>
+
+                              {ratingNotice.text && (
+                                <p
+                                  className={`my-order-item__rating-status ${
+                                    ratingNotice.type === "error"
+                                      ? "my-order-item__rating-status--error"
+                                      : "my-order-item__rating-status--ok"
+                                  }`}
+                                >
+                                  {ratingNotice.text}
+                                </p>
+                              )}
+
+                              {isRatingPanelOpen && (
+                                <div className="my-order-item__rating-panel">
+                                  <p className="my-order-item__rating-question">
+                                    How was this worksheet?
+                                  </p>
+                                  <div
+                                    className="my-order-item__rating-stars"
+                                    role="group"
+                                    aria-label={`Rate ${item.title}`}
+                                  >
+                                    {[1, 2, 3, 4, 5].map((value) => (
+                                      <button
+                                        key={`${itemKey}-star-${value}`}
+                                        type="button"
+                                        className={`my-order-item__rating-star ${
+                                          activeRating >= value ? "active" : ""
+                                        }`}
+                                        onMouseEnter={() =>
+                                          setRatingHoverByItemKey((prev) => ({
+                                            ...prev,
+                                            [itemKey]: value,
+                                          }))
+                                        }
+                                        onMouseLeave={() =>
+                                          setRatingHoverByItemKey((prev) => ({
+                                            ...prev,
+                                            [itemKey]: 0,
+                                          }))
+                                        }
+                                        onFocus={() =>
+                                          setRatingHoverByItemKey((prev) => ({
+                                            ...prev,
+                                            [itemKey]: value,
+                                          }))
+                                        }
+                                        onBlur={() =>
+                                          setRatingHoverByItemKey((prev) => ({
+                                            ...prev,
+                                            [itemKey]: 0,
+                                          }))
+                                        }
+                                        onClick={() =>
+                                          updateRatingForm({
+                                            productId: item.productId,
+                                            patch: { rating: value },
+                                          })
+                                        }
+                                        aria-label={`${value} star${value === 1 ? "" : "s"}`}
+                                      >
+                                        ★
+                                      </button>
+                                    ))}
+                                  </div>
+                                  <label htmlFor={reviewFieldId}>
+                                    Optional: Share your feedback
+                                  </label>
+                                  <textarea
+                                    id={reviewFieldId}
+                                    value={String(ratingForm.review || "")}
+                                    maxLength={1200}
+                                    rows={4}
+                                    placeholder="What worked well? What can improve?"
+                                    onChange={(event) =>
+                                      updateRatingForm({
+                                        productId: item.productId,
+                                        patch: {
+                                          review: event.target.value,
+                                        },
+                                      })
+                                    }
+                                  />
+                                  <button
+                                    type="button"
+                                    className="btn btn-primary"
+                                    disabled={isRatingSubmitting}
+                                    onClick={() =>
+                                      submitItemRating({
+                                        itemKey,
+                                        productId: item.productId,
+                                      })
+                                    }
+                                  >
+                                    {isRatingSubmitting ? "Saving..." : "Submit Rating"}
+                                  </button>
+                                </div>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
 
                     <aside className="my-order-card__cta">
