@@ -8,7 +8,20 @@ const nextConfig: NextConfig = {
         hostname: "images.unsplash.com"
       }
     ]
-  }
+  },
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          {
+            key: "Permissions-Policy",
+            value: "geolocation=(), camera=(), microphone=()",
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

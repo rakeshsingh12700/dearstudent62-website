@@ -216,7 +216,7 @@ export default function Checkout() {
       }
 
       if (!buyerEmail) {
-        alert("Please enter your email before payment.");
+        alert("Please enter email to receive your download.");
         return;
       }
 
@@ -387,24 +387,17 @@ export default function Checkout() {
                 </div>
               ) : (
                 <div className="checkout-account-box checkout-account-box--guest">
-                  <label htmlFor="checkout-email">Email for purchase access</label>
+                  <label htmlFor="checkout-email">Enter email to receive download</label>
                   <input
                     id="checkout-email"
                     type="email"
-                    placeholder="Enter your email"
+                    placeholder="parent@school.com"
                     value={email}
                     onChange={(event) => setEmail(event.target.value)}
                     required
                   />
                   <p>
-                    Already have an account?{" "}
-                    <Link
-                      href={`/auth?next=/checkout&email=${encodeURIComponent(
-                        email || ""
-                      )}`}
-                    >
-                      Login / Sign Up
-                    </Link>
+                    No login needed. We will send access and invoice to this email.
                   </p>
                 </div>
               )}
