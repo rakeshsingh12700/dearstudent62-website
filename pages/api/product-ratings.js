@@ -61,6 +61,10 @@ function sanitizeReview(value) {
   return String(value || "").trim().slice(0, 1200);
 }
 
+function sanitizeDisplayName(value) {
+  return String(value || "").trim().slice(0, 120);
+}
+
 function sanitizeRating(value) {
   const parsed = Number.parseInt(String(value || 0), 10);
   if (!Number.isFinite(parsed)) return 0;
@@ -284,10 +288,13 @@ export default async function handler(req, res) {
       ? existingSnapshot.data()?.createdAt || new Date()
       : new Date();
 
+    const displayName = sanitizeDisplayName(req.body?.displayName);
+
     await setDoc(feedbackRef, {
       productId,
       userId: authUser.uid,
       email: authUser.email,
+      ...(displayName ? { displayName } : {}),
       rating,
       review,
       createdAt: existingCreatedAt,

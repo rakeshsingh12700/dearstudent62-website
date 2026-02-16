@@ -506,6 +506,7 @@ export default function MyPurchases() {
           productId: id,
           rating,
           review: String(currentForm.review || "").trim(),
+          displayName: String(user?.displayName || "").trim(),
         }),
       });
 

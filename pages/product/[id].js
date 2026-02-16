@@ -479,6 +479,7 @@ export default function ProductPage() {
           productId: product.id,
           rating,
           review: String(ratingForm.review || "").trim(),
+          displayName: String(user?.displayName || "").trim(),
         }),
       });
 
