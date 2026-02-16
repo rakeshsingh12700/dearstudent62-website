@@ -1,5 +1,6 @@
 import { AuthProvider } from "../context/AuthContext";
 import { Baloo_2, Cormorant_Garamond, Nunito, Poppins } from "next/font/google";
+import SiteFooter from "../components/SiteFooter";
 import "../styles/globals.css";
 
 const bodyFont = Nunito({
@@ -33,6 +34,7 @@ export default function App({ Component, pageProps }) {
     >
       <AuthProvider>
         <Component {...pageProps} />
+        <SiteFooter />
       </AuthProvider>
     </div>
   );

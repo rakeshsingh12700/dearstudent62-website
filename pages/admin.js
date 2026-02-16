@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import Navbar from "../components/Navbar";
+import AdminShell from "../components/AdminShell";
 import { useAuth } from "../context/AuthContext";
 
 const CLASS_OPTIONS = [
@@ -228,195 +229,197 @@ export default function AdminPage() {
   return (
     <>
       <Navbar />
-      <main className="auth-page">
-        <section className="container auth-wrap">
-          <section className="auth-card">
-            <h1>Admin Upload</h1>
-            <p>Upload product PDF and images for listing.</p>
-            {!user ? (
-              <div className="auth-status auth-status--error">
-                <p>Please login with your admin account to access uploads.</p>
-                <p>
-                  <Link href="/auth?next=/admin">Login to Admin</Link>
-                </p>
-              </div>
-            ) : (
-              <p className="auth-subtext">
-                Logged in as {user.email}
-                {checkingAccess ? " (Checking access...)" : ""}
-              </p>
-            )}
-            {user && !checkingAccess && !accessAllowed && (
-              <div className="auth-status auth-status--error">
-                <p>Access denied for this account.</p>
-                <p>{accessMessage}</p>
-              </div>
-            )}
-
-            {user && checkingAccess && (
-              <div className="auth-status">
-                <p>Checking admin access...</p>
-              </div>
-            )}
-
-            {user && accessAllowed && (
-              <form className="auth-form" onSubmit={onSubmit}>
-                <label htmlFor="subject">Subject</label>
-                <select id="subject" name="subject" value={form.subject} onChange={onFieldChange}>
-                  {SUBJECT_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-
-                <label htmlFor="type">Type</label>
-                <select id="type" name="type" value={form.type} onChange={onFieldChange}>
-                  {TYPE_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-
-                {!hideClassSelection ? (
-                  <>
-                    <label htmlFor="class">Class</label>
-                    <select id="class" name="class" value={form.class} onChange={onFieldChange}>
-                      {CLASS_OPTIONS.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </>
-                ) : (
-                  <p>Class is auto-set to Class 1 for English Worksheets.</p>
-                )}
-
-                <label htmlFor="title">Title</label>
-                <input
-                  id="title"
-                  name="title"
-                  type="text"
-                  value={form.title}
-                  onChange={onFieldChange}
-                  placeholder="DS62 WK English Grammar Nouns"
-                  required
-                />
-
-                <label htmlFor="price">Price (INR)</label>
-                <input
-                  id="price"
-                  name="price"
-                  type="number"
-                  min="1"
-                  value={form.price}
-                  onChange={onFieldChange}
-                  required
-                />
-
-                <p>Pages are auto-detected from the uploaded PDF.</p>
-
-                <label htmlFor="topic">Topic (Optional)</label>
-                <select
-                  id="topic"
-                  name="topic"
-                  value={form.topic}
-                  onChange={onFieldChange}
-                >
-                  <option value="">Select topic (optional)</option>
-                  {topicOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-                {isGrammarTopic && (
-                  <>
-                    <label htmlFor="subtopic">Grammar Subtopic (Optional)</label>
-                    <select
-                      id="subtopic"
-                      name="subtopic"
-                      value={form.subtopic}
-                      onChange={onFieldChange}
-                    >
-                      <option value="">Select grammar subtopic (optional)</option>
-                      {GRAMMAR_SUBTOPIC_OPTIONS.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </>
-                )}
-
-                <label htmlFor="pdf">PDF File (Required)</label>
-                <input
-                  id="pdf"
-                  name="pdf"
-                  type="file"
-                  accept="application/pdf"
-                  onChange={onFileChange}
-                  required
-                />
-                <p>{fileName(files.pdf)}</p>
-
-                <label htmlFor="coverImage">Cover Thumbnail Image (Required)</label>
-                <input
-                  id="coverImage"
-                  name="coverImage"
-                  type="file"
-                  accept="image/*"
-                  onChange={onFileChange}
-                  required
-                />
-                <p>{fileName(files.coverImage)}</p>
-
-                <label className="auth-checkbox" htmlFor="showPreviewPage">
-                  <input
-                    id="showPreviewPage"
-                    name="showPreviewPage"
-                    type="checkbox"
-                    checked={form.showPreviewPage}
-                    onChange={onFieldChange}
-                  />
-                  Show First-Page Image of the uploaded pdf in Preview Modal
-                </label>
-                <p>
-                  If enabled, users will see cover image + first-page image in preview. First-page
-                  image is auto-generated from the uploaded PDF.
-                </p>
-
-                <button type="submit" className="btn btn-primary" disabled={!canSubmit || submitting}>
-                  {submitting ? "Uploading..." : "Upload to R2"}
-                </button>
-              </form>
-            )}
-
-            {error && <p className="auth-status auth-status--error">{error}</p>}
-
-            {result?.ok && (
-              <div className="auth-status auth-status--ok">
-                <p>{result.message}</p>
-                <p>
-                  PDF: <code>{result?.storage?.pdfKey}</code>
-                </p>
-                <p>
-                  Cover: <code>{result?.storage?.coverKey}</code>
-                </p>
-                {result?.storage?.previewKey && (
+      <main className="auth-page admin-page">
+        <section className="container admin-wrap">
+          <AdminShell currentSection="uploads">
+            <section className="auth-card admin-card">
+              <h1>Admin Upload</h1>
+              <p>Upload product PDF and images for listing.</p>
+              {!user ? (
+                <div className="auth-status auth-status--error">
+                  <p>Please login with your admin account to access uploads.</p>
                   <p>
-                    Preview: <code>{result.storage.previewKey}</code>
+                    <Link href="/auth?next=/admin">Login to Admin</Link>
                   </p>
-                )}
-                <p>
-                  Meta: <code>{result?.storage?.metaKey}</code>
+                </div>
+              ) : (
+                <p className="auth-subtext">
+                  Logged in as {user.email}
+                  {checkingAccess ? " (Checking access...)" : ""}
                 </p>
-                <p>{result.nextStep}</p>
-              </div>
-            )}
-          </section>
+              )}
+              {user && !checkingAccess && !accessAllowed && (
+                <div className="auth-status auth-status--error">
+                  <p>Access denied for this account.</p>
+                  <p>{accessMessage}</p>
+                </div>
+              )}
+
+              {user && checkingAccess && (
+                <div className="auth-status">
+                  <p>Checking admin access...</p>
+                </div>
+              )}
+
+              {user && accessAllowed && (
+                <form className="auth-form" onSubmit={onSubmit}>
+                  <label htmlFor="subject">Subject</label>
+                  <select id="subject" name="subject" value={form.subject} onChange={onFieldChange}>
+                    {SUBJECT_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+
+                  <label htmlFor="type">Type</label>
+                  <select id="type" name="type" value={form.type} onChange={onFieldChange}>
+                    {TYPE_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+
+                  {!hideClassSelection ? (
+                    <>
+                      <label htmlFor="class">Class</label>
+                      <select id="class" name="class" value={form.class} onChange={onFieldChange}>
+                        {CLASS_OPTIONS.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </>
+                  ) : (
+                    <p>Class is auto-set to Class 1 for English Worksheets.</p>
+                  )}
+
+                  <label htmlFor="title">Title</label>
+                  <input
+                    id="title"
+                    name="title"
+                    type="text"
+                    value={form.title}
+                    onChange={onFieldChange}
+                    placeholder="DS62 WK English Grammar Nouns"
+                    required
+                  />
+
+                  <label htmlFor="price">Price (INR)</label>
+                  <input
+                    id="price"
+                    name="price"
+                    type="number"
+                    min="1"
+                    value={form.price}
+                    onChange={onFieldChange}
+                    required
+                  />
+
+                  <p>Pages are auto-detected from the uploaded PDF.</p>
+
+                  <label htmlFor="topic">Topic (Optional)</label>
+                  <select
+                    id="topic"
+                    name="topic"
+                    value={form.topic}
+                    onChange={onFieldChange}
+                  >
+                    <option value="">Select topic (optional)</option>
+                    {topicOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                  {isGrammarTopic && (
+                    <>
+                      <label htmlFor="subtopic">Grammar Subtopic (Optional)</label>
+                      <select
+                        id="subtopic"
+                        name="subtopic"
+                        value={form.subtopic}
+                        onChange={onFieldChange}
+                      >
+                        <option value="">Select grammar subtopic (optional)</option>
+                        {GRAMMAR_SUBTOPIC_OPTIONS.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </>
+                  )}
+
+                  <label htmlFor="pdf">PDF File (Required)</label>
+                  <input
+                    id="pdf"
+                    name="pdf"
+                    type="file"
+                    accept="application/pdf"
+                    onChange={onFileChange}
+                    required
+                  />
+                  <p>{fileName(files.pdf)}</p>
+
+                  <label htmlFor="coverImage">Cover Thumbnail Image (Required)</label>
+                  <input
+                    id="coverImage"
+                    name="coverImage"
+                    type="file"
+                    accept="image/*"
+                    onChange={onFileChange}
+                    required
+                  />
+                  <p>{fileName(files.coverImage)}</p>
+
+                  <label className="auth-checkbox" htmlFor="showPreviewPage">
+                    <input
+                      id="showPreviewPage"
+                      name="showPreviewPage"
+                      type="checkbox"
+                      checked={form.showPreviewPage}
+                      onChange={onFieldChange}
+                    />
+                    Show First-Page Image of the uploaded pdf in Preview Modal
+                  </label>
+                  <p>
+                    If enabled, users will see cover image + first-page image in preview. First-page
+                    image is auto-generated from the uploaded PDF.
+                  </p>
+
+                  <button type="submit" className="btn btn-primary" disabled={!canSubmit || submitting}>
+                    {submitting ? "Uploading..." : "Upload to R2 Cloud"}
+                  </button>
+                </form>
+              )}
+
+              {error && <p className="auth-status auth-status--error">{error}</p>}
+
+              {result?.ok && (
+                <div className="auth-status auth-status--ok">
+                  <p>{result.message}</p>
+                  <p>
+                    PDF: <code>{result?.storage?.pdfKey}</code>
+                  </p>
+                  <p>
+                    Cover: <code>{result?.storage?.coverKey}</code>
+                  </p>
+                  {result?.storage?.previewKey && (
+                    <p>
+                      Preview: <code>{result.storage.previewKey}</code>
+                    </p>
+                  )}
+                  <p>
+                    Meta: <code>{result?.storage?.metaKey}</code>
+                  </p>
+                  <p>{result.nextStep}</p>
+                </div>
+              )}
+            </section>
+          </AdminShell>
         </section>
       </main>
     </>

@@ -543,6 +543,13 @@ export default function ProductPage() {
                   <li key={benefit}>{benefit}</li>
                 ))}
               </ul>
+
+              <div className="product-info-card__help">
+                <p>Questions before purchase or a checkout issue?</p>
+                <Link href="/contact-us" className="btn-link">
+                  Contact Support
+                </Link>
+              </div>
             </div>
           </section>
 
