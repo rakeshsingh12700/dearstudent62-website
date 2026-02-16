@@ -190,6 +190,7 @@ export default function ProductPage() {
             title: product.title,
             price: product.price,
             class: product.class,
+            subject: product.subject,
             type: product.type,
             quantity: 1,
           },

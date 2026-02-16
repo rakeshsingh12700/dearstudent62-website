@@ -69,13 +69,19 @@ export default function Navbar() {
 
   const userLabel = useMemo(() => {
     const displayName = String(user?.displayName || "").trim();
-    if (displayName) return displayName;
+    if (displayName) {
+      const [firstName] = displayName.split(/\s+/).filter(Boolean);
+      return firstName || displayName;
+    }
 
     const email = String(user?.email || "").trim();
     if (!email) return "Account";
 
     const [emailPrefix] = email.split("@");
-    return emailPrefix || email;
+    const [firstNameFromEmail] = String(emailPrefix || "")
+      .split(/[._-]+/)
+      .filter(Boolean);
+    return firstNameFromEmail || emailPrefix || email;
   }, [user?.displayName, user?.email]);
 
   const userInitial = useMemo(() => {

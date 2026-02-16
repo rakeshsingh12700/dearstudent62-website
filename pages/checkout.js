@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 
 import Navbar from "../components/Navbar";
 import { useAuth } from "../context/AuthContext";
 import products from "../data/products";
-import { getPreviewUrl } from "../lib/productAssetUrls";
+import { getSubjectBadgeClass, getSubjectLabel } from "../lib/subjectBadge";
 
 const RAZORPAY_SDK_SRC = "https://checkout.razorpay.com/v1/checkout.js";
 const CART_STORAGE_KEY = "ds-worksheet-cart-v1";
@@ -102,11 +102,11 @@ const getCartPreviewItems = () => {
         title: product?.title || String(item?.title || "Worksheet"),
         classLabel: humanizeLabel(product?.class || item?.class || "Early Learning"),
         typeLabel: humanizeLabel(product?.type || item?.type || "Worksheet"),
+        subject: String(product?.subject || item?.subject || "").trim(),
         pages: Number(product?.pages || 0) || null,
         quantity,
         price,
         lineTotal: quantity * price,
-        previewUrl: getPreviewUrl(product?.storageKey || item?.storageKey, 1),
         href: `/product/${productId}`,
       };
     })
@@ -119,6 +119,7 @@ export default function Checkout() {
   const [loading, setLoading] = useState(false);
   const [cartSummary, setCartSummary] = useState(() => getCartSummary());
   const [cartPreviewItems, setCartPreviewItems] = useState(() => getCartPreviewItems());
+  const [runtimeProducts, setRuntimeProducts] = useState([]);
   const [email, setEmail] = useState("");
 
   const totalAmount = Math.round(cartSummary.total);
@@ -140,6 +141,66 @@ export default function Checkout() {
       window.removeEventListener("ds-cart-updated", syncSummary);
     };
   }, []);
+
+  useEffect(() => {
+    const ids = cartPreviewItems
+      .map((item) => String(item?.productId || "").trim())
+      .filter(Boolean);
+    if (ids.length === 0) {
+      setRuntimeProducts([]);
+      return;
+    }
+
+    let cancelled = false;
+    const loadProducts = async () => {
+      try {
+        const response = await fetch(`/api/products?ids=${encodeURIComponent(ids.join(","))}`);
+        if (!response.ok) return;
+        const payload = await response.json().catch(() => ({}));
+        const list = Array.isArray(payload?.products) ? payload.products : [];
+        if (!cancelled) setRuntimeProducts(list);
+      } catch {
+        // Keep static/local cart fallback.
+      }
+    };
+
+    loadProducts();
+    return () => {
+      cancelled = true;
+    };
+  }, [cartPreviewItems]);
+
+  const runtimeProductById = useMemo(() => {
+    const map = new Map();
+    runtimeProducts.forEach((item) => {
+      if (!item?.id) return;
+      map.set(item.id, item);
+    });
+    return map;
+  }, [runtimeProducts]);
+
+  const displayCartPreviewItems = useMemo(
+    () =>
+      cartPreviewItems.map((item) => {
+        const runtimeProduct = runtimeProductById.get(item.productId);
+        return {
+          ...item,
+          title: runtimeProduct?.title || item.title,
+          classLabel: runtimeProduct?.class
+            ? humanizeLabel(runtimeProduct.class)
+            : item.classLabel,
+          typeLabel: runtimeProduct?.type
+            ? humanizeLabel(runtimeProduct.type)
+            : item.typeLabel,
+          subject: String(runtimeProduct?.subject || item.subject || "").trim(),
+          pages:
+            Number(runtimeProduct?.pages || 0) > 0
+              ? Number(runtimeProduct.pages)
+              : item.pages,
+        };
+      }),
+    [cartPreviewItems, runtimeProductById]
+  );
 
   const payNow = async () => {
     try {
@@ -281,7 +342,7 @@ export default function Checkout() {
                 </span>
               </div>
 
-              {cartPreviewItems.length === 0 ? (
+              {displayCartPreviewItems.length === 0 ? (
                 <div className="checkout-empty-state">
                   <p>Your cart is empty right now.</p>
                   <Link href="/worksheets" className="btn btn-secondary">
@@ -290,22 +351,16 @@ export default function Checkout() {
                 </div>
               ) : (
                 <div className="checkout-items-list">
-                  {cartPreviewItems.map((item) => (
+                  {displayCartPreviewItems.map((item) => (
                     <article className="checkout-item" key={item.productId}>
                       <Link
                         href={item.href}
                         className="checkout-item__thumb"
                         aria-label={`Open ${item.title}`}
                       >
-                        {item.previewUrl ? (
-                          <iframe
-                            src={`${item.previewUrl}#page=1&view=FitH,88&toolbar=0&navpanes=0`}
-                            title={`${item.title} preview`}
-                            loading="lazy"
-                          />
-                        ) : (
-                          <span>{item.classLabel}</span>
-                        )}
+                        <span className={getSubjectBadgeClass(item.subject)}>
+                          {getSubjectLabel(item.subject)}
+                        </span>
                       </Link>
                       <div className="checkout-item__content">
                         <h3>

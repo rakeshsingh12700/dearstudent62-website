@@ -21,6 +21,7 @@ function normalizeProduct(raw, fallbackId = "") {
     type: toSlug(raw?.type) || "worksheet",
     subject: toSlug(raw?.subject) || "",
     topic: toSlug(raw?.topic) || "",
+    subtopic: toSlug(raw?.subtopic) || "",
     title: String(raw?.title || "").trim() || "Worksheet",
     category: String(raw?.category || "").trim() || "Worksheet",
     subcategory: String(raw?.subcategory || "").trim() || String(raw?.title || "").trim(),
