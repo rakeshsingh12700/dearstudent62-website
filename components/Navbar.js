@@ -6,6 +6,8 @@ import { auth } from "../firebase/config";
 import { useRouter } from "next/router";
 
 const CART_STORAGE_KEY = "ds-worksheet-cart-v1";
+const INSTAGRAM_PROFILE_URL = "https://www.instagram.com/dearstudent62/";
+const INSTAGRAM_PROFILE_URL_SHORT = "https://instagr.am/dearstudent62/";
 
 const NAV_LINKS = [
   { label: "Home", href: "/" },
@@ -15,6 +17,25 @@ const NAV_LINKS = [
   { label: "Maths", href: "/worksheets?view=library&subject=maths" },
   { label: "Exams", href: "/worksheets?view=library&type=exams" }
 ];
+
+function InstagramOutlineIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false">
+      <rect x="4" y="4" width="16" height="16" rx="5" fill="none" stroke="currentColor" strokeWidth="1.8" />
+      <circle cx="12" cy="12" r="3.6" fill="none" stroke="currentColor" strokeWidth="1.8" />
+      <circle cx="17.1" cy="6.9" r="1.1" fill="currentColor" />
+    </svg>
+  );
+}
+
+function BrandLogo() {
+  return (
+    <>
+      <span className="navbar__brand-dear">Dear</span>
+      <span className="navbar__brand-student">Student</span>
+    </>
+  );
+}
 
 export default function Navbar() {
   const { user } = useAuth();
@@ -102,6 +123,17 @@ export default function Navbar() {
     router.push("/worksheets?openCart=1");
   };
 
+  const handleInstagramClick = (event) => {
+    if (typeof window === "undefined") return;
+    const ua = String(window.navigator?.userAgent || "");
+    const isAndroid = /android/i.test(ua);
+    if (!isAndroid) return;
+
+    // Use short domain on Android to avoid direct app-home interception.
+    event.preventDefault();
+    window.location.assign(INSTAGRAM_PROFILE_URL_SHORT);
+  };
+
   useEffect(() => {
     if (typeof window === "undefined") return;
     const closeMenus = (event) => {
@@ -144,9 +176,22 @@ export default function Navbar() {
             ☰
           </button>
 
-          <Link href="/" className="navbar__brand">
-            Dear Student
-          </Link>
+          <div className="navbar__brand-row">
+            <a
+              href={INSTAGRAM_PROFILE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="navbar__instagram-link navbar__instagram-link--plain"
+              aria-label="Dear Student Instagram"
+              title="Instagram"
+              onClick={handleInstagramClick}
+            >
+              <InstagramOutlineIcon />
+            </a>
+            <Link href="/" className="navbar__brand">
+              <BrandLogo />
+            </Link>
+          </div>
 
           <div className="navbar__mobile-actions">
             <button type="button" className="navbar__icon-btn" onClick={handleCartClick} aria-label={cartLabel}>
@@ -192,9 +237,22 @@ export default function Navbar() {
 
         <div className="navbar__desktop-row">
           <div className="navbar__links">
-            <Link href="/" className="navbar__brand">
-              Dear Student
-            </Link>
+            <div className="navbar__brand-row">
+              <a
+                href={INSTAGRAM_PROFILE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="navbar__instagram-link navbar__instagram-link--plain"
+                aria-label="Dear Student Instagram"
+                title="Instagram"
+                onClick={handleInstagramClick}
+              >
+                <InstagramOutlineIcon />
+              </a>
+              <Link href="/" className="navbar__brand">
+                <BrandLogo />
+              </Link>
+            </div>
             {NAV_LINKS.map((item) => (
               <Link href={item.href} key={item.label}>
                 {item.label}
@@ -217,7 +275,6 @@ export default function Navbar() {
             </button>
 
             {!user && <Link href="/auth">Login</Link>}
-
             {user && (
               <div className="navbar__profile">
                 <button
@@ -271,6 +328,21 @@ export default function Navbar() {
                   {item.label}
                 </Link>
               ))}
+              <div className="navbar__mobile-group-title">Account</div>
+              {user ? (
+                <>
+                  <Link href="/my-purchases" onClick={() => setMobileMenuOpen(false)}>
+                    My History
+                  </Link>
+                  <button type="button" className="navbar__mobile-logout" onClick={handleLogout}>
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <Link href="/auth" onClick={() => setMobileMenuOpen(false)}>
+                  Login
+                </Link>
+              )}
             </div>
           </aside>
         </div>

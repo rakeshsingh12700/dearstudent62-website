@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Dear Student">
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="#F5E6D3" />
+  <text
+    x="32"
+    y="40"
+    text-anchor="middle"
+    font-family="Poppins, Arial, sans-serif"
+    font-size="24"
+    font-weight="600"
+    letter-spacing="0.6"
+    fill="#F97316"
+  >
+    DS
+  </text>
+</svg>

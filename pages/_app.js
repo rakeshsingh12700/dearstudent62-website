@@ -1,5 +1,5 @@
 import { AuthProvider } from "../context/AuthContext";
-import { Baloo_2, Nunito } from "next/font/google";
+import { Baloo_2, Cormorant_Garamond, Nunito, Poppins } from "next/font/google";
 import "../styles/globals.css";
 
 const bodyFont = Nunito({
@@ -14,9 +14,23 @@ const displayFont = Baloo_2({
   weight: ["600", "700", "800"],
 });
 
+const brandSerifFont = Cormorant_Garamond({
+  subsets: ["latin"],
+  variable: "--font-brand-serif",
+  weight: ["500", "600"],
+});
+
+const brandSansFont = Poppins({
+  subsets: ["latin"],
+  variable: "--font-brand-sans",
+  weight: ["600"],
+});
+
 export default function App({ Component, pageProps }) {
   return (
-    <div className={`${bodyFont.variable} ${displayFont.variable}`}>
+    <div
+      className={`${bodyFont.variable} ${displayFont.variable} ${brandSerifFont.variable} ${brandSansFont.variable}`}
+    >
       <AuthProvider>
         <Component {...pageProps} />
       </AuthProvider>
