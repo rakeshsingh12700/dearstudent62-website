@@ -5,7 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import { getUserPurchases } from "../firebase/purchases";
 import Navbar from "../components/Navbar";
 import products from "../data/products";
-import { getDownloadUrl, getPreviewUrl } from "../lib/productAssetUrls";
+import { getDownloadUrl, getPreviewUrl, getThumbnailUrl } from "../lib/productAssetUrls";
 
 const CART_STORAGE_KEY = "ds-worksheet-cart-v1";
 const ACCENT_PALETTE = [
@@ -70,13 +70,18 @@ export default function MyPurchases() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [purchases, setPurchases] = useState([]);
+  const [runtimeProducts, setRuntimeProducts] = useState([]);
   const [error, setError] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
 
-  const productById = useMemo(
-    () => new Map(products.map((product) => [product.id, product])),
-    []
-  );
+  const productById = useMemo(() => {
+    const map = new Map(products.map((product) => [product.id, product]));
+    runtimeProducts.forEach((product) => {
+      if (!product?.id) return;
+      map.set(product.id, product);
+    });
+    return map;
+  }, [runtimeProducts]);
 
   const normalizedPurchases = useMemo(() => {
     const detailedOrderIds = new Set(
@@ -112,7 +117,7 @@ export default function MyPurchases() {
           pages: product?.pages || null,
           type: product?.type || "worksheet",
           price: typeof product?.price === "number" ? product.price : null,
-          imageUrl: product?.imageUrl || "",
+          thumbnailUrl: getThumbnailUrl(product?.storageKey, product?.imageUrl),
           pdfPreviewUrl: getPreviewUrl(product?.storageKey, 1),
           quantity:
             Number.isFinite(Number(purchase.quantity)) &&
@@ -214,6 +219,38 @@ export default function MyPurchases() {
 
     loadPurchases();
   }, [user]);
+
+  useEffect(() => {
+    const ids = Array.from(
+      new Set(
+        purchases
+          .map((item) => String(item?.productId || "").trim())
+          .filter(Boolean)
+      )
+    );
+    if (ids.length === 0) {
+      setRuntimeProducts([]);
+      return;
+    }
+
+    let cancelled = false;
+    const loadProducts = async () => {
+      try {
+        const response = await fetch(`/api/products?ids=${encodeURIComponent(ids.join(","))}`);
+        if (!response.ok) return;
+        const payload = await response.json().catch(() => ({}));
+        const list = Array.isArray(payload?.products) ? payload.products : [];
+        if (!cancelled) setRuntimeProducts(list);
+      } catch {
+        // Keep static fallback only.
+      }
+    };
+
+    loadProducts();
+    return () => {
+      cancelled = true;
+    };
+  }, [purchases]);
 
   const handleBuyAgain = (order) => {
     if (typeof window === "undefined") return;
@@ -433,7 +470,17 @@ export default function MyPurchases() {
                               "--cover-strong": item.accent.strong,
                             }}
                           >
-                            {item.viewHref && item.pdfPreviewUrl ? (
+                            {item.thumbnailUrl && item.viewHref ? (
+                              <Link
+                                href={item.viewHref}
+                                className="my-order-item__thumb-link"
+                                aria-label={`Open ${item.title}`}
+                              >
+                                <img src={item.thumbnailUrl} alt={item.title} loading="lazy" />
+                              </Link>
+                            ) : item.thumbnailUrl ? (
+                              <img src={item.thumbnailUrl} alt={item.title} loading="lazy" />
+                            ) : item.viewHref && item.pdfPreviewUrl ? (
                               <Link
                                 href={item.viewHref}
                                 className="my-order-item__thumb-link"
@@ -445,9 +492,6 @@ export default function MyPurchases() {
                                   loading="lazy"
                                 />
                               </Link>
-                            ) : item.imageUrl ? (
-                              // eslint-disable-next-line @next/next/no-img-element
-                              <img src={item.imageUrl} alt={item.title} loading="lazy" />
                             ) : (
                               <span>{item.classLabel}</span>
                             )}

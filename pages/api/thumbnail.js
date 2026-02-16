@@ -70,10 +70,12 @@ export default async function handler(req, res) {
     addCandidate(candidates, `${base}.jpg`);
     addCandidate(candidates, `${base}.jpeg`);
     addCandidate(candidates, `${base}.png`);
+    addCandidate(candidates, `${base}.webp`);
   }
 
   const contentTypeFromKey = (objectKey) => {
     const lower = String(objectKey || "").toLowerCase();
+    if (lower.endsWith(".webp")) return "image/webp";
     if (lower.endsWith(".png")) return "image/png";
     if (lower.endsWith(".jpeg") || lower.endsWith(".jpg")) return "image/jpeg";
     return "application/octet-stream";

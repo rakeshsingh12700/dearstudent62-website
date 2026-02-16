@@ -141,7 +141,7 @@ async function getPdfPageCount(r2Client, bucket, fileName) {
   return pdf.getPageCount();
 }
 
-async function listPdfKeysFromBucket() {
+async function listFlatKeysFromBucket() {
   const r2Client = getR2Client();
   const bucket = getR2BucketName();
   const keys = [];
@@ -159,7 +159,6 @@ async function listPdfKeysFromBucket() {
     const pageKeys = (response.Contents || [])
       .map((item) => String(item?.Key || "").trim())
       .filter(Boolean)
-      .filter((key) => key.toLowerCase().endsWith(".pdf"))
       .filter((key) => !key.includes("/") && !key.includes("\\"));
 
     keys.push(...pageKeys);
@@ -169,6 +168,43 @@ async function listPdfKeysFromBucket() {
   } while (continuationToken);
 
   return [...new Set(keys)].sort((a, b) => a.localeCompare(b));
+}
+
+function toAssetUrlFromKey(key) {
+  const objectKey = String(key || "").trim();
+  if (!objectKey) return "";
+  return `/api/thumbnail?key=${encodeURIComponent(objectKey)}`;
+}
+
+function findFirstMatchingKey(baseName, candidates, allKeysSet) {
+  const base = String(baseName || "").trim();
+  if (!base) return "";
+
+  for (const suffix of candidates) {
+    const key = `${base}${suffix}`;
+    if (allKeysSet.has(key)) return key;
+  }
+  return "";
+}
+
+async function tryReadJsonObject(r2Client, bucket, key) {
+  const objectKey = String(key || "").trim();
+  if (!objectKey) return null;
+
+  try {
+    const response = await r2Client.send(
+      new GetObjectCommand({
+        Bucket: bucket,
+        Key: objectKey,
+      })
+    );
+    const bytes = await bodyToBuffer(response.Body);
+    if (!bytes) return null;
+    const text = bytes.toString("utf8");
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
 }
 
 async function mapWithConcurrency(items, concurrency, worker) {
@@ -208,7 +244,11 @@ async function generateProducts() {
 
   const r2Client = getR2Client();
   const bucket = getR2BucketName();
-  const files = await listPdfKeysFromBucket();
+  const allKeys = await listFlatKeysFromBucket();
+  const allKeysSet = new Set(allKeys);
+  const files = allKeys
+    .filter((key) => key.toLowerCase().endsWith(".pdf"))
+    .sort((a, b) => a.localeCompare(b));
   if (files.length === 0) {
     throw new Error("No PDF objects found in R2 bucket.");
   }
@@ -219,9 +259,46 @@ async function generateProducts() {
     async (fileName) => {
       const product = parseProductFromFilename(fileName);
       const pages = await getPdfPageCount(r2Client, bucket, fileName);
+      const base = fileName.replace(/\.pdf$/i, "");
+      const coverKey =
+        findFirstMatchingKey(
+          base,
+          [".jpg", ".jpeg", ".png", ".webp", "__cover.jpg", "__cover.jpeg", "__cover.png", "__cover.webp"],
+          allKeysSet
+        ) ||
+        findFirstMatchingKey(
+          base,
+          ["__cover.jpg", "__cover.jpeg", "__cover.png", "__cover.webp"],
+          allKeysSet
+        );
+      const previewImageKey = findFirstMatchingKey(
+        base,
+        ["__preview1.jpg", "__preview1.jpeg", "__preview1.png", "__preview1.webp"],
+        allKeysSet
+      );
+      const metadataKey = `${base}__meta.json`;
+      const metadata = allKeysSet.has(metadataKey)
+        ? await tryReadJsonObject(r2Client, bucket, metadataKey)
+        : null;
+      const showPreviewPage = Boolean(metadata?.showPreviewPage && previewImageKey);
+      const hideAgeLabel = Boolean(metadata?.hideAgeLabel);
+      const ageLabel =
+        hideAgeLabel
+          ? ""
+          : String(metadata?.ageLabel || "").trim() || String(product.ageLabel || "AGE 3+").trim();
+      const subject = String(metadata?.subject || "").trim().toLowerCase();
+      const topic = String(metadata?.topic || "").trim().toLowerCase();
+
       return {
         ...product,
         pages,
+        ageLabel,
+        hideAgeLabel,
+        subject,
+        topic,
+        imageUrl: toAssetUrlFromKey(coverKey),
+        previewImageUrl: toAssetUrlFromKey(previewImageKey),
+        showPreviewPage,
       };
     }
   );

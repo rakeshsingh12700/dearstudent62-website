@@ -106,7 +106,7 @@ const getCartPreviewItems = () => {
         quantity,
         price,
         lineTotal: quantity * price,
-        previewUrl: getPreviewUrl(product?.storageKey, 1),
+        previewUrl: getPreviewUrl(product?.storageKey || item?.storageKey, 1),
         href: `/product/${productId}`,
       };
     })

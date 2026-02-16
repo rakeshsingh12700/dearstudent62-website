@@ -1,9 +1,31 @@
 import crypto from "crypto";
 import { v4 as uuidv4 } from "uuid";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "../../../firebase/config";
 import { saveToken } from "../../../lib/tokenStore";
 import { DEFAULT_PRODUCT_ID, PRODUCT_CATALOG } from "../../../lib/productCatalog";
+
+async function getProductById(productId) {
+  const normalized = String(productId || "").trim();
+  if (!normalized) return null;
+
+  try {
+    const productRef = doc(db, "products", normalized);
+    const snapshot = await getDoc(productRef);
+    if (snapshot.exists()) {
+      const data = snapshot.data() || {};
+      return {
+        id: snapshot.id,
+        storageKey: String(data.storageKey || "").trim(),
+        file: String(data.storageKey || "").trim(),
+      };
+    }
+  } catch {
+    // Continue with static fallback.
+  }
+
+  return PRODUCT_CATALOG[normalized] || null;
+}
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -36,7 +58,7 @@ export default async function handler(req, res) {
     const normalizedUserId =
       typeof userId === "string" && userId ? userId : null;
 
-    const normalizedItems = (Array.isArray(items) ? items : [])
+    const requestedItems = (Array.isArray(items) ? items : [])
       .map((item) => ({
         productId: String(item?.productId || "").trim(),
         quantity: Number(item?.quantity || 0),
@@ -45,9 +67,17 @@ export default async function handler(req, res) {
         (item) =>
           item.productId &&
           Number.isFinite(item.quantity) &&
-          item.quantity > 0 &&
-          PRODUCT_CATALOG[item.productId]
+          item.quantity > 0
       );
+
+    const productEntries = await Promise.all(
+      requestedItems.map(async (item) => {
+        const product = await getProductById(item.productId);
+        return product ? { ...item, product } : null;
+      })
+    );
+
+    const normalizedItems = productEntries.filter(Boolean);
 
     const aggregatedItems = normalizedItems.reduce((acc, item) => {
       const existing = acc[item.productId] || 0;
@@ -59,15 +89,25 @@ export default async function handler(req, res) {
     const purchaseProductIds =
       productIds.length > 0 ? productIds : [DEFAULT_PRODUCT_ID];
     const primaryProductId = purchaseProductIds[0];
-    const primaryProduct = PRODUCT_CATALOG[primaryProductId];
+    const primaryProduct =
+      normalizedItems.find((item) => item.productId === primaryProductId)?.product ||
+      PRODUCT_CATALOG[primaryProductId];
     const purchasedStorageKeys = purchaseProductIds
-      .map((productId) => String(PRODUCT_CATALOG[productId]?.storageKey || ""))
+      .map((productId) => {
+        const runtime = normalizedItems.find((item) => item.productId === productId)?.product;
+        return String(runtime?.storageKey || PRODUCT_CATALOG[productId]?.storageKey || "");
+      })
       .filter(Boolean);
 
-    saveToken(
-      token,
-      purchasedStorageKeys.length > 0 ? purchasedStorageKeys : [primaryProduct.file]
-    );
+    const tokenFiles =
+      purchasedStorageKeys.length > 0
+        ? purchasedStorageKeys
+        : [String(primaryProduct?.file || primaryProduct?.storageKey || "").trim()].filter(Boolean);
+    if (tokenFiles.length === 0) {
+      return res.status(400).json({ success: false, error: "No downloadable files found for items" });
+    }
+
+    saveToken(token, tokenFiles);
 
     await Promise.all(
       purchaseProductIds.map((productId) =>

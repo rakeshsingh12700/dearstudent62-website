@@ -97,6 +97,31 @@ function hasValidCheckoutToken(token, key) {
   return String(tokenData.file).trim() === normalizedKey;
 }
 
+async function getProductByStorageKey(key) {
+  const normalizedKey = String(key || "").trim();
+  if (!normalizedKey) return null;
+
+  try {
+    const productsQuery = query(
+      collection(db, "products"),
+      where("storageKey", "==", normalizedKey),
+      limit(1)
+    );
+    const snapshot = await getDocs(productsQuery);
+    if (!snapshot.empty) {
+      const product = snapshot.docs[0];
+      return { id: product.id };
+    }
+  } catch {
+    // Continue with static fallback.
+  }
+
+  const staticEntry = Object.values(PRODUCT_CATALOG).find(
+    (product) => String(product?.storageKey || "").trim() === normalizedKey
+  );
+  return staticEntry?.id ? { id: staticEntry.id } : null;
+}
+
 export default async function handler(req, res) {
   if (req.method !== "GET") {
     return res.status(405).json({ error: "Method not allowed" });
@@ -120,9 +145,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const productEntry = Object.values(PRODUCT_CATALOG).find(
-      (product) => String(product?.storageKey || "").trim() === key
-    );
+    const productEntry = await getProductByStorageKey(key);
     if (!productEntry?.id) {
       return res.status(404).json({ error: "Product not found for this key" });
     }
