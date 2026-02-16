@@ -1145,7 +1145,6 @@ export default function WorksheetShop({
               </div>
               <div className="worksheets-toolbar__actions">
                 <label className="worksheets-sort">
-                  <span>Sort by:</span>
                   <select
                     className="worksheets-sort__native"
                     value={sortBy}

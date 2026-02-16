@@ -36,6 +36,15 @@ export default function Home() {
               </Link>
             )}
           </div>
+          <p className="hero__social-proof">
+            <a
+              href="https://www.instagram.com/dearstudent62/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Born on Instagram. Trusted by 122k+ parents.
+            </a>
+          </p>
         </section>
       </main>
     </>
