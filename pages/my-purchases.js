@@ -5,31 +5,10 @@ import { useAuth } from "../context/AuthContext";
 import { getUserPurchases } from "../firebase/purchases";
 import Navbar from "../components/Navbar";
 import products from "../data/products";
-import { getDownloadUrl, getPreviewUrl, getThumbnailUrl } from "../lib/productAssetUrls";
+import { getDownloadUrl } from "../lib/productAssetUrls";
+import { getSubjectBadgeClass, getSubjectLabel } from "../lib/subjectBadge";
 
 const CART_STORAGE_KEY = "ds-worksheet-cart-v1";
-const ACCENT_PALETTE = [
-  { soft: "#ffedd5", strong: "#f97316" },
-  { soft: "#dcfce7", strong: "#16a34a" },
-  { soft: "#e0f2fe", strong: "#0284c7" },
-  { soft: "#f3e8ff", strong: "#9333ea" },
-  { soft: "#fee2e2", strong: "#dc2626" },
-];
-
-function hashText(value) {
-  const input = String(value || "");
-  let hash = 0;
-  for (let index = 0; index < input.length; index += 1) {
-    hash = (hash << 5) - hash + input.charCodeAt(index);
-    hash |= 0;
-  }
-  return Math.abs(hash);
-}
-
-function getAccentForId(id) {
-  return ACCENT_PALETTE[hashText(id) % ACCENT_PALETTE.length];
-}
-
 function toDate(value) {
   if (!value) return null;
   if (typeof value?.toDate === "function") return value.toDate();
@@ -116,9 +95,8 @@ export default function MyPurchases() {
             : "Early Learning",
           pages: product?.pages || null,
           type: product?.type || "worksheet",
+          subject: String(product?.subject || "").trim(),
           price: typeof product?.price === "number" ? product.price : null,
-          thumbnailUrl: getThumbnailUrl(product?.storageKey, product?.imageUrl),
-          pdfPreviewUrl: getPreviewUrl(product?.storageKey, 1),
           quantity:
             Number.isFinite(Number(purchase.quantity)) &&
             Number(purchase.quantity) > 0
@@ -128,7 +106,6 @@ export default function MyPurchases() {
           purchasedAtLabel: formatDateTime(purchase.purchasedAt),
           paymentId: fallbackId,
           viewHref: productId ? `/product/${productId}` : null,
-          accent: getAccentForId(productId || fallbackId),
         };
       })
       .sort((first, second) => second.purchasedAtMs - first.purchasedAtMs);
@@ -463,37 +440,21 @@ export default function MyPurchases() {
                     <div className="my-order-card__items">
                       {order.items.map((item) => (
                         <div className="my-order-item" key={`${order.orderId}-${item.id}`}>
-                          <div
-                            className="my-order-item__thumb"
-                            style={{
-                              "--cover-soft": item.accent.soft,
-                              "--cover-strong": item.accent.strong,
-                            }}
-                          >
-                            {item.thumbnailUrl && item.viewHref ? (
+                          <div className="my-order-item__thumb">
+                            {item.viewHref ? (
                               <Link
                                 href={item.viewHref}
                                 className="my-order-item__thumb-link"
                                 aria-label={`Open ${item.title}`}
                               >
-                                <img src={item.thumbnailUrl} alt={item.title} loading="lazy" />
-                              </Link>
-                            ) : item.thumbnailUrl ? (
-                              <img src={item.thumbnailUrl} alt={item.title} loading="lazy" />
-                            ) : item.viewHref && item.pdfPreviewUrl ? (
-                              <Link
-                                href={item.viewHref}
-                                className="my-order-item__thumb-link"
-                                aria-label={`Open ${item.title}`}
-                              >
-                                <iframe
-                                  src={`${item.pdfPreviewUrl}#page=1&view=FitH,88&toolbar=0&navpanes=0`}
-                                  title={`${item.title} preview`}
-                                  loading="lazy"
-                                />
+                                <span className={getSubjectBadgeClass(item.subject)}>
+                                  {getSubjectLabel(item.subject)}
+                                </span>
                               </Link>
                             ) : (
-                              <span>{item.classLabel}</span>
+                              <span className={getSubjectBadgeClass(item.subject)}>
+                                {getSubjectLabel(item.subject)}
+                              </span>
                             )}
                           </div>
                           <div className="my-order-item__content">

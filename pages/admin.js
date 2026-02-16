@@ -51,6 +51,19 @@ const TOPIC_OPTIONS_BY_SUBJECT = {
   ],
 };
 
+const GRAMMAR_SUBTOPIC_OPTIONS = [
+  { value: "noun", label: "Noun" },
+  { value: "pronoun", label: "Pronoun" },
+  { value: "verb", label: "Verb" },
+  { value: "articles", label: "Articles" },
+  { value: "opposites", label: "Opposites" },
+  { value: "singular-plural", label: "Singular / Plural" },
+  { value: "is-am-are", label: "Is / Am / Are" },
+  { value: "prepositions", label: "Prepositions" },
+  { value: "adjectives", label: "Adjectives" },
+  { value: "have-has-had", label: "Have / Has / Had" },
+];
+
 function fileName(file) {
   return file?.name ? String(file.name) : "Not selected";
 }
@@ -64,6 +77,7 @@ export default function AdminPage() {
     price: "",
     subject: "english",
     topic: "",
+    subtopic: "",
     showPreviewPage: false,
   });
 
@@ -91,12 +105,15 @@ export default function AdminPage() {
     () => TOPIC_OPTIONS_BY_SUBJECT[form.subject] || [],
     [form.subject]
   );
+  const hideClassSelection = form.subject === "english" && form.type === "worksheet";
+  const isGrammarTopic = form.subject === "english" && form.topic === "grammar";
 
   const onFieldChange = (event) => {
     const { name, value, type, checked } = event.target;
     setForm((prev) => ({
       ...prev,
-      ...(name === "subject" ? { topic: "" } : {}),
+      ...(name === "subject" ? { topic: "", subtopic: "" } : {}),
+      ...(name === "topic" ? { subtopic: "" } : {}),
       [name]: type === "checkbox" ? checked : value,
     }));
   };
@@ -163,12 +180,13 @@ export default function AdminPage() {
 
     try {
       const payload = new FormData();
-      payload.append("class", form.class);
+      payload.append("class", hideClassSelection ? "class-1" : form.class);
       payload.append("type", form.type);
       payload.append("title", form.title.trim());
       payload.append("price", form.price);
       payload.append("subject", form.subject);
       payload.append("topic", form.topic || "");
+      payload.append("subtopic", isGrammarTopic ? form.subtopic || "" : "");
       payload.append("showPreviewPage", String(form.showPreviewPage));
       payload.append("pdf", files.pdf);
       payload.append("coverImage", files.coverImage);
@@ -197,6 +215,7 @@ export default function AdminPage() {
         ...prev,
         title: "",
         price: "",
+        subtopic: "",
         showPreviewPage: false,
       }));
     } catch (submitError) {
@@ -242,9 +261,9 @@ export default function AdminPage() {
 
             {user && accessAllowed && (
               <form className="auth-form" onSubmit={onSubmit}>
-                <label htmlFor="class">Class</label>
-                <select id="class" name="class" value={form.class} onChange={onFieldChange}>
-                  {CLASS_OPTIONS.map((option) => (
+                <label htmlFor="subject">Subject</label>
+                <select id="subject" name="subject" value={form.subject} onChange={onFieldChange}>
+                  {SUBJECT_OPTIONS.map((option) => (
                     <option key={option.value} value={option.value}>
                       {option.label}
                     </option>
@@ -255,10 +274,25 @@ export default function AdminPage() {
                 <select id="type" name="type" value={form.type} onChange={onFieldChange}>
                   {TYPE_OPTIONS.map((option) => (
                     <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+
+                {!hideClassSelection ? (
+                  <>
+                    <label htmlFor="class">Class</label>
+                    <select id="class" name="class" value={form.class} onChange={onFieldChange}>
+                      {CLASS_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </>
+                ) : (
+                  <p>Class is auto-set to Class 1 for English Worksheets.</p>
+                )}
 
                 <label htmlFor="title">Title</label>
                 <input
@@ -284,15 +318,6 @@ export default function AdminPage() {
 
                 <p>Pages are auto-detected from the uploaded PDF.</p>
 
-                <label htmlFor="subject">Subject</label>
-                <select id="subject" name="subject" value={form.subject} onChange={onFieldChange}>
-                  {SUBJECT_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-
                 <label htmlFor="topic">Topic (Optional)</label>
                 <select
                   id="topic"
@@ -307,6 +332,24 @@ export default function AdminPage() {
                     </option>
                   ))}
                 </select>
+                {isGrammarTopic && (
+                  <>
+                    <label htmlFor="subtopic">Grammar Subtopic (Optional)</label>
+                    <select
+                      id="subtopic"
+                      name="subtopic"
+                      value={form.subtopic}
+                      onChange={onFieldChange}
+                    >
+                      <option value="">Select grammar subtopic (optional)</option>
+                      {GRAMMAR_SUBTOPIC_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </>
+                )}
 
                 <label htmlFor="pdf">PDF File (Required)</label>
                 <input

@@ -8,6 +8,7 @@ import {
   getPreviewUrl,
   getThumbnailUrl,
 } from "../lib/productAssetUrls";
+import { getSubjectBadgeClass, getSubjectLabel } from "../lib/subjectBadge";
 
 const CLASS_OPTIONS = [
   { value: "all", label: "All" },
@@ -36,7 +37,7 @@ const TYPE_OPTIONS = [
 ];
 
 const SORT_OPTIONS = [
-  { value: "default", label: "Default sorting" },
+  { value: "default", label: "Sort by" },
   { value: "price-low", label: "Price: Low to High" },
   { value: "price-high", label: "Price: High to Low" },
   { value: "title", label: "Title: A-Z" }
@@ -262,40 +263,6 @@ function reduceFilterState(currentState, event) {
     case "SET_SORT":
       return { ...state, sort: toSlug(event.value) || "default" };
     case "CLEAR_FILTERS": {
-      const tab = String(event.tab || "");
-      if (tab === "english") {
-        return {
-          ...state,
-          subject: "english",
-          type: "all",
-          topic: "all",
-          subtopic: "all",
-          view: "english",
-          class: "all",
-        };
-      }
-      if (tab === "maths") {
-        return {
-          ...state,
-          subject: "maths",
-          type: "all",
-          topic: "all",
-          subtopic: "all",
-          view: "maths",
-          class: "all",
-        };
-      }
-      if (tab === "exams") {
-        return {
-          ...state,
-          type: "exams",
-          topic: "all",
-          subtopic: "all",
-          view: "exams",
-          class: "all",
-          subject: "all",
-        };
-      }
       return {
         ...state,
         class: "all",
@@ -321,6 +288,7 @@ function inferTaxonomy(product) {
   const sourceText = [
     product?.subject,
     product?.topic,
+    product?.subtopic,
     product?.subcategory,
     product?.title,
     product?.category,
@@ -335,9 +303,13 @@ function inferTaxonomy(product) {
   const explicitTopic = toSlug(product?.topic);
   const inferredTopic = explicitTopic || matchFirstKey(TOPIC_PATTERNS, sourceText);
 
-  const subtopics = Object.keys(SUBTOPIC_PATTERNS).filter((key) =>
+  const explicitSubtopic = toSlug(product?.subtopic);
+  const detectedSubtopics = Object.keys(SUBTOPIC_PATTERNS).filter((key) =>
     SUBTOPIC_PATTERNS[key].some((pattern) => pattern.test(sourceText))
   );
+  const subtopics = explicitSubtopic
+    ? Array.from(new Set([explicitSubtopic, ...detectedSubtopics]))
+    : detectedSubtopics;
 
   let finalTopic = inferredTopic;
   if (!finalTopic && subtopics.length > 0) {
@@ -453,7 +425,8 @@ export default function WorksheetShop({
   initialMobileView = "library"
 }) {
   const router = useRouter();
-  const [products, setProducts] = useState(staticProducts);
+  const [products, setProducts] = useState([]);
+  const [productsLoaded, setProductsLoaded] = useState(false);
   const [selectedClass, setSelectedClass] = useState(toSlug(initialClass) || "all");
   const [selectedType, setSelectedType] = useState(normalizeType(initialType) || "all");
   const [selectedSubject, setSelectedSubject] = useState(toSlug(initialSubject) || "all");
@@ -521,14 +494,24 @@ export default function WorksheetShop({
     const loadProducts = async () => {
       try {
         const response = await fetch("/api/products");
-        if (!response.ok) return;
+        if (!response.ok) {
+          if (!cancelled) {
+            setProducts(staticProducts);
+            setProductsLoaded(true);
+          }
+          return;
+        }
         const payload = await response.json().catch(() => ({}));
         const runtimeProducts = Array.isArray(payload?.products) ? payload.products : [];
-        if (!cancelled && runtimeProducts.length > 0) {
-          setProducts(runtimeProducts);
+        if (!cancelled) {
+          setProducts(runtimeProducts.length > 0 ? runtimeProducts : staticProducts);
+          setProductsLoaded(true);
         }
       } catch {
-        // Keep static fallback when runtime source is unavailable.
+        if (!cancelled) {
+          setProducts(staticProducts);
+          setProductsLoaded(true);
+        }
       }
     };
 
@@ -674,6 +657,9 @@ export default function WorksheetShop({
     }
     return sorted;
   }, [products, isGrammarTopic, selectedClass, selectedSubtopic, selectedSubject, selectedTopic, selectedType, sortBy, taxonomyById]);
+  const visibleCount = Math.max(Number(visibleProducts.length || 0), 0);
+  const visibleRangeStart = visibleCount > 0 ? 1 : 0;
+  const visibleRangeEnd = visibleCount;
 
   const selectedPathLabel = useMemo(() => {
     const path = [];
@@ -980,13 +966,14 @@ export default function WorksheetShop({
               <div>
                 {selectedPathLabel && <p className="worksheets-path">{selectedPathLabel}</p>}
                 <p>
-                  Showing {visibleProducts.length === 0 ? 0 : 1}-{visibleProducts.length} of{" "}
-                  {visibleProducts.length} results
+                  {productsLoaded
+                    ? `Showing ${visibleRangeStart}-${visibleRangeEnd} of ${visibleCount} results`
+                    : "Loading results..."}
                 </p>
               </div>
               <div className="worksheets-toolbar__actions">
                 <label className="worksheets-sort">
-                  <span>Sort:</span>
+                  <span>Sort by:</span>
                   <select
                     className="worksheets-sort__native"
                     value={sortBy}
@@ -1015,9 +1002,7 @@ export default function WorksheetShop({
               <button
                 type="button"
                 className="btn-link worksheets-clear-btn"
-                onClick={() =>
-                  applyFilterAction({ type: "CLEAR_FILTERS", tab: activeTab })
-                }
+                onClick={() => applyFilterAction({ type: "CLEAR_FILTERS" })}
               >
                 Clear filters
               </button>
@@ -1132,7 +1117,7 @@ export default function WorksheetShop({
                           </div>
                         ) : (
                           <iframe
-                            src={`${singlePagePreviewUrl}#page=1&view=FitH,88&toolbar=0&navpanes=0&scrollbar=0`}
+                            src={`${singlePagePreviewUrl}#page=1&view=Fit&toolbar=0&navpanes=0&scrollbar=0`}
                             title={`${product.title} page 1 thumbnail`}
                             loading="lazy"
                           />
@@ -1307,6 +1292,11 @@ export default function WorksheetShop({
               {cart.length === 0 && <p className="worksheet-cart__empty">Your cart is empty.</p>}
               {cart.map((item) => (
                 <div className="worksheet-cart__item" key={item.id}>
+                  <div className="worksheet-cart__thumb-wrap">
+                    <span className={getSubjectBadgeClass(item.subject)}>
+                      {getSubjectLabel(item.subject)}
+                    </span>
+                  </div>
                   <div>
                     <p className="worksheet-cart__item-title">{item.title}</p>
                     <p className="worksheet-cart__item-price">INR {item.price}</p>

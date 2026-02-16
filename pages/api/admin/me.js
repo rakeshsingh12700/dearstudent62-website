@@ -1,8 +1,11 @@
+const DEFAULT_ADMIN_EMAILS = ["rakesh12700@gmail.com"];
+
 function getAllowedAdminEmails() {
-  return String(process.env.ADMIN_ALLOWED_EMAILS || "")
+  const configured = String(process.env.ADMIN_ALLOWED_EMAILS || "")
     .split(",")
     .map((value) => value.trim().toLowerCase())
     .filter(Boolean);
+  return configured.length > 0 ? configured : DEFAULT_ADMIN_EMAILS;
 }
 
 async function verifyFirebaseIdToken(idToken) {

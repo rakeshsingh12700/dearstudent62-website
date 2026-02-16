@@ -34,12 +34,26 @@ const TOPICS_BY_SUBJECT = {
   maths: new Set(["numbers", "addition", "subtraction", "shapes", "measurement"]),
   evs: new Set(["environment", "plants", "animals", "water", "food"]),
 };
+const ENGLISH_GRAMMAR_SUBTOPICS = new Set([
+  "noun",
+  "pronoun",
+  "verb",
+  "articles",
+  "opposites",
+  "singular-plural",
+  "is-am-are",
+  "prepositions",
+  "adjectives",
+  "have-has-had",
+]);
+const DEFAULT_ADMIN_EMAILS = ["rakesh12700@gmail.com"];
 
 function getAllowedAdminEmails() {
-  return String(process.env.ADMIN_ALLOWED_EMAILS || "")
+  const configured = String(process.env.ADMIN_ALLOWED_EMAILS || "")
     .split(",")
     .map((value) => value.trim().toLowerCase())
     .filter(Boolean);
+  return configured.length > 0 ? configured : DEFAULT_ADMIN_EMAILS;
 }
 
 function getR2Client() {
@@ -266,13 +280,18 @@ export default async function handler(req, res) {
 
     const { fields, files } = await parseMultipart(req);
 
-    const classValue = toSingleField(fields.class);
     const typeValue = toSingleField(fields.type);
     const title = toSingleField(fields.title);
     const price = toSingleField(fields.price);
     const subject = toSingleField(fields.subject);
     const topic = toSlug(toSingleField(fields.topic));
+    const subtopicRaw = toSlug(toSingleField(fields.subtopic));
     const showPreviewPage = toSingleField(fields.showPreviewPage) === "true";
+    const classFromField = toSingleField(fields.class);
+    const classValue =
+      subject === "english" && typeValue === "worksheet"
+        ? "class-1"
+        : classFromField;
 
     if (!CLASS_TO_LABEL[classValue]) {
       return res.status(400).json({ error: "Invalid class" });
@@ -290,6 +309,13 @@ export default async function handler(req, res) {
     }
     if (topic && !TOPICS_BY_SUBJECT[subject]?.has(topic)) {
       return res.status(400).json({ error: "Invalid topic for selected subject" });
+    }
+    const subtopic =
+      subject === "english" && topic === "grammar"
+        ? subtopicRaw
+        : "";
+    if (subtopic && !ENGLISH_GRAMMAR_SUBTOPICS.has(subtopic)) {
+      return res.status(400).json({ error: "Invalid subtopic for English grammar" });
     }
 
     const hideAgeLabel = subject === "english" || subject === "maths";
@@ -382,6 +408,7 @@ export default async function handler(req, res) {
       hideAgeLabel,
       subject,
       topic,
+      subtopic,
       showPreviewPage,
       assets: {
         pdfKey,
@@ -410,6 +437,7 @@ export default async function handler(req, res) {
         type: typeValue,
         subject,
         topic,
+        subtopic,
         title,
         category: TYPE_TO_CATEGORY_LABEL[typeValue] || "Worksheet",
         subcategory: title,

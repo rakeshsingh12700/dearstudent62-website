@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useAuth } from "../context/AuthContext";
 import products from "../data/products";
 import { getDownloadUrl } from "../lib/productAssetUrls";
+import { getSubjectBadgeClass, getSubjectLabel } from "../lib/subjectBadge";
 
 export default function Success() {
   const router = useRouter();
@@ -100,38 +101,61 @@ export default function Success() {
   return (
     <>
       <Navbar />
-      <div style={{ padding: "40px" }}>
-        <h2>Payment successful 🎉</h2>
-        <p>Your worksheet is ready.</p>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 12 }}>
-          {purchasedProducts.map((product) => (
-            <button
-              key={product.id}
-              type="button"
-              onClick={() => handleDownload(product)}
-              style={{ padding: "10px 16px", cursor: "pointer" }}
-              disabled={!product?.storageKey || (!user && !checkoutToken)}
-            >
-              Download {product.title}
-            </button>
-          ))}
-        </div>
-        <button
-          type="button"
-          onClick={() => router.push("/worksheets")}
-          style={{ padding: "10px 16px", cursor: "pointer" }}
-        >
-          Continue to Library
-        </button>
-        {!user && checkoutEmail && (
-          <p style={{ marginTop: 18, marginBottom: 0 }}>
-            Want permanent access from any device?{" "}
-            <Link href={`/auth?next=/my-purchases&email=${encodeURIComponent(checkoutEmail)}`}>
-              Login / Sign Up with {checkoutEmail}
-            </Link>
-          </p>
-        )}
-      </div>
+      <main className="success-page">
+        <section className="container success-wrap">
+          <section className="success-card">
+            <header className="success-card__header">
+              <p className="success-card__eyebrow">Payment complete</p>
+              <h1>Your worksheets are ready</h1>
+              <p>Download now, or find everything later in My Purchases.</p>
+            </header>
+
+            <section className="success-list">
+              {purchasedProducts.map((product) => (
+                <article className="success-item" key={product.id}>
+                  <span className={getSubjectBadgeClass(product?.subject)}>
+                    {getSubjectLabel(product?.subject)}
+                  </span>
+                  <div className="success-item__content">
+                    <h2>{product.title}</h2>
+                    <p>{product.pages || 0} pages • Digital PDF</p>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => handleDownload(product)}
+                    disabled={!product?.storageKey || (!user && !checkoutToken)}
+                  >
+                    Download
+                  </button>
+                </article>
+              ))}
+            </section>
+
+            <div className="success-card__actions">
+              <Link href="/my-purchases" className="btn btn-primary">
+                Open My Purchases
+              </Link>
+              <button
+                type="button"
+                onClick={() => router.push("/worksheets")}
+                className="btn btn-secondary"
+              >
+                Continue to Library
+              </button>
+            </div>
+
+            {!user && checkoutEmail && (
+              <p className="success-card__footnote">
+                Want permanent access from any device?{" "}
+                <Link href={`/auth?next=/my-purchases&email=${encodeURIComponent(checkoutEmail)}`}>
+                  Login / Sign Up with {checkoutEmail}
+                </Link>
+              </p>
+            )}
+          </section>
+        </section>
+      </main>
     </>
   );
 }
