@@ -3,6 +3,7 @@ import Link from "next/link";
 const ADMIN_SECTIONS = [
   { key: "uploads", label: "Admin Upload", href: "/admin" },
   { key: "support", label: "Support Inbox", href: "/admin/contact-submissions" },
+  { key: "reviews", label: "Reviews Inbox", href: "/admin/reviews" },
 ];
 
 export default function AdminShell({ currentSection = "uploads", children }) {
