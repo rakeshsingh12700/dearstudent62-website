@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import {
-  FacebookAuthProvider,
   GoogleAuthProvider,
   createUserWithEmailAndPassword,
   sendPasswordResetEmail,
@@ -246,19 +245,14 @@ export default function AuthPage() {
     }
   };
 
-  const handleSocialLogin = async (providerName) => {
+  const handleGoogleLogin = async () => {
     setError("");
     setMessage("");
 
-    const isGoogle = providerName === "google";
-    const provider = isGoogle ? new GoogleAuthProvider() : new FacebookAuthProvider();
-    if (isGoogle) {
-      provider.setCustomParameters({ prompt: "select_account" });
-    } else {
-      provider.setCustomParameters({ display: "popup" });
-    }
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: "select_account" });
 
-    setBusyAction(`social-${providerName}`);
+    setBusyAction("social-google");
     try {
       await signInWithPopup(auth, provider);
       router.push(safeNext);
@@ -276,23 +270,14 @@ export default function AuthPage() {
         <section className="auth-card">
           <h1>Login / Sign Up</h1>
           <p className="auth-subtext">
-            Continue with Facebook or Google, or use email below.
+            Continue with Google, or use email below.
           </p>
 
           <div className="auth-social-row">
             <button
               type="button"
-              className="auth-social-btn auth-social-btn--facebook"
-              onClick={() => handleSocialLogin("facebook")}
-              disabled={busyAction !== ""}
-            >
-              <span aria-hidden="true">f</span>
-              {busyAction === "social-facebook" ? "Please wait..." : "Facebook"}
-            </button>
-            <button
-              type="button"
               className="auth-social-btn auth-social-btn--google"
-              onClick={() => handleSocialLogin("google")}
+              onClick={handleGoogleLogin}
               disabled={busyAction !== ""}
             >
               <span aria-hidden="true">G</span>
