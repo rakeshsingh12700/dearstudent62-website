@@ -91,7 +91,7 @@ export default async function handler(req, res) {
 
         res.setHeader("Content-Type", "application/pdf");
         res.setHeader("Content-Disposition", `inline; filename="${key}"`);
-        res.setHeader("Cache-Control", "public, max-age=300");
+        res.setHeader("Cache-Control", "public, max-age=3600, stale-while-revalidate=86400");
         return res.status(200).send(Buffer.from(previewBytes));
       } catch (error) {
         // Fallback to original PDF so previews still work if PDF slicing fails in runtime.
@@ -104,7 +104,7 @@ export default async function handler(req, res) {
 
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", `inline; filename="${key}"`);
-    res.setHeader("Cache-Control", "public, max-age=300");
+    res.setHeader("Cache-Control", "public, max-age=3600, stale-while-revalidate=86400");
     return res.status(200).send(sourceBytes);
   } catch (error) {
     if (error?.name === "NoSuchKey") {

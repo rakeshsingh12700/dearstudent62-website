@@ -97,7 +97,7 @@ export default async function handler(req, res) {
           "Content-Type",
           String(response.ContentType || contentTypeFromKey(candidate))
         );
-        res.setHeader("Cache-Control", "public, max-age=900");
+        res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
         return res.status(200).send(bytes);
       } catch (error) {
         if (error?.name === "NoSuchKey" || error?.name === "NotFound") {
