@@ -16,12 +16,10 @@ export default function SiteFooter() {
 
           <nav className="site-footer__links" aria-label="Footer">
             <div className="site-footer__col">
-              <p className="site-footer__col-title">Useful Links</p>
               <Link href="/worksheets">Worksheets</Link>
               <Link href="/about-us">About Us</Link>
             </div>
             <div className="site-footer__col">
-              <p className="site-footer__col-title">Support</p>
               <Link href="/contact-us">Contact Us</Link>
               <a href={INSTAGRAM_PROFILE_URL} target="_blank" rel="noopener noreferrer">
                 Instagram
