@@ -1,10 +1,31 @@
 import Navbar from "../components/Navbar";
 import Link from "next/link";
 import Head from "next/head";
+import { useEffect } from "react";
+import { useRouter } from "next/router";
 import { useAuth } from "../context/AuthContext";
 
 export default function Home() {
   const { user } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!router.isReady) return;
+
+    const mode = typeof router.query.mode === "string" ? router.query.mode : "";
+    const oobCode =
+      typeof router.query.oobCode === "string" ? router.query.oobCode : "";
+    if (!mode || !oobCode) return;
+
+    router.replace(
+      {
+        pathname: "/__/auth/action",
+        query: router.query,
+      },
+      undefined,
+      { shallow: true }
+    );
+  }, [router, router.isReady, router.query]);
 
   return (
     <>
