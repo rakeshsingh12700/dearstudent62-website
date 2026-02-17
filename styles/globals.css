@@ -433,10 +433,6 @@ button {
   color: #1877f2;
 }
 
-.site-footer__social-icon--youtube {
-  color: #ff0000;
-}
-
 .site-footer__col {
   display: contents;
 }
@@ -1629,8 +1625,18 @@ button {
   border-color: #bfdbfe;
 }
 
+.auth-social-btn--google span {
+  color: #ea4335;
+  border-color: #fecaca;
+}
+
 .auth-social-btn:hover {
   background: #fff7ed;
+}
+
+.auth-social-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
 }
 
 .auth-divider {
@@ -5422,6 +5428,36 @@ button {
 }
 
 @media (max-width: 760px) {
+  .navbar__inner {
+    min-height: 58px;
+    padding: 0;
+    gap: 10px;
+    align-items: center;
+    flex-direction: row;
+  }
+
+  .navbar__mobile-top {
+    gap: 6px;
+    padding: 6px 0;
+  }
+
+  .navbar__mobile-top .navbar__menu-btn {
+    min-width: 30px;
+    height: 30px;
+    font-size: 0.8rem;
+  }
+
+  .navbar__mobile-actions .navbar__menu-btn,
+  .navbar__mobile-actions .navbar__icon-btn {
+    min-width: 30px;
+    height: 30px;
+  }
+
+  .navbar__mobile-actions .navbar__icon-btn {
+    padding: 0 6px;
+    font-size: 0.74rem;
+  }
+
   .worksheets-sort__native {
     display: none;
   }

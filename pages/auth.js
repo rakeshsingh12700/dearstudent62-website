@@ -1,9 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import {
+  FacebookAuthProvider,
+  GoogleAuthProvider,
   createUserWithEmailAndPassword,
   sendPasswordResetEmail,
   sendEmailVerification,
+  signInWithPopup,
   signInWithEmailAndPassword,
   signOut,
   updateProfile,
@@ -30,15 +33,15 @@ function getAuthErrorMessage(error) {
     case "auth/user-not-found":
       return "No account found for this email. Please sign up.";
     case "auth/popup-closed-by-user":
-      return "Google sign-in was closed before completion.";
+      return "Sign-in popup was closed before completion.";
     case "auth/popup-blocked":
-      return "Popup blocked. Allow popups and try Google sign-in again.";
+      return "Popup blocked. Allow popups and try again.";
     case "auth/operation-not-supported-in-this-environment":
       return "This browser blocked popup sign-in. Use redirect sign-in.";
     case "auth/unauthorized-domain":
       return "This domain is not authorized in Firebase Auth settings.";
     case "auth/operation-not-allowed":
-      return "Google sign-in is not enabled in Firebase Authentication.";
+      return "This sign-in provider is not enabled in Firebase Authentication.";
     case "auth/network-request-failed":
       return "Network issue while signing in. Check connection and retry.";
     case "auth/too-many-requests":
@@ -243,6 +246,29 @@ export default function AuthPage() {
     }
   };
 
+  const handleSocialLogin = async (providerName) => {
+    setError("");
+    setMessage("");
+
+    const isGoogle = providerName === "google";
+    const provider = isGoogle ? new GoogleAuthProvider() : new FacebookAuthProvider();
+    if (isGoogle) {
+      provider.setCustomParameters({ prompt: "select_account" });
+    } else {
+      provider.setCustomParameters({ display: "popup" });
+    }
+
+    setBusyAction(`social-${providerName}`);
+    try {
+      await signInWithPopup(auth, provider);
+      router.push(safeNext);
+    } catch (authError) {
+      setError(getAuthErrorMessage(authError));
+    } finally {
+      setBusyAction("");
+    }
+  };
+
   return (
     <>
       <Navbar />
@@ -250,28 +276,28 @@ export default function AuthPage() {
         <section className="auth-card">
           <h1>Login / Sign Up</h1>
           <p className="auth-subtext">
-            Continue with Instagram or Facebook, or use email below.
+            Continue with Facebook or Google, or use email below.
           </p>
 
           <div className="auth-social-row">
-            <a
-              className="auth-social-btn auth-social-btn--instagram"
-              href="https://www.instagram.com/dearstudent62/"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <span aria-hidden="true">IG</span>
-              Instagram
-            </a>
-            <a
+            <button
+              type="button"
               className="auth-social-btn auth-social-btn--facebook"
-              href="https://www.facebook.com/"
-              target="_blank"
-              rel="noopener noreferrer"
+              onClick={() => handleSocialLogin("facebook")}
+              disabled={busyAction !== ""}
             >
               <span aria-hidden="true">f</span>
-              Facebook
-            </a>
+              {busyAction === "social-facebook" ? "Please wait..." : "Facebook"}
+            </button>
+            <button
+              type="button"
+              className="auth-social-btn auth-social-btn--google"
+              onClick={() => handleSocialLogin("google")}
+              disabled={busyAction !== ""}
+            >
+              <span aria-hidden="true">G</span>
+              {busyAction === "social-google" ? "Please wait..." : "Google"}
+            </button>
           </div>
 
           <div className="auth-divider">
