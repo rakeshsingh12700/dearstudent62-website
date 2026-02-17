@@ -43,6 +43,12 @@ export default function SiteFooter() {
             <div className="site-footer__col">
               <Link href="/contact-us">Contact Us</Link>
             </div>
+            <div className="site-footer__col">
+              <Link href="/privacy-policy">Privacy Policy</Link>
+            </div>
+            <div className="site-footer__col">
+              <Link href="/data-deletion">Data Deletion</Link>
+            </div>
             <div className="site-footer__social" aria-label="Social links">
               <a
                 href={INSTAGRAM_PROFILE_URL}
