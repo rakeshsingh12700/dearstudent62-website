@@ -5,7 +5,12 @@ import { signOut } from "firebase/auth";
 import { auth } from "../firebase/config";
 import { useRouter } from "next/router";
 import { PRICING_CONFIG } from "../lib/pricing/config";
-import { getCurrencySymbol, readCurrencyPreference, setCurrencyPreference } from "../lib/pricing/client";
+import {
+  getCurrencySymbol,
+  hasCurrencyPreference,
+  readCurrencyPreference,
+  setCurrencyPreference,
+} from "../lib/pricing/client";
 
 const CART_STORAGE_KEY = "ds-worksheet-cart-v1";
 
@@ -79,6 +84,31 @@ export default function Navbar() {
     return () => {
       window.removeEventListener("storage", refreshCount);
       window.removeEventListener("ds-cart-updated", refreshCount);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (hasCurrencyPreference()) return;
+
+    let cancelled = false;
+    const loadAutoCurrency = async () => {
+      try {
+        const response = await fetch("/api/pricing-context");
+        if (!response.ok) return;
+        const payload = await response.json().catch(() => ({}));
+        const detectedCurrency = String(payload?.currency || "").trim().toUpperCase();
+        if (!cancelled && PRICING_CONFIG.supportedCurrencies.includes(detectedCurrency)) {
+          setCurrency(detectedCurrency);
+        }
+      } catch {
+        // Keep default fallback.
+      }
+    };
+
+    loadAutoCurrency();
+    return () => {
+      cancelled = true;
     };
   }, []);
 
@@ -200,34 +230,34 @@ export default function Navbar() {
               🛒
               {cartCount > 0 && <span className="navbar__icon-badge">{cartCount}</span>}
             </button>
-            <button
-              type="button"
-              className="navbar__icon-btn"
-              aria-label={user ? "Account menu" : "Login"}
-              onClick={() => {
-                setMobileMenuOpen(false);
-                setMobileProfileOpen((prev) => !prev);
-              }}
-            >
-              {user ? <span className="navbar__mobile-initial">{userInitial}</span> : "Login"}
-            </button>
+            {user ? (
+              <button
+                type="button"
+                className="navbar__icon-btn"
+                aria-label="Account menu"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  setMobileProfileOpen((prev) => !prev);
+                }}
+              >
+                <span className="navbar__mobile-initial">{userInitial}</span>
+              </button>
+            ) : (
+              <Link href="/auth" className="navbar__icon-btn" aria-label="Login">
+                Login
+              </Link>
+            )}
           </div>
-          {mobileProfileOpen && (
+          {user && mobileProfileOpen && (
             <div className="navbar__mobile-profile-menu">
-              {user ? (
-                <>
-                  <Link href="/my-purchases" onClick={() => setMobileProfileOpen(false)}>
-                    My History
-                  </Link>
-                  <button type="button" onClick={handleLogout}>
-                    Logout
-                  </button>
-                </>
-              ) : (
-                <Link href="/auth" onClick={() => setMobileProfileOpen(false)}>
-                  Login
+              <>
+                <Link href="/my-purchases" onClick={() => setMobileProfileOpen(false)}>
+                  My History
                 </Link>
-              )}
+                <button type="button" onClick={handleLogout}>
+                  Logout
+                </button>
+              </>
             </div>
           )}
         </div>
