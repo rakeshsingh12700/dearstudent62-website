@@ -39,6 +39,8 @@ export default async function handler(req, res) {
     email,
     userId,
     items,
+    orderCurrency,
+    orderAmount,
   } = req.body;
 
   const normalizedEmail = String(email || "").trim().toLowerCase();
@@ -117,6 +119,8 @@ export default async function handler(req, res) {
           productId,
           quantity: aggregatedItems[productId] || 1,
           paymentId: razorpay_payment_id,
+          orderCurrency: String(orderCurrency || "INR").trim().toUpperCase(),
+          orderAmount: Number(orderAmount || 0),
           purchasedAt: now,
         })
       )

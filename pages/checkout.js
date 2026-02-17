@@ -4,6 +4,7 @@ import Link from "next/link";
 import Navbar from "../components/Navbar";
 import { useAuth } from "../context/AuthContext";
 import products from "../data/products";
+import { formatMoney, getCurrencySymbol, getPriceCurrency, readCurrencyPreference } from "../lib/pricing/client";
 import { getSubjectBadgeClass, getSubjectLabel } from "../lib/subjectBadge";
 
 const RAZORPAY_SDK_SRC = "https://checkout.razorpay.com/v1/checkout.js";
@@ -12,11 +13,6 @@ const PRODUCTS_BY_ID = products.reduce((acc, product) => {
   acc[product.id] = product;
   return acc;
 }, {});
-
-const formatCurrency = (amount) =>
-  new Intl.NumberFormat("en-IN", {
-    maximumFractionDigits: 0,
-  }).format(Math.round(Number(amount) || 0));
 
 const humanizeLabel = (value) =>
   String(value || "")
@@ -81,7 +77,6 @@ const getCartItems = () => {
     .map((item) => ({
       productId: String(item?.id || "").trim(),
       quantity: Number(item?.quantity || 0),
-      price: Number(item?.price || 0),
     }))
     .filter((item) => item.productId && item.quantity > 0);
 };
@@ -122,8 +117,7 @@ export default function Checkout() {
   const [runtimeProducts, setRuntimeProducts] = useState([]);
   const [email, setEmail] = useState("");
 
-  const totalAmount = Math.round(cartSummary.total);
-  const hasItems = cartSummary.count > 0 && totalAmount > 0;
+  const hasItems = cartSummary.count > 0;
 
   useEffect(() => {
     if (typeof window === "undefined") return undefined;
@@ -154,7 +148,12 @@ export default function Checkout() {
     let cancelled = false;
     const loadProducts = async () => {
       try {
-        const response = await fetch(`/api/products?ids=${encodeURIComponent(ids.join(","))}`);
+        const preferredCurrency = readCurrencyPreference();
+        const response = await fetch(
+          `/api/products?ids=${encodeURIComponent(ids.join(","))}${
+            preferredCurrency ? `&currency=${encodeURIComponent(preferredCurrency)}` : ""
+          }`
+        );
         if (!response.ok) return;
         const payload = await response.json().catch(() => ({}));
         const list = Array.isArray(payload?.products) ? payload.products : [];
@@ -183,6 +182,8 @@ export default function Checkout() {
     () =>
       cartPreviewItems.map((item) => {
         const runtimeProduct = runtimeProductById.get(item.productId);
+        const unitPrice = Number(runtimeProduct?.displayPrice ?? runtimeProduct?.price ?? 0);
+        const currency = getPriceCurrency(runtimeProduct || { displayCurrency: readCurrencyPreference() || "INR" });
         return {
           ...item,
           title: runtimeProduct?.title || item.title,
@@ -197,20 +198,42 @@ export default function Checkout() {
             Number(runtimeProduct?.pages || 0) > 0
               ? Number(runtimeProduct.pages)
               : item.pages,
+          price: unitPrice,
+          currency,
+          lineTotal: runtimeProduct ? unitPrice * Number(item.quantity || 0) : 0,
         };
       }),
     [cartPreviewItems, runtimeProductById]
   );
+  const pricesReady = useMemo(
+    () =>
+      displayCartPreviewItems.length === 0 ||
+      displayCartPreviewItems.every((item) => runtimeProductById.has(item.productId)),
+    [displayCartPreviewItems, runtimeProductById]
+  );
+
+  const displayCurrency = useMemo(
+    () => getPriceCurrency(displayCartPreviewItems[0] || { displayCurrency: readCurrencyPreference() || "INR" }),
+    [displayCartPreviewItems]
+  );
+  const totalAmount = useMemo(
+    () => displayCartPreviewItems.reduce((sum, item) => sum + Number(item.lineTotal || 0), 0),
+    [displayCartPreviewItems]
+  );
+  const actionLabel = loading
+    ? "Processing..."
+    : pricesReady
+      ? `Pay ${formatMoney(totalAmount, displayCurrency)}`
+      : "Updating prices...";
 
   const payNow = async () => {
     try {
       setLoading(true);
       const latestCart = getCartSummary();
       const latestItems = getCartItems();
-      const payableAmount = Math.round(latestCart.total);
       const buyerEmail = (loggedInEmail || email).trim().toLowerCase();
 
-      if (payableAmount <= 0 || latestItems.length === 0) {
+      if (latestCart.count <= 0 || latestItems.length === 0) {
         alert("Your cart is empty. Please add items before checkout.");
         return;
       }
@@ -237,7 +260,10 @@ export default function Checkout() {
       const res = await fetch("/api/razorpay/create-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: payableAmount }),
+        body: JSON.stringify({
+          items: latestItems,
+          currencyOverride: readCurrencyPreference(),
+        }),
       });
 
       if (!res.ok) {
@@ -256,7 +282,7 @@ export default function Checkout() {
       const options = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         amount: order.amount,
-        currency: "INR",
+        currency: order.currency || "INR",
         name: "Dear Student",
         description: "Worksheet Purchase",
         order_id: order.id,
@@ -270,6 +296,8 @@ export default function Checkout() {
                 email: buyerEmail,
                 userId: user?.uid || null,
                 items: latestItems,
+                orderCurrency: order.currency || "INR",
+                orderAmount: Number(order.displayAmount || 0),
               }),
             });
 
@@ -314,10 +342,6 @@ export default function Checkout() {
       setLoading(false);
     }
   };
-
-  const actionLabel = loading
-    ? "Processing..."
-    : `Pay INR ${formatCurrency(totalAmount)}`;
 
   return (
     <>
@@ -372,7 +396,7 @@ export default function Checkout() {
                         </p>
                         <div className="checkout-item__meta">
                           <span>Qty {item.quantity}</span>
-                          <strong>INR {formatCurrency(item.lineTotal)}</strong>
+                          <strong>{formatMoney(item.lineTotal, item.currency)}</strong>
                         </div>
                       </div>
                     </article>
@@ -411,22 +435,22 @@ export default function Checkout() {
               </div>
               <div className="checkout-summary-row">
                 <span>Subtotal</span>
-                <strong>INR {formatCurrency(totalAmount)}</strong>
+                <strong>{pricesReady ? formatMoney(totalAmount, displayCurrency) : "..."}</strong>
               </div>
               <div className="checkout-summary-row">
                 <span>Tax</span>
-                <strong>INR 0</strong>
+                <strong>{getCurrencySymbol(displayCurrency)}0</strong>
               </div>
               <div className="checkout-summary-row checkout-summary-row--total">
                 <span>Total payable</span>
-                <strong>INR {formatCurrency(totalAmount)}</strong>
+                <strong>{pricesReady ? formatMoney(totalAmount, displayCurrency) : "..."}</strong>
               </div>
 
               <button
                 type="button"
                 className="btn btn-primary checkout-pay-btn"
                 onClick={payNow}
-                disabled={loading || !hasItems}
+                disabled={loading || !hasItems || !pricesReady}
               >
                 {actionLabel}
               </button>

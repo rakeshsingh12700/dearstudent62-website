@@ -4,12 +4,17 @@ import { useAuth } from "../context/AuthContext";
 import { signOut } from "firebase/auth";
 import { auth } from "../firebase/config";
 import { useRouter } from "next/router";
+import { PRICING_CONFIG } from "../lib/pricing/config";
+import { getCurrencySymbol, readCurrencyPreference, setCurrencyPreference } from "../lib/pricing/client";
 
 const CART_STORAGE_KEY = "ds-worksheet-cart-v1";
-const INSTAGRAM_PROFILE_URL = "https://www.instagram.com/dearstudent62/";
-const INSTAGRAM_PROFILE_URL_SHORT = "https://instagr.am/dearstudent62/";
 
 const NAV_LINKS = [
+  { label: "Home", href: "/" },
+  { label: "Library", href: "/worksheets?view=library" }
+];
+
+const MOBILE_MENU_LINKS = [
   { label: "Home", href: "/" },
   { label: "Library", href: "/worksheets?view=library" },
   { label: "Classes", href: "/worksheets?view=classes" },
@@ -17,16 +22,6 @@ const NAV_LINKS = [
   { label: "Maths", href: "/worksheets?view=library&subject=maths" },
   { label: "Exams", href: "/worksheets?view=library&type=exams" }
 ];
-
-function InstagramOutlineIcon() {
-  return (
-    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false">
-      <rect x="4" y="4" width="16" height="16" rx="5" fill="none" stroke="currentColor" strokeWidth="1.8" />
-      <circle cx="12" cy="12" r="3.6" fill="none" stroke="currentColor" strokeWidth="1.8" />
-      <circle cx="17.1" cy="6.9" r="1.1" fill="currentColor" />
-    </svg>
-  );
-}
 
 function BrandLogo() {
   return (
@@ -44,6 +39,7 @@ export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [mobileProfileOpen, setMobileProfileOpen] = useState(false);
+  const [currency, setCurrency] = useState(() => readCurrencyPreference() || "INR");
 
   const handleLogout = async () => {
     if (typeof window !== "undefined") {
@@ -123,15 +119,20 @@ export default function Navbar() {
     router.push("/worksheets?openCart=1");
   };
 
-  const handleInstagramClick = (event) => {
-    if (typeof window === "undefined") return;
-    const ua = String(window.navigator?.userAgent || "");
-    const isAndroid = /android/i.test(ua);
-    if (!isAndroid) return;
+  const handleCurrencyChange = (nextCurrency) => {
+    const normalized = String(nextCurrency || "").trim().toUpperCase();
+    if (!PRICING_CONFIG.supportedCurrencies.includes(normalized)) return;
+    setCurrencyPreference(normalized);
+    setCurrency(normalized);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("ds-currency-updated", { detail: { currency: normalized } }));
+    }
+  };
 
-    // Use short domain on Android to avoid direct app-home interception.
-    event.preventDefault();
-    window.location.assign(INSTAGRAM_PROFILE_URL_SHORT);
+  const formatCurrencyOptionLabel = (code) => {
+    const symbol = String(getCurrencySymbol(code) || "").trim();
+    if (!symbol || symbol.toUpperCase() === String(code).toUpperCase()) return String(code);
+    return `${symbol} ${code}`;
   };
 
   useEffect(() => {
@@ -177,23 +178,24 @@ export default function Navbar() {
           </button>
 
           <div className="navbar__brand-row">
-            <a
-              href={INSTAGRAM_PROFILE_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="navbar__instagram-link navbar__instagram-link--plain"
-              aria-label="Dear Student Instagram"
-              title="Instagram"
-              onClick={handleInstagramClick}
-            >
-              <InstagramOutlineIcon />
-            </a>
             <Link href="/" className="navbar__brand">
               <BrandLogo />
             </Link>
           </div>
 
           <div className="navbar__mobile-actions">
+            <select
+              className="navbar__currency-select navbar__currency-select--mobile"
+              value={currency}
+              aria-label="Currency"
+              onChange={(event) => handleCurrencyChange(event.target.value)}
+            >
+              {PRICING_CONFIG.supportedCurrencies.map((code) => (
+                <option value={code} key={`mobile-currency-${code}`}>
+                  {formatCurrencyOptionLabel(code)}
+                </option>
+              ))}
+            </select>
             <button type="button" className="navbar__icon-btn" onClick={handleCartClick} aria-label={cartLabel}>
               🛒
               {cartCount > 0 && <span className="navbar__icon-badge">{cartCount}</span>}
@@ -204,12 +206,7 @@ export default function Navbar() {
               aria-label={user ? "Account menu" : "Login"}
               onClick={() => {
                 setMobileMenuOpen(false);
-                if (user) {
-                  setMobileProfileOpen((prev) => !prev);
-                  return;
-                }
-                setMobileProfileOpen(false);
-                router.push("/auth");
+                setMobileProfileOpen((prev) => !prev);
               }}
             >
               {user ? <span className="navbar__mobile-initial">{userInitial}</span> : "Login"}
@@ -238,17 +235,6 @@ export default function Navbar() {
         <div className="navbar__desktop-row">
           <div className="navbar__links">
             <div className="navbar__brand-row">
-              <a
-                href={INSTAGRAM_PROFILE_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="navbar__instagram-link navbar__instagram-link--plain"
-                aria-label="Dear Student Instagram"
-                title="Instagram"
-                onClick={handleInstagramClick}
-              >
-                <InstagramOutlineIcon />
-              </a>
               <Link href="/" className="navbar__brand">
                 <BrandLogo />
               </Link>
@@ -270,6 +256,18 @@ export default function Navbar() {
           </div>
 
           <div className="navbar__actions">
+            <select
+              className="navbar__currency-select"
+              value={currency}
+              aria-label="Currency"
+              onChange={(event) => handleCurrencyChange(event.target.value)}
+            >
+              {PRICING_CONFIG.supportedCurrencies.map((code) => (
+                <option value={code} key={`currency-${code}`}>
+                  {formatCurrencyOptionLabel(code)}
+                </option>
+              ))}
+            </select>
             <button type="button" className="navbar__cart-link" onClick={handleCartClick}>
               {cartLabel}
             </button>
@@ -319,7 +317,7 @@ export default function Navbar() {
 
             <div className="navbar__mobile-links">
               <div className="navbar__mobile-group-title">Browse</div>
-              {NAV_LINKS.map((item) => (
+              {MOBILE_MENU_LINKS.map((item) => (
                 <Link
                   href={item.href}
                   key={`mobile-${item.label}`}

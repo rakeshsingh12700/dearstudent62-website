@@ -7,6 +7,7 @@ import {
   getPreviewUrl,
   getThumbnailUrl,
 } from "../lib/productAssetUrls";
+import { formatMoney, getPriceAmount, getPriceCurrency, readCurrencyPreference } from "../lib/pricing/client";
 import { buildRatingStars, formatRatingAverage, normalizeRatingStats } from "../lib/productRatings";
 import { getSubjectBadgeClass, getSubjectLabel } from "../lib/subjectBadge";
 
@@ -504,8 +505,9 @@ export default function WorksheetShop({
   initialMobileView = "library"
 }) {
   const router = useRouter();
-  const [products, setProducts] = useState(() => (Array.isArray(staticProducts) ? staticProducts : []));
-  const [productsLoaded, setProductsLoaded] = useState(true);
+  const [products, setProducts] = useState([]);
+  const [productsLoaded, setProductsLoaded] = useState(false);
+  const [currencyRefreshKey, setCurrencyRefreshKey] = useState(0);
   const [selectedClass, setSelectedClass] = useState(toSlug(initialClass) || "all");
   const [selectedType, setSelectedType] = useState(normalizeType(initialType) || "all");
   const [selectedSubject, setSelectedSubject] = useState(toSlug(initialSubject) || "all");
@@ -583,13 +585,27 @@ export default function WorksheetShop({
   }, []);
 
   useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+    const syncCurrency = () => setCurrencyRefreshKey((value) => value + 1);
+    window.addEventListener("ds-currency-updated", syncCurrency);
+    return () => {
+      window.removeEventListener("ds-currency-updated", syncCurrency);
+    };
+  }, []);
+
+  useEffect(() => {
     let cancelled = false;
     const loadProducts = async () => {
+      if (!cancelled) setProductsLoaded(false);
       try {
-        const response = await fetch("/api/products");
+        const preferredCurrency = readCurrencyPreference();
+        const response = await fetch(
+          `/api/products${preferredCurrency ? `?currency=${encodeURIComponent(preferredCurrency)}` : ""}`
+        );
         if (!response.ok) {
           if (!cancelled) {
             setProducts(staticProducts);
+            setProductsLoaded(true);
           }
           return;
         }
@@ -597,10 +613,12 @@ export default function WorksheetShop({
         const runtimeProducts = Array.isArray(payload?.products) ? payload.products : [];
         if (!cancelled) {
           setProducts(runtimeProducts.length > 0 ? runtimeProducts : staticProducts);
+          setProductsLoaded(true);
         }
       } catch {
         if (!cancelled) {
           setProducts(staticProducts);
+          setProductsLoaded(true);
         }
       }
     };
@@ -609,7 +627,7 @@ export default function WorksheetShop({
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [currencyRefreshKey]);
 
   const taxonomyById = useMemo(() => {
     const map = new Map();
@@ -839,6 +857,10 @@ export default function WorksheetShop({
 
   const cartTotal = useMemo(
     () => cart.reduce((sum, item) => sum + item.quantity * item.price, 0),
+    [cart]
+  );
+  const cartCurrency = useMemo(
+    () => String(cart[0]?.currency || "INR").toUpperCase(),
     [cart]
   );
 
@@ -1443,7 +1465,9 @@ export default function WorksheetShop({
                       )}
                     </p>
                     <div className="worksheet-card__footer">
-                      <p className="worksheet-card__price">₹{product.price}</p>
+                      <p className="worksheet-card__price">
+                        {formatMoney(getPriceAmount(product), getPriceCurrency(product))}
+                      </p>
                       <div className="worksheet-card__actions">
                         {quantity === 0 ? (
                           <button
@@ -1600,7 +1624,9 @@ export default function WorksheetShop({
                   </div>
                   <div>
                     <p className="worksheet-cart__item-title">{item.title}</p>
-                    <p className="worksheet-cart__item-price">INR {item.price}</p>
+                    <p className="worksheet-cart__item-price">
+                      {formatMoney(item.price, item.currency || "INR")}
+                    </p>
                   </div>
                   <div className="worksheet-cart__qty">
                     <button
@@ -1625,7 +1651,7 @@ export default function WorksheetShop({
 
             <div className="worksheet-cart__footer">
               <p>
-                Total <strong>INR {cartTotal}</strong>
+                Total <strong>{formatMoney(cartTotal, cartCurrency)}</strong>
               </p>
               <Link href="/checkout" className="btn btn-primary">
                 Proceed to Checkout
