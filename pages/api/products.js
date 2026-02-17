@@ -1,6 +1,11 @@
 import { collection, doc, getDoc, getDocs, limit, query } from "firebase/firestore";
 import { db } from "../../firebase/config";
 import { normalizeRatingStats } from "../../lib/productRatings";
+import {
+  calculatePrice,
+  detectCountryFromRequest,
+  getCurrencyOverrideFromRequest,
+} from "../../lib/pricing";
 
 function toSlug(value) {
   return String(value || "")
@@ -16,12 +21,18 @@ function mergeRatingStats(rawProduct, rawStats) {
   return normalizeRatingStats(rawProduct || {});
 }
 
-function normalizeProduct(raw, fallbackId = "", rawStats = null) {
+function normalizeProduct(raw, fallbackId = "", rawStats = null, pricingContext = {}) {
   const id = String(raw?.id || fallbackId || "").trim();
   const storageKey = String(raw?.storageKey || "").trim();
   const imageUrl = String(raw?.imageUrl || "").trim();
   const previewImageUrl = String(raw?.previewImageUrl || "").trim();
   const ratingStats = mergeRatingStats(raw, rawStats);
+  const basePriceINR = Number(raw?.price || 0);
+  const pricing = calculatePrice({
+    basePriceINR,
+    countryCode: pricingContext.countryCode,
+    currencyOverride: pricingContext.currencyOverride,
+  });
 
   return {
     id,
@@ -33,7 +44,14 @@ function normalizeProduct(raw, fallbackId = "", rawStats = null) {
     title: String(raw?.title || "").trim() || "Worksheet",
     category: String(raw?.category || "").trim() || "Worksheet",
     subcategory: String(raw?.subcategory || "").trim() || String(raw?.title || "").trim(),
-    price: Number(raw?.price || 0),
+    price: pricing.amount,
+    displayPrice: pricing.amount,
+    displayCurrency: pricing.currency,
+    displaySymbol: pricing.symbol,
+    basePriceINR: pricing.basePriceINR,
+    tieredPriceINR: pricing.tieredPriceINR,
+    pricingTier: pricing.tier,
+    countryCode: pricing.countryCode,
     ageLabel: String(raw?.ageLabel || "").trim(),
     hideAgeLabel: Boolean(raw?.hideAgeLabel),
     storageKey,
@@ -53,6 +71,10 @@ export default async function handler(req, res) {
 
   try {
     res.setHeader("Cache-Control", "public, s-maxage=300, stale-while-revalidate=86400");
+    res.setHeader("Vary", "CF-IPCountry, X-Vercel-IP-Country, Cookie");
+    const countryCode = detectCountryFromRequest(req);
+    const currencyOverride = getCurrencyOverrideFromRequest(req);
+    const pricingContext = { countryCode, currencyOverride };
     const id = String(req.query.id || "").trim();
     const idsRaw = String(req.query.ids || "").trim();
 
@@ -68,7 +90,8 @@ export default async function handler(req, res) {
         product: normalizeProduct(
           snapshot.data(),
           snapshot.id,
-          ratingSnapshot.exists() ? ratingSnapshot.data() : null
+          ratingSnapshot.exists() ? ratingSnapshot.data() : null,
+          pricingContext
         ),
       });
     }
@@ -91,7 +114,12 @@ export default async function handler(req, res) {
             getDoc(doc(db, "product_rating_stats", productId)),
           ]);
           return snap.exists()
-            ? normalizeProduct(snap.data(), snap.id, ratingSnap.exists() ? ratingSnap.data() : null)
+            ? normalizeProduct(
+                snap.data(),
+                snap.id,
+                ratingSnap.exists() ? ratingSnap.data() : null,
+                pricingContext
+              )
             : null;
         })
       );
@@ -107,7 +135,9 @@ export default async function handler(req, res) {
       ratingsSnapshot.docs.map((ratingDoc) => [ratingDoc.id, ratingDoc.data()])
     );
     const products = snapshot.docs
-      .map((item) => normalizeProduct(item.data(), item.id, ratingStatsByProductId.get(item.id)))
+      .map((item) =>
+        normalizeProduct(item.data(), item.id, ratingStatsByProductId.get(item.id), pricingContext)
+      )
       .filter((item) => item.id && item.storageKey);
 
     return res.status(200).json({ products });

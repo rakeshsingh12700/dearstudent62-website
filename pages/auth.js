@@ -1,12 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import {
-  GoogleAuthProvider,
   createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
   sendEmailVerification,
   signInWithEmailAndPassword,
-  signInWithPopup,
-  signInWithRedirect,
   signOut,
   updateProfile,
 } from "firebase/auth";
@@ -55,25 +53,6 @@ function getAuthErrorMessage(error) {
     default:
       return "Authentication failed. Please try again.";
   }
-}
-
-function shouldFallbackToRedirect(error) {
-  const code = String(error?.code || "").toLowerCase();
-  const message = String(error?.message || "").toLowerCase();
-
-  if (
-    code === "auth/popup-blocked" ||
-    code === "auth/popup-closed-by-user" ||
-    code === "auth/operation-not-supported-in-this-environment"
-  ) {
-    return true;
-  }
-
-  return (
-    message.includes("popup") ||
-    message.includes("cross-origin-opener-policy") ||
-    message.includes("opener")
-  );
 }
 
 export default function AuthPage() {
@@ -154,44 +133,6 @@ export default function AuthPage() {
     );
   };
 
-  const handleGoogleSignIn = async () => {
-    setError("");
-    setMessage("");
-    setBusyAction("google");
-    const provider = new GoogleAuthProvider();
-    provider.setCustomParameters({ prompt: "select_account" });
-
-    const isLikelyMobile =
-      typeof window !== "undefined" &&
-      /android|iphone|ipad|ipod|mobile/i.test(window.navigator.userAgent);
-
-    try {
-      if (isLikelyMobile) {
-        setMessage("Redirecting to Google...");
-        await signInWithRedirect(auth, provider);
-        return;
-      }
-
-      await signInWithPopup(auth, provider);
-      router.push(safeNext);
-    } catch (authError) {
-      if (shouldFallbackToRedirect(authError)) {
-        try {
-          setMessage("Switching to redirect sign-in...");
-          await signInWithRedirect(auth, provider);
-          return;
-        } catch (redirectError) {
-          setError(getAuthErrorMessage(redirectError));
-          return;
-        }
-      }
-
-      setError(getAuthErrorMessage(authError));
-    } finally {
-      setBusyAction("");
-    }
-  };
-
   const handleLogin = async (normalizedEmail, loginPassword) => {
     await signInWithEmailAndPassword(
       auth,
@@ -228,6 +169,27 @@ export default function AuthPage() {
     setMessage(
       "Account created. Verify your email from inbox, then login."
     );
+  };
+
+  const handleForgotPassword = async () => {
+    const normalizedEmail = String(email || "").trim().toLowerCase();
+    setError("");
+    setMessage("");
+
+    if (!normalizedEmail) {
+      setError("Enter your email first, then click Forgot password.");
+      return;
+    }
+
+    setBusyAction("reset");
+    try {
+      await sendPasswordResetEmail(auth, normalizedEmail);
+      setMessage("Password reset link sent. Please check your inbox.");
+    } catch (authError) {
+      setError(getAuthErrorMessage(authError));
+    } finally {
+      setBusyAction("");
+    }
   };
 
   const handleEmailSubmit = async (event) => {
@@ -288,18 +250,29 @@ export default function AuthPage() {
         <section className="auth-card">
           <h1>Login / Sign Up</h1>
           <p className="auth-subtext">
-            Continue with Google first, or use email below.
+            Continue with Instagram or Facebook, or use email below.
           </p>
 
-          <button
-            type="button"
-            className="auth-google-btn"
-            onClick={handleGoogleSignIn}
-            disabled={busyAction !== ""}
-          >
-            <span aria-hidden="true">G</span>
-            {busyAction === "google" ? "Connecting..." : "Continue with Google"}
-          </button>
+          <div className="auth-social-row">
+            <a
+              className="auth-social-btn auth-social-btn--instagram"
+              href="https://www.instagram.com/dearstudent62/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <span aria-hidden="true">IG</span>
+              Instagram
+            </a>
+            <a
+              className="auth-social-btn auth-social-btn--facebook"
+              href="https://www.facebook.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <span aria-hidden="true">f</span>
+              Facebook
+            </a>
+          </div>
 
           <div className="auth-divider">
             <span>or continue with email</span>
@@ -373,6 +346,17 @@ export default function AuthPage() {
                 {showPassword ? "Hide" : "Show"}
               </button>
             </div>
+
+            {mode === "login" && (
+              <button
+                type="button"
+                className="auth-forgot-btn"
+                onClick={handleForgotPassword}
+                disabled={busyAction !== ""}
+              >
+                Forgot password?
+              </button>
+            )}
 
             {mode === "signup" && (
               <p className="auth-password-hint">

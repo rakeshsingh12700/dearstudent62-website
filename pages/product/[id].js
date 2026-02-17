@@ -6,6 +6,7 @@ import products from "../../data/products";
 import { useAuth } from "../../context/AuthContext";
 import { hasPurchased } from "../../firebase/purchases";
 import { getPreviewUrl, getThumbnailUrl } from "../../lib/productAssetUrls";
+import { formatMoney, getPriceAmount, getPriceCurrency, readCurrencyPreference } from "../../lib/pricing/client";
 import { buildRatingStars, formatRatingAverage, normalizeRatingStats } from "../../lib/productRatings";
 
 const CART_STORAGE_KEY = "ds-worksheet-cart-v1";
@@ -127,6 +128,8 @@ export default function ProductPage() {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isAndroidDevice, setIsAndroidDevice] = useState(false);
   const [runtimeProduct, setRuntimeProduct] = useState(null);
+  const [runtimeResolved, setRuntimeResolved] = useState(false);
+  const [currencyRefreshKey, setCurrencyRefreshKey] = useState(0);
   const [shareLinksOpen, setShareLinksOpen] = useState(false);
   const [shareStatus, setShareStatus] = useState("");
   const [ratingStats, setRatingStats] = useState(() => normalizeRatingStats({}));
@@ -137,7 +140,7 @@ export default function ProductPage() {
   const [editingRating, setEditingRating] = useState(false);
 
   const staticProduct = products.find((item) => item.id === query.id);
-  const product = runtimeProduct || staticProduct;
+  const product = runtimeProduct || (runtimeResolved ? staticProduct : null);
   const typeLabel = useMemo(() => humanize(product?.type), [product?.type]);
   const classLabel = useMemo(() => humanize(product?.class), [product?.class]);
   const singlePagePreviewUrl = useMemo(
@@ -165,12 +168,28 @@ export default function ProductPage() {
   }, []);
 
   useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+    const syncCurrency = () => setCurrencyRefreshKey((value) => value + 1);
+    window.addEventListener("ds-currency-updated", syncCurrency);
+    return () => {
+      window.removeEventListener("ds-currency-updated", syncCurrency);
+    };
+  }, []);
+
+  useEffect(() => {
     if (typeof query.id !== "string" || !query.id) return;
     let cancelled = false;
+    setRuntimeResolved(false);
+    setRuntimeProduct(null);
 
     const loadProduct = async () => {
       try {
-        const response = await fetch(`/api/products?id=${encodeURIComponent(query.id)}`);
+        const preferredCurrency = readCurrencyPreference();
+        const response = await fetch(
+          `/api/products?id=${encodeURIComponent(query.id)}${
+            preferredCurrency ? `&currency=${encodeURIComponent(preferredCurrency)}` : ""
+          }`
+        );
         if (!response.ok) return;
         const payload = await response.json().catch(() => ({}));
         if (!cancelled && payload?.product?.id) {
@@ -178,6 +197,8 @@ export default function ProductPage() {
         }
       } catch {
         // Keep static fallback.
+      } finally {
+        if (!cancelled) setRuntimeResolved(true);
       }
     };
 
@@ -185,7 +206,7 @@ export default function ProductPage() {
     return () => {
       cancelled = true;
     };
-  }, [query.id]);
+  }, [currencyRefreshKey, query.id]);
 
   useEffect(() => {
     const checkPurchase = async () => {
@@ -331,7 +352,8 @@ export default function ProductPage() {
           {
             id: product.id,
             title: product.title,
-            price: product.price,
+            price: getPriceAmount(product),
+            currency: getPriceCurrency(product),
             class: product.class,
             subject: product.subject,
             type: product.type,
@@ -627,7 +649,7 @@ export default function ProductPage() {
 
               <div className="product-info-card__price-row">
                 <div>
-                  <strong>INR {product.price}</strong>
+                  <strong>{formatMoney(getPriceAmount(product), getPriceCurrency(product))}</strong>
                   <p>{product.pages || 0} printable pages • Instant digital access</p>
                 </div>
               </div>
