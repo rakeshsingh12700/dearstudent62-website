@@ -286,8 +286,17 @@ button {
   transform: translateX(0);
 }
 
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-shell__main {
+  flex: 1 0 auto;
+}
+
 .site-footer {
-  margin-top: 36px;
   border-top: 1px solid #fed7aa;
   background:
     radial-gradient(circle at top right, #ffedd5 0%, transparent 42%),
@@ -295,13 +304,16 @@ button {
 }
 
 .site-footer__inner {
-  min-height: 92px;
-  padding: 20px 0;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
+  padding: 40px 0 18px;
+  display: grid;
+  gap: 18px;
+}
+
+.site-footer__top {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 22px;
 }
 
 .site-footer__brand {
@@ -323,10 +335,23 @@ button {
 }
 
 .site-footer__links {
-  display: inline-flex;
-  align-items: center;
-  gap: 14px;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.site-footer__col {
+  display: grid;
+  gap: 10px;
+}
+
+.site-footer__col-title {
+  margin: 0;
+  color: #0f172a;
+  font-size: 0.8rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 .site-footer__links a {
@@ -337,6 +362,18 @@ button {
 
 .site-footer__links a:hover {
   color: var(--ds-primary-dark);
+}
+
+.site-footer__bottom {
+  border-top: 1px solid #fed7aa;
+  padding-top: 14px;
+}
+
+.site-footer__bottom p {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.88rem;
+  font-weight: 700;
 }
 
 .hero {

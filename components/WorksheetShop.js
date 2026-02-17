@@ -504,8 +504,8 @@ export default function WorksheetShop({
   initialMobileView = "library"
 }) {
   const router = useRouter();
-  const [products, setProducts] = useState([]);
-  const [productsLoaded, setProductsLoaded] = useState(false);
+  const [products, setProducts] = useState(() => (Array.isArray(staticProducts) ? staticProducts : []));
+  const [productsLoaded, setProductsLoaded] = useState(true);
   const [selectedClass, setSelectedClass] = useState(toSlug(initialClass) || "all");
   const [selectedType, setSelectedType] = useState(normalizeType(initialType) || "all");
   const [selectedSubject, setSelectedSubject] = useState(toSlug(initialSubject) || "all");
@@ -590,7 +590,6 @@ export default function WorksheetShop({
         if (!response.ok) {
           if (!cancelled) {
             setProducts(staticProducts);
-            setProductsLoaded(true);
           }
           return;
         }
@@ -598,12 +597,10 @@ export default function WorksheetShop({
         const runtimeProducts = Array.isArray(payload?.products) ? payload.products : [];
         if (!cancelled) {
           setProducts(runtimeProducts.length > 0 ? runtimeProducts : staticProducts);
-          setProductsLoaded(true);
         }
       } catch {
         if (!cancelled) {
           setProducts(staticProducts);
-          setProductsLoaded(true);
         }
       }
     };
@@ -618,6 +615,14 @@ export default function WorksheetShop({
     const map = new Map();
     products.forEach((product) => {
       map.set(product.id, inferTaxonomy(product));
+    });
+    return map;
+  }, [products]);
+
+  const normalizedTypeById = useMemo(() => {
+    const map = new Map();
+    products.forEach((product) => {
+      map.set(product.id, normalizeType(product.type));
     });
     return map;
   }, [products]);
@@ -639,6 +644,53 @@ export default function WorksheetShop({
     view: mobileView,
     sort: sortBy,
   });
+
+  useEffect(() => {
+    const next = sanitizeFilterState({
+      class: initialClass,
+      type: initialType,
+      subject: initialSubject,
+      topic: initialTopic,
+      subtopic: initialSubtopic,
+      view: initialMobileView,
+      sort: initialSort,
+    });
+
+    if (
+      next.class === selectedClass &&
+      next.type === selectedType &&
+      next.subject === selectedSubject &&
+      next.topic === selectedTopic &&
+      next.subtopic === selectedSubtopic &&
+      next.view === mobileView &&
+      next.sort === sortBy
+    ) {
+      return;
+    }
+
+    setSelectedClass(next.class);
+    setSelectedType(next.type);
+    setSelectedSubject(next.subject);
+    setSelectedTopic(next.topic);
+    setSelectedSubtopic(next.subtopic);
+    setMobileView(next.view);
+    setSortBy(next.sort);
+  }, [
+    initialClass,
+    initialType,
+    initialSubject,
+    initialTopic,
+    initialSubtopic,
+    initialMobileView,
+    initialSort,
+    mobileView,
+    selectedClass,
+    selectedSubject,
+    selectedSubtopic,
+    selectedTopic,
+    selectedType,
+    sortBy,
+  ]);
 
   const applyFilterState = (nextState) => {
     const sanitized = sanitizeFilterState(nextState);
@@ -679,7 +731,8 @@ export default function WorksheetShop({
 
     products.forEach((product) => {
       const classMatch = selectedClass === "all" || product.class === selectedClass;
-      const typeMatch = selectedType === "all" || normalizeType(product.type) === selectedType;
+      const typeMatch =
+        selectedType === "all" || normalizedTypeById.get(product.id) === selectedType;
       if (!classMatch || !typeMatch) return;
 
       const taxonomy = taxonomyById.get(product.id);
@@ -708,7 +761,8 @@ export default function WorksheetShop({
       if (!taxonomy) return;
 
       const classMatch = selectedClass === "all" || product.class === selectedClass;
-      const typeMatch = selectedType === "all" || normalizeType(product.type) === selectedType;
+      const typeMatch =
+        selectedType === "all" || normalizedTypeById.get(product.id) === selectedType;
       const subjectMatch = taxonomy.subject === selectedSubject;
       if (!classMatch || !typeMatch || !subjectMatch) return;
 
@@ -729,7 +783,8 @@ export default function WorksheetShop({
     const filtered = products.filter((product) => {
       const taxonomy = taxonomyById.get(product.id);
       const classMatch = selectedClass === "all" || product.class === selectedClass;
-      const typeMatch = selectedType === "all" || normalizeType(product.type) === selectedType;
+      const typeMatch =
+        selectedType === "all" || normalizedTypeById.get(product.id) === selectedType;
       const subjectMatch = selectedSubject === "all" || taxonomy?.subject === selectedSubject;
       const topicMatch = selectedTopic === "all" || taxonomy?.topic === selectedTopic;
       const subtopicMatch =
@@ -749,7 +804,18 @@ export default function WorksheetShop({
       sorted.sort((a, b) => a.title.localeCompare(b.title));
     }
     return sorted;
-  }, [products, isGrammarTopic, selectedClass, selectedSubtopic, selectedSubject, selectedTopic, selectedType, sortBy, taxonomyById]);
+  }, [
+    products,
+    isGrammarTopic,
+    normalizedTypeById,
+    selectedClass,
+    selectedSubtopic,
+    selectedSubject,
+    selectedTopic,
+    selectedType,
+    sortBy,
+    taxonomyById,
+  ]);
   const visibleCount = Math.max(Number(visibleProducts.length || 0), 0);
   const visibleRangeStart = visibleCount > 0 ? 1 : 0;
   const visibleRangeEnd = visibleCount;
@@ -776,6 +842,11 @@ export default function WorksheetShop({
     [cart]
   );
 
+  const cartQuantityById = useMemo(
+    () => new Map(cart.map((item) => [item.id, item.quantity])),
+    [cart]
+  );
+
   const updateCartItem = (product, delta) => {
     setCart((prev) => {
       const existing = prev.find((item) => item.id === product.id);
@@ -797,10 +868,7 @@ export default function WorksheetShop({
 
   const clearCart = () => setCart([]);
 
-  const getItemQuantity = (productId) => {
-    const item = cart.find((cartItem) => cartItem.id === productId);
-    return item ? item.quantity : 0;
-  };
+  const getItemQuantity = (productId) => cartQuantityById.get(productId) || 0;
 
   const openQuickPreview = (product) => {
     const url = getPreviewUrl(product?.storageKey, 1);

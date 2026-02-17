@@ -33,8 +33,12 @@ export default function App({ Component, pageProps }) {
       className={`${bodyFont.variable} ${displayFont.variable} ${brandSerifFont.variable} ${brandSansFont.variable}`}
     >
       <AuthProvider>
-        <Component {...pageProps} />
-        <SiteFooter />
+        <div className="app-shell">
+          <div className="app-shell__main">
+            <Component {...pageProps} />
+          </div>
+          <SiteFooter />
+        </div>
       </AuthProvider>
     </div>
   );

@@ -52,6 +52,7 @@ export default async function handler(req, res) {
   }
 
   try {
+    res.setHeader("Cache-Control", "public, s-maxage=300, stale-while-revalidate=86400");
     const id = String(req.query.id || "").trim();
     const idsRaw = String(req.query.ids || "").trim();
 

@@ -25,7 +25,6 @@ export default function Worksheets() {
     <>
       <Navbar />
       <WorksheetShop
-        key={`${classFromQuery}-${typeFromQuery}-${subjectFromQuery}-${topicFromQuery}-${subtopicFromQuery}-${sortFromQuery}-${mobileViewFromQuery}-${openCartFromQuery ? "cart" : "list"}`}
         initialClass={classFromQuery}
         initialType={typeFromQuery}
         initialSubject={subjectFromQuery}
