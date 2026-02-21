@@ -2,6 +2,7 @@ import Link from "next/link";
 
 const ADMIN_SECTIONS = [
   { key: "uploads", label: "Admin Upload", href: "/admin" },
+  { key: "products", label: "Listed Products", href: "/admin/products" },
   { key: "support", label: "Support Inbox", href: "/admin/contact-submissions" },
   { key: "reviews", label: "Reviews Inbox", href: "/admin/reviews" },
 ];

@@ -2058,6 +2058,26 @@ button {
   padding: 0 9px;
 }
 
+.admin-product-title {
+  margin: 0;
+  color: #111827;
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.admin-delete-btn {
+  border-color: #fecaca;
+  color: #b91c1c;
+  background: #fff5f5;
+}
+
+.admin-delete-btn:hover {
+  border-color: #fca5a5;
+  background: #fee2e2;
+  color: #991b1b;
+}
+
 .admin-submission-actions select:focus-visible {
   outline: 2px solid var(--ds-primary);
   outline-offset: 1px;

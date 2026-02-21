@@ -58,7 +58,7 @@ function normalizeProduct(raw, fallbackId = "", rawStats = null, pricingContext 
     storageKey,
     imageUrl,
     previewImageUrl,
-    showPreviewPage: Boolean(raw?.showPreviewPage && previewImageUrl),
+    showPreviewPage: Boolean(raw?.showPreviewPage),
     pages: Number.isFinite(Number(raw?.pages)) ? Number(raw.pages) : 1,
     averageRating: ratingStats.averageRating,
     ratingCount: ratingStats.ratingCount,

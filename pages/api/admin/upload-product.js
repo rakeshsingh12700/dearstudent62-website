@@ -453,7 +453,7 @@ export default async function handler(req, res) {
         previewImageUrl: showPreviewPage && previewPageKey
           ? `/api/thumbnail?key=${encodeURIComponent(previewPageKey)}`
           : "",
-        showPreviewPage: Boolean(showPreviewPage && previewPageKey),
+        showPreviewPage: Boolean(showPreviewPage),
         updatedBy: adminUser.email,
         updatedAt: new Date().toISOString(),
       },

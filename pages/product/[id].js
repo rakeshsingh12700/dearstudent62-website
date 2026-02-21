@@ -156,6 +156,7 @@ export default function ProductPage() {
     [product?.previewImageUrl]
   );
   const showPreviewImage = Boolean(product?.showPreviewPage && previewImageUrl);
+  const showPreviewFrameFallback = Boolean(product?.showPreviewPage && !previewImageUrl && product?.storageKey);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -823,7 +824,8 @@ export default function ProductPage() {
               </button>
             </header>
             <p className="worksheet-preview-modal__hint">
-              Preview shows cover image{showPreviewImage ? " and first-page of the pdf." : "."}
+              Preview shows cover image
+              {(showPreviewImage || showPreviewFrameFallback) ? " and first-page of the pdf." : "."}
             </p>
             {thumbnailUrl ? (
               <div className="worksheet-preview-modal__pages">
@@ -837,6 +839,13 @@ export default function ProductPage() {
                     className="worksheet-preview-modal__page-image"
                     src={previewImageUrl}
                     alt={`${product.title} first page`}
+                  />
+                )}
+                {showPreviewFrameFallback && (
+                  <iframe
+                    className="worksheet-preview-modal__frame"
+                    src={`${singlePagePreviewUrl}#page=1&view=FitH,110&toolbar=0&navpanes=0&scrollbar=0`}
+                    title={`${product.title} first page preview`}
                   />
                 )}
               </div>
