@@ -612,7 +612,7 @@ export default function WorksheetShop({
         const payload = await response.json().catch(() => ({}));
         const runtimeProducts = Array.isArray(payload?.products) ? payload.products : [];
         if (!cancelled) {
-          setProducts(runtimeProducts.length > 0 ? runtimeProducts : staticProducts);
+          setProducts(runtimeProducts);
           setProductsLoaded(true);
         }
       } catch {
