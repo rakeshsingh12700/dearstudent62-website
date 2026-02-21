@@ -1551,11 +1551,23 @@ export default function WorksheetShop({
                   src={previewState.imageUrl}
                   alt={`${previewState.title} cover`}
                 />
-                {Boolean(previewState.showPreviewPage && previewState.previewImageUrl) && (
+                {Boolean(previewState?.showPreviewPage && previewState?.previewImageUrl) && (
                   <img
                     className="worksheet-preview-modal__page-image"
                     src={previewState.previewImageUrl}
                     alt={`${previewState.title} first page`}
+                  />
+                )}
+                {Boolean(
+                  previewState?.showPreviewPage
+                  && !previewState?.previewImageUrl
+                  && previewState?.storageKey
+                ) && (
+                  <iframe
+                    className="worksheet-preview-modal__frame"
+                    src={`${getPreviewUrl(previewState.storageKey, 1)}#page=1&view=FitH,110&toolbar=0&navpanes=0&scrollbar=0`}
+                    title={`${previewState.title} first page preview`}
+                    onError={() => setPreviewLoadFailed(true)}
                   />
                 )}
               </div>
