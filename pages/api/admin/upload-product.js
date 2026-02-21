@@ -2,6 +2,7 @@ import fs from "fs/promises";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { doc, setDoc } from "firebase/firestore";
 import formidable from "formidable";
+import { PDFDocument } from "pdf-lib";
 import { db } from "../../../firebase/config";
 
 export const config = {
@@ -214,45 +215,50 @@ function getBearerToken(req) {
 
 async function readPdfInfo(pdfPath, { renderPreview = false } = {}) {
   const bytes = await fs.readFile(pdfPath);
-  const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
-  let canvasApi = null;
-  if (renderPreview) {
-    canvasApi = await import("@napi-rs/canvas");
-    if (canvasApi.DOMMatrix && !globalThis.DOMMatrix) globalThis.DOMMatrix = canvasApi.DOMMatrix;
-    if (canvasApi.Path2D && !globalThis.Path2D) globalThis.Path2D = canvasApi.Path2D;
-    if (canvasApi.ImageData && !globalThis.ImageData) globalThis.ImageData = canvasApi.ImageData;
-  }
-
-  const loadingTask = pdfjs.getDocument({
-    data: new Uint8Array(bytes),
-    disableWorker: true,
-  });
-
-  const pdf = await loadingTask.promise;
-  const pages = Math.max(Number.parseInt(String(pdf.numPages || "1"), 10) || 1, 1);
+  const parsedPdf = await PDFDocument.load(bytes, { ignoreEncryption: true });
+  const pages = Math.max(
+    Number.parseInt(String(parsedPdf.getPageCount() || "1"), 10) || 1,
+    1
+  );
 
   let previewPng = null;
-  if (renderPreview && canvasApi) {
-    const page = await pdf.getPage(1);
-    const viewport = page.getViewport({ scale: 1.6 });
-    const canvas = canvasApi.createCanvas(
-      Math.max(Math.ceil(viewport.width), 1),
-      Math.max(Math.ceil(viewport.height), 1)
-    );
-    const context = canvas.getContext("2d");
-    context.fillStyle = "#ffffff";
-    context.fillRect(0, 0, canvas.width, canvas.height);
+  if (renderPreview) {
+    try {
+      const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
+      const canvasApi = await import("@napi-rs/canvas");
+      if (canvasApi.DOMMatrix && !globalThis.DOMMatrix) globalThis.DOMMatrix = canvasApi.DOMMatrix;
+      if (canvasApi.Path2D && !globalThis.Path2D) globalThis.Path2D = canvasApi.Path2D;
+      if (canvasApi.ImageData && !globalThis.ImageData) globalThis.ImageData = canvasApi.ImageData;
 
-    await page.render({
-      canvasContext: context,
-      viewport,
-    }).promise;
+      const loadingTask = pdfjs.getDocument({
+        data: new Uint8Array(bytes),
+        disableWorker: true,
+      });
 
-    previewPng = canvas.toBuffer("image/png");
-    page.cleanup();
+      const pdf = await loadingTask.promise;
+      const page = await pdf.getPage(1);
+      const viewport = page.getViewport({ scale: 1.6 });
+      const canvas = canvasApi.createCanvas(
+        Math.max(Math.ceil(viewport.width), 1),
+        Math.max(Math.ceil(viewport.height), 1)
+      );
+      const context = canvas.getContext("2d");
+      context.fillStyle = "#ffffff";
+      context.fillRect(0, 0, canvas.width, canvas.height);
+
+      await page.render({
+        canvasContext: context,
+        viewport,
+      }).promise;
+
+      previewPng = canvas.toBuffer("image/png");
+      page.cleanup();
+      await pdf.destroy();
+    } catch (previewReadError) {
+      console.error("Preview generation skipped:", previewReadError);
+    }
   }
 
-  await pdf.destroy();
   return { pages, previewPng };
 }
 
@@ -390,9 +396,6 @@ export default async function handler(req, res) {
         previewPageKey = previewKey;
       } catch (previewError) {
         console.error("Auto preview generation failed:", previewError);
-        return res.status(500).json({
-          error: "Could not generate first-page preview from this PDF.",
-        });
       }
     }
 
