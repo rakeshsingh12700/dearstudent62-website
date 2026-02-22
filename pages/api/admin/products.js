@@ -1,5 +1,10 @@
-import { DeleteObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { collection, deleteDoc, doc, getDoc, getDocs, limit, query } from "firebase/firestore";
+import {
+  CopyObjectCommand,
+  DeleteObjectCommand,
+  HeadObjectCommand,
+  S3Client,
+} from "@aws-sdk/client-s3";
+import { collection, deleteDoc, doc, getDoc, getDocs, limit, query, setDoc } from "firebase/firestore";
 import { db } from "../../../firebase/config";
 
 const DEFAULT_ADMIN_EMAILS = ["rakesh12700@gmail.com"];
@@ -139,23 +144,75 @@ function buildDerivedKeys(product) {
   return Array.from(keys).filter(Boolean);
 }
 
-async function deleteR2Objects(r2Client, bucket, keys = []) {
-  if (!r2Client || !bucket || !Array.isArray(keys) || keys.length === 0) return;
+function toArchiveKey(key) {
+  const cleaned = String(key || "").trim().replace(/^\/+/, "");
+  return cleaned ? `archive/${cleaned}` : "";
+}
 
-  await Promise.all(
-    keys.map(async (key) => {
-      try {
-        await r2Client.send(
-          new DeleteObjectCommand({
-            Bucket: bucket,
-            Key: key,
-          })
-        );
-      } catch (error) {
-        console.error("R2 delete failed for key:", key, error);
-      }
-    })
-  );
+async function objectExists(r2Client, bucket, key) {
+  if (!r2Client || !bucket || !key) return false;
+  try {
+    await r2Client.send(
+      new HeadObjectCommand({
+        Bucket: bucket,
+        Key: key,
+      })
+    );
+    return true;
+  } catch (error) {
+    const code = String(error?.name || error?.Code || "");
+    if (code === "NotFound" || code === "NoSuchKey") return false;
+    throw error;
+  }
+}
+
+async function moveR2ObjectsToArchive(r2Client, bucket, keys = []) {
+  if (!r2Client || !bucket || !Array.isArray(keys) || keys.length === 0) {
+    return { moved: [], missing: [], failed: [] };
+  }
+
+  const moved = [];
+  const missing = [];
+  const failed = [];
+
+  for (const rawKey of keys) {
+    const sourceKey = String(rawKey || "").trim();
+    if (!sourceKey) continue;
+
+    const exists = await objectExists(r2Client, bucket, sourceKey);
+    if (!exists) {
+      missing.push(sourceKey);
+      continue;
+    }
+
+    const archiveKey = toArchiveKey(sourceKey);
+    if (!archiveKey) {
+      failed.push({ key: sourceKey, reason: "Invalid archive key" });
+      continue;
+    }
+
+    try {
+      await r2Client.send(
+        new CopyObjectCommand({
+          Bucket: bucket,
+          Key: archiveKey,
+          CopySource: `${bucket}/${sourceKey}`,
+          MetadataDirective: "COPY",
+        })
+      );
+      await r2Client.send(
+        new DeleteObjectCommand({
+          Bucket: bucket,
+          Key: sourceKey,
+        })
+      );
+      moved.push({ from: sourceKey, to: archiveKey });
+    } catch (error) {
+      failed.push({ key: sourceKey, reason: String(error?.message || "Copy/delete failed") });
+    }
+  }
+
+  return { moved, missing, failed };
 }
 
 export default async function handler(req, res) {
@@ -202,17 +259,37 @@ export default async function handler(req, res) {
     }
 
     const product = normalizeProduct(snapshot.data(), snapshot.id);
-    await deleteDoc(productRef);
-
     const keysToDelete = buildDerivedKeys(product);
     const r2Client = getR2Client();
     const bucket = String(process.env.R2_BUCKET_NAME || "").trim();
-    await deleteR2Objects(r2Client, bucket, keysToDelete);
+    const archiveResult = await moveR2ObjectsToArchive(r2Client, bucket, keysToDelete);
+
+    const archiveRecord = {
+      ...snapshot.data(),
+      id: product.id,
+      archivedAt: new Date().toISOString(),
+      archivedBy: adminUser.email,
+      archiveStorageKey: toArchiveKey(product.storageKey),
+      archivedKeys: archiveResult.moved,
+      archiveMissingKeys: archiveResult.missing,
+      archivedFromCollection: "products",
+    };
+
+    if (archiveResult.failed.length > 0) {
+      return res.status(500).json({
+        error: "Failed to archive one or more product files. Product was not removed.",
+        failedKeys: archiveResult.failed,
+      });
+    }
+
+    await setDoc(doc(db, "archived_products", productId), archiveRecord, { merge: true });
+    await deleteDoc(productRef);
 
     return res.status(200).json({
       ok: true,
-      deletedId: productId,
-      deletedKeys: keysToDelete,
+      archivedId: productId,
+      archivedKeys: archiveResult.moved,
+      missingKeys: archiveResult.missing,
     });
   } catch (error) {
     console.error("Admin products API failed:", error);

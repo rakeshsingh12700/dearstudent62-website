@@ -1,6 +1,6 @@
-import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, GetObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { collection, getDocs, limit, query, where } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, limit, query, where } from "firebase/firestore";
 import { db } from "../../firebase/config";
 import { PRODUCT_CATALOG } from "../../lib/productCatalog";
 import { getToken as getCheckoutToken } from "../../lib/tokenStore";
@@ -97,6 +97,28 @@ function hasValidCheckoutToken(token, key) {
   return String(tokenData.file).trim() === normalizedKey;
 }
 
+function toArchiveKey(key) {
+  const normalized = String(key || "").trim().replace(/^\/+/, "");
+  return normalized ? `archive/${normalized}` : "";
+}
+
+async function objectExists(r2Client, bucket, key) {
+  if (!r2Client || !bucket || !key) return false;
+  try {
+    await r2Client.send(
+      new HeadObjectCommand({
+        Bucket: bucket,
+        Key: key,
+      })
+    );
+    return true;
+  } catch (error) {
+    const code = String(error?.name || error?.Code || "");
+    if (code === "NotFound" || code === "NoSuchKey") return false;
+    throw error;
+  }
+}
+
 async function getProductByStorageKey(key) {
   const normalizedKey = String(key || "").trim();
   if (!normalizedKey) return null;
@@ -110,7 +132,30 @@ async function getProductByStorageKey(key) {
     const snapshot = await getDocs(productsQuery);
     if (!snapshot.empty) {
       const product = snapshot.docs[0];
-      return { id: product.id };
+      return {
+        id: product.id,
+        archiveStorageKey: String(product.data()?.archiveStorageKey || "").trim(),
+      };
+    }
+  } catch {
+    // Continue with static fallback.
+  }
+
+  try {
+    const archivedQuery = query(
+      collection(db, "archived_products"),
+      where("storageKey", "==", normalizedKey),
+      limit(1)
+    );
+    const archivedSnapshot = await getDocs(archivedQuery);
+    if (!archivedSnapshot.empty) {
+      const archivedProduct = archivedSnapshot.docs[0];
+      return {
+        id: archivedProduct.id,
+        archiveStorageKey:
+          String(archivedProduct.data()?.archiveStorageKey || "").trim() ||
+          toArchiveKey(normalizedKey),
+      };
     }
   } catch {
     // Continue with static fallback.
@@ -119,7 +164,17 @@ async function getProductByStorageKey(key) {
   const staticEntry = Object.values(PRODUCT_CATALOG).find(
     (product) => String(product?.storageKey || "").trim() === normalizedKey
   );
-  return staticEntry?.id ? { id: staticEntry.id } : null;
+  if (!staticEntry?.id) return null;
+
+  try {
+    const archivedDoc = await getDoc(doc(db, "archived_products", staticEntry.id));
+    const archiveStorageKey = archivedDoc.exists()
+      ? String(archivedDoc.data()?.archiveStorageKey || "").trim()
+      : "";
+    return { id: staticEntry.id, archiveStorageKey };
+  } catch {
+    return { id: staticEntry.id, archiveStorageKey: "" };
+  }
 }
 
 export default async function handler(req, res) {
@@ -166,9 +221,21 @@ export default async function handler(req, res) {
 
     const r2Client = getR2Client();
     const fileName = key.replace(/"/g, "");
+    const requestedKey = key;
+    const fallbackArchiveKey =
+      String(productEntry?.archiveStorageKey || "").trim() || toArchiveKey(requestedKey);
+    const downloadKey = (await objectExists(r2Client, bucket, requestedKey))
+      ? requestedKey
+      : fallbackArchiveKey;
+
+    if (!(await objectExists(r2Client, bucket, downloadKey))) {
+      return res.status(404).json({ error: "File not found" });
+    }
+
+    const fileName = requestedKey.replace(/"/g, "");
     const command = new GetObjectCommand({
       Bucket: bucket,
-      Key: key,
+      Key: downloadKey,
       ResponseContentType: "application/pdf",
       ResponseContentDisposition: `attachment; filename="${fileName}"`,
     });
