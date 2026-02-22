@@ -194,7 +194,7 @@ export default function AdminProductsPage() {
     if (!productId || !user) return;
 
     const confirmed = window.confirm(
-      `Delete "${product.title}"?\n\nThis removes the listing and related R2 files.`
+      `Archive "${product.title}"?\n\nThis removes the listing from storefront and moves related R2 files to archive/.`
     );
     if (!confirmed) return;
 
