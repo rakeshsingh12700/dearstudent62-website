@@ -220,7 +220,6 @@ export default async function handler(req, res) {
     }
 
     const r2Client = getR2Client();
-    const fileName = key.replace(/"/g, "");
     const requestedKey = key;
     const fallbackArchiveKey =
       String(productEntry?.archiveStorageKey || "").trim() || toArchiveKey(requestedKey);
