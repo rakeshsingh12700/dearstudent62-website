@@ -89,6 +89,7 @@ export default function AdminPage() {
   const [checkingAccess, setCheckingAccess] = useState(false);
   const [accessAllowed, setAccessAllowed] = useState(false);
   const [accessMessage, setAccessMessage] = useState("");
+  const showAdminNav = Boolean(user && accessAllowed);
 
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState(null);
@@ -231,16 +232,16 @@ export default function AdminPage() {
       <Navbar />
       <main className="auth-page admin-page">
         <section className="container admin-wrap">
-          <AdminShell currentSection="uploads">
+          <AdminShell currentSection={showAdminNav ? "uploads" : "public"}>
             <section className="auth-card admin-card">
               <h1>Admin Upload</h1>
               <p>Upload product PDF and images for listing.</p>
               {!user ? (
                 <div className="auth-status auth-status--error">
                   <p>Please login with your admin account to access uploads.</p>
-                  <p>
-                    <Link href="/auth?next=/admin">Login to Admin</Link>
-                  </p>
+                  <Link href="/auth?next=/admin" className="btn btn-primary auth-status__action">
+                    Login to Admin
+                  </Link>
                 </div>
               ) : (
                 <p className="auth-subtext">
