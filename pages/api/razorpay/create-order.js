@@ -7,6 +7,7 @@ import {
   detectCountryFromRequest,
   getCurrencyOverrideFromRequest,
 } from "../../../lib/pricing";
+import { getDiscountedUnitPrice, getLaunchDiscountRate } from "../../../lib/pricing/launchOffer";
 
 const STATIC_PRODUCTS_BY_ID = products.reduce((acc, product) => {
   if (product?.id) {
@@ -111,8 +112,21 @@ export default async function handler(req, res) {
       });
     }
 
+    const totalItemQuantity = validItems.reduce(
+      (sum, item) => sum + Number(item.quantity || 0),
+      0
+    );
+    const launchDiscountRate = getLaunchDiscountRate(totalItemQuantity);
+
     const computedAmount = validItems.reduce(
-      (sum, item) => sum + Number(item.unitAmount || 0) * Number(item.quantity || 0),
+      (sum, item) => {
+        const discountedUnitAmount = getDiscountedUnitPrice(
+          Number(item.unitAmount || 0),
+          orderCurrency,
+          totalItemQuantity
+        );
+        return sum + discountedUnitAmount * Number(item.quantity || 0);
+      },
       0
     );
 
@@ -139,6 +153,7 @@ export default async function handler(req, res) {
       ...order,
       displayAmount: computedAmount,
       currency: orderCurrency,
+      launchDiscountRate,
     });
   } catch (error) {
     console.error("Razorpay order creation error:", error);

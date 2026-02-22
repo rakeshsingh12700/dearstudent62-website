@@ -8,6 +8,7 @@ import { useAuth } from "../context/AuthContext";
 import { motion } from "framer-motion";
 import productsCatalog from "../data/products";
 import { getThumbnailUrl } from "../lib/productAssetUrls";
+import { getDiscountedUnitPrice, hasDisplayPriceChange } from "../lib/pricing/launchOffer";
 
 const FALLBACK_POPULAR = [...productsCatalog]
   .sort((first, second) => {
@@ -337,6 +338,9 @@ export default function Home() {
                 )}
               </div>
               <p className="hero__social-proof">
+                <span className="hero__offer-note">
+                  Launch Offer: 10% off | 20% off on 2+
+                </span>
                 <a
                   href="https://www.instagram.com/dearstudent62/"
                   target="_blank"
@@ -377,69 +381,101 @@ export default function Home() {
               <h2>Popular</h2>
             </div>
             <div className="home-rail__track" role="list" aria-label="Popular worksheets">
-              {popularRail.map((item) => (
-                <article className="home-rail-card" role="listitem" key={`popular-${item.id}`}>
-                  <div className="home-rail-card__media">
-                    {getThumbnailUrl(item.storageKey, item.imageUrl) ? (
-                      <Image
-                        src={getThumbnailUrl(item.storageKey, item.imageUrl)}
-                        alt={`${item.title} thumbnail`}
-                        width={520}
-                        height={340}
-                        className="home-rail-card__thumb"
-                        unoptimized
-                      />
-                    ) : (
-                      <div className="home-rail-card__thumb-fallback">Worksheet</div>
-                    )}
-                  </div>
-                  <span className="home-rail-card__meta">
-                    {String(item.class || "all").replace("-", " ")} · {String(item.type || "worksheet")}
-                  </span>
-                  <h3>{item.title}</h3>
-                  <p className="home-rail-card__sub">
-                    Bought {Math.max(0, Number(item.purchaseCount || 0))} time
-                    {Math.max(0, Number(item.purchaseCount || 0)) === 1 ? "" : "s"}
-                  </p>
-                  <div className="home-rail-card__foot">
-                    <strong>{formatPrice(item.price, item.displaySymbol, item.displayCurrency)}</strong>
-                    {Number(cartQtyById[item.id] || 0) > 0 ? (
-                      <div className="home-rail-card__stepper" aria-label={`Cart quantity for ${item.title}`}>
-                        <button
-                          type="button"
-                          className="home-rail-card__stepper-btn"
-                          onClick={() => updateRailItemQty(item, -1)}
-                          aria-label={`Decrease quantity for ${item.title}`}
-                        >
-                          -
-                        </button>
-                        <span className="home-rail-card__stepper-count">
-                          {cartQtyById[item.id]}
-                        </span>
-                        <button
-                          type="button"
-                          className="home-rail-card__stepper-btn"
-                          onClick={() => updateRailItemQty(item, 1)}
-                          aria-label={`Increase quantity for ${item.title}`}
-                        >
-                          +
-                        </button>
+              {popularRail.map((item) => {
+                const singleItemPrice = getDiscountedUnitPrice(item.price, item.displayCurrency, 1);
+                const twoPlusItemPrice = getDiscountedUnitPrice(item.price, item.displayCurrency, 2);
+                const hasSingleDiscount = hasDisplayPriceChange(
+                  item.price,
+                  singleItemPrice,
+                  item.displayCurrency
+                );
+                const hasTwoPlusDiscount = hasDisplayPriceChange(
+                  item.price,
+                  twoPlusItemPrice,
+                  item.displayCurrency
+                );
+                return (
+                  <article className="home-rail-card" role="listitem" key={`popular-${item.id}`}>
+                    <div className="home-rail-card__media">
+                      {getThumbnailUrl(item.storageKey, item.imageUrl) ? (
+                        <Image
+                          src={getThumbnailUrl(item.storageKey, item.imageUrl)}
+                          alt={`${item.title} thumbnail`}
+                          width={520}
+                          height={340}
+                          className="home-rail-card__thumb"
+                          unoptimized
+                        />
+                      ) : (
+                        <div className="home-rail-card__thumb-fallback">Worksheet</div>
+                      )}
+                    </div>
+                    <span className="home-rail-card__meta">
+                      {String(item.class || "all").replace("-", " ")} · {String(item.type || "worksheet")}
+                    </span>
+                    <h3>{item.title}</h3>
+                    <p className="home-rail-card__sub">
+                      Bought {Math.max(0, Number(item.purchaseCount || 0))} time
+                      {Math.max(0, Number(item.purchaseCount || 0)) === 1 ? "" : "s"}
+                    </p>
+                    <div className="home-rail-card__foot">
+                      <div className="home-rail-card__price-block">
+                        <p className="home-rail-card__price-tier">
+                          {hasSingleDiscount ? (
+                            <>
+                              <span className="home-rail-card__price-mrp">
+                                {formatPrice(item.price, item.displaySymbol, item.displayCurrency)}
+                              </span>
+                              <strong>{formatPrice(singleItemPrice, item.displaySymbol, item.displayCurrency)}</strong>
+                            </>
+                          ) : (
+                            <strong>{formatPrice(item.price, item.displaySymbol, item.displayCurrency)}</strong>
+                          )}
+                        </p>
+                        {hasTwoPlusDiscount ? (
+                          <p className="home-rail-card__price-tier">
+                            <strong>{`2+: ${formatPrice(twoPlusItemPrice, item.displaySymbol, item.displayCurrency)}`}</strong>
+                          </p>
+                        ) : null}
                       </div>
-                    ) : (
-                      <button
-                        type="button"
-                        className="home-rail-card__cart-btn"
-                        onClick={() => addRailItemToCart(item)}
-                      >
-                        Add to cart
-                      </button>
-                    )}
-                  </div>
-                  {cartNoticeById[item.id] ? (
-                    <p className="home-rail-card__status">{cartNoticeById[item.id]}</p>
-                  ) : null}
-                </article>
-              ))}
+                      {Number(cartQtyById[item.id] || 0) > 0 ? (
+                        <div className="home-rail-card__stepper" aria-label={`Cart quantity for ${item.title}`}>
+                          <button
+                            type="button"
+                            className="home-rail-card__stepper-btn"
+                            onClick={() => updateRailItemQty(item, -1)}
+                            aria-label={`Decrease quantity for ${item.title}`}
+                          >
+                            -
+                          </button>
+                          <span className="home-rail-card__stepper-count">
+                            {cartQtyById[item.id]}
+                          </span>
+                          <button
+                            type="button"
+                            className="home-rail-card__stepper-btn"
+                            onClick={() => updateRailItemQty(item, 1)}
+                            aria-label={`Increase quantity for ${item.title}`}
+                          >
+                            +
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          className="home-rail-card__cart-btn"
+                          onClick={() => addRailItemToCart(item)}
+                        >
+                          Add to cart
+                        </button>
+                      )}
+                    </div>
+                    {cartNoticeById[item.id] ? (
+                      <p className="home-rail-card__status">{cartNoticeById[item.id]}</p>
+                    ) : null}
+                  </article>
+                );
+              })}
             </div>
           </section>
 
@@ -448,65 +484,97 @@ export default function Home() {
               <h2>Recently Added</h2>
             </div>
             <div className="home-rail__track" role="list" aria-label="Recently added worksheets">
-              {recentRail.map((item) => (
-                <article className="home-rail-card" role="listitem" key={`recent-${item.id}`}>
-                  <div className="home-rail-card__media">
-                    {getThumbnailUrl(item.storageKey, item.imageUrl) ? (
-                      <Image
-                        src={getThumbnailUrl(item.storageKey, item.imageUrl)}
-                        alt={`${item.title} thumbnail`}
-                        width={520}
-                        height={340}
-                        className="home-rail-card__thumb"
-                        unoptimized
-                      />
-                    ) : (
-                      <div className="home-rail-card__thumb-fallback">Worksheet</div>
-                    )}
-                  </div>
-                  <span className="home-rail-card__meta">
-                    {String(item.class || "all").replace("-", " ")} · {String(item.type || "worksheet")}
-                  </span>
-                  <h3>{item.title}</h3>
-                  <div className="home-rail-card__foot">
-                    <strong>{formatPrice(item.price, item.displaySymbol, item.displayCurrency)}</strong>
-                    {Number(cartQtyById[item.id] || 0) > 0 ? (
-                      <div className="home-rail-card__stepper" aria-label={`Cart quantity for ${item.title}`}>
-                        <button
-                          type="button"
-                          className="home-rail-card__stepper-btn"
-                          onClick={() => updateRailItemQty(item, -1)}
-                          aria-label={`Decrease quantity for ${item.title}`}
-                        >
-                          -
-                        </button>
-                        <span className="home-rail-card__stepper-count">
-                          {cartQtyById[item.id]}
-                        </span>
-                        <button
-                          type="button"
-                          className="home-rail-card__stepper-btn"
-                          onClick={() => updateRailItemQty(item, 1)}
-                          aria-label={`Increase quantity for ${item.title}`}
-                        >
-                          +
-                        </button>
+              {recentRail.map((item) => {
+                const singleItemPrice = getDiscountedUnitPrice(item.price, item.displayCurrency, 1);
+                const twoPlusItemPrice = getDiscountedUnitPrice(item.price, item.displayCurrency, 2);
+                const hasSingleDiscount = hasDisplayPriceChange(
+                  item.price,
+                  singleItemPrice,
+                  item.displayCurrency
+                );
+                const hasTwoPlusDiscount = hasDisplayPriceChange(
+                  item.price,
+                  twoPlusItemPrice,
+                  item.displayCurrency
+                );
+                return (
+                  <article className="home-rail-card" role="listitem" key={`recent-${item.id}`}>
+                    <div className="home-rail-card__media">
+                      {getThumbnailUrl(item.storageKey, item.imageUrl) ? (
+                        <Image
+                          src={getThumbnailUrl(item.storageKey, item.imageUrl)}
+                          alt={`${item.title} thumbnail`}
+                          width={520}
+                          height={340}
+                          className="home-rail-card__thumb"
+                          unoptimized
+                        />
+                      ) : (
+                        <div className="home-rail-card__thumb-fallback">Worksheet</div>
+                      )}
+                    </div>
+                    <span className="home-rail-card__meta">
+                      {String(item.class || "all").replace("-", " ")} · {String(item.type || "worksheet")}
+                    </span>
+                    <h3>{item.title}</h3>
+                    <div className="home-rail-card__foot">
+                      <div className="home-rail-card__price-block">
+                        <p className="home-rail-card__price-tier">
+                          {hasSingleDiscount ? (
+                            <>
+                              <span className="home-rail-card__price-mrp">
+                                {formatPrice(item.price, item.displaySymbol, item.displayCurrency)}
+                              </span>
+                              <strong>{formatPrice(singleItemPrice, item.displaySymbol, item.displayCurrency)}</strong>
+                            </>
+                          ) : (
+                            <strong>{formatPrice(item.price, item.displaySymbol, item.displayCurrency)}</strong>
+                          )}
+                        </p>
+                        {hasTwoPlusDiscount ? (
+                          <p className="home-rail-card__price-tier">
+                            <strong>{`2+: ${formatPrice(twoPlusItemPrice, item.displaySymbol, item.displayCurrency)}`}</strong>
+                          </p>
+                        ) : null}
                       </div>
-                    ) : (
-                      <button
-                        type="button"
-                        className="home-rail-card__cart-btn"
-                        onClick={() => addRailItemToCart(item)}
-                      >
-                        Add to cart
-                      </button>
-                    )}
-                  </div>
-                  {cartNoticeById[item.id] ? (
-                    <p className="home-rail-card__status">{cartNoticeById[item.id]}</p>
-                  ) : null}
-                </article>
-              ))}
+                      {Number(cartQtyById[item.id] || 0) > 0 ? (
+                        <div className="home-rail-card__stepper" aria-label={`Cart quantity for ${item.title}`}>
+                          <button
+                            type="button"
+                            className="home-rail-card__stepper-btn"
+                            onClick={() => updateRailItemQty(item, -1)}
+                            aria-label={`Decrease quantity for ${item.title}`}
+                          >
+                            -
+                          </button>
+                          <span className="home-rail-card__stepper-count">
+                            {cartQtyById[item.id]}
+                          </span>
+                          <button
+                            type="button"
+                            className="home-rail-card__stepper-btn"
+                            onClick={() => updateRailItemQty(item, 1)}
+                            aria-label={`Increase quantity for ${item.title}`}
+                          >
+                            +
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          className="home-rail-card__cart-btn"
+                          onClick={() => addRailItemToCart(item)}
+                        >
+                          Add to cart
+                        </button>
+                      )}
+                    </div>
+                    {cartNoticeById[item.id] ? (
+                      <p className="home-rail-card__status">{cartNoticeById[item.id]}</p>
+                    ) : null}
+                  </article>
+                );
+              })}
             </div>
           </section>
         </div>
