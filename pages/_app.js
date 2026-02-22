@@ -2,6 +2,7 @@ import { AuthProvider } from "../context/AuthContext";
 import { Baloo_2, Cormorant_Garamond, Nunito, Poppins } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import Head from "next/head";
+import Script from "next/script";
 import { useRouter } from "next/router";
 import SiteFooter from "../components/SiteFooter";
 import "../styles/globals.css";
@@ -41,6 +42,18 @@ export default function App({ Component, pageProps }) {
     <div
       className={`${bodyFont.variable} ${displayFont.variable} ${brandSerifFont.variable} ${brandSansFont.variable}`}
     >
+      <Script
+        src="https://www.googletagmanager.com/gtag/js?id=G-WJ8XC7J81S"
+        strategy="afterInteractive"
+      />
+      <Script id="google-analytics" strategy="afterInteractive">
+        {`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-WJ8XC7J81S');
+        `}
+      </Script>
       <Head>
         <link rel="canonical" href={canonicalUrl} />
         <meta property="og:url" content={canonicalUrl} />
