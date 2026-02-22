@@ -8,6 +8,7 @@ import {
   getThumbnailUrl,
 } from "../lib/productAssetUrls";
 import { formatMoney, getPriceAmount, getPriceCurrency, readCurrencyPreference } from "../lib/pricing/client";
+import { getDiscountedUnitPrice, getLaunchDiscountRate, hasDisplayPriceChange } from "../lib/pricing/launchOffer";
 import { buildRatingStars, formatRatingAverage, normalizeRatingStats } from "../lib/productRatings";
 import { getSubjectBadgeClass, getSubjectLabel } from "../lib/subjectBadge";
 
@@ -640,6 +641,15 @@ export default function WorksheetShop({
     return map;
   }, [products]);
 
+  const productById = useMemo(() => {
+    const map = new Map();
+    products.forEach((product) => {
+      if (!product?.id) return;
+      map.set(product.id, product);
+    });
+    return map;
+  }, [products]);
+
   const normalizedTypeById = useMemo(() => {
     const map = new Map();
     products.forEach((product) => {
@@ -647,6 +657,44 @@ export default function WorksheetShop({
     });
     return map;
   }, [products]);
+
+  useEffect(() => {
+    if (!productsLoaded) return;
+    setCart((prev) => {
+      let changed = false;
+      const next = prev.map((item) => {
+        const runtimeProduct = productById.get(item.id);
+        if (!runtimeProduct) return item;
+
+        const nextPrice = getPriceAmount(runtimeProduct);
+        const nextCurrency = getPriceCurrency(runtimeProduct);
+        const nextSymbol = String(runtimeProduct.displaySymbol || "").trim()
+          || String(item.displaySymbol || "").trim();
+        const currentCurrency = String(item.currency || "INR").toUpperCase();
+        const currentPrice = Number(item.price || 0);
+
+        if (
+          currentCurrency === nextCurrency
+          && currentPrice === nextPrice
+          && String(item.displaySymbol || "").trim() === nextSymbol
+        ) {
+          return item;
+        }
+
+        changed = true;
+        return {
+          ...item,
+          price: nextPrice,
+          currency: nextCurrency,
+          displayPrice: nextPrice,
+          displayCurrency: nextCurrency,
+          displaySymbol: nextSymbol,
+        };
+      });
+
+      return changed ? next : prev;
+    });
+  }, [productById, productsLoaded]);
 
   const isGrammarTopic = selectedTopic === "grammar";
   const activeTab = useMemo(() => {
@@ -858,13 +906,33 @@ export default function WorksheetShop({
     return path.join(" > ");
   }, [dynamicSubjectOptions, selectedClass, selectedSubject, selectedSubtopic, selectedTopic, topicOptions]);
 
-  const cartTotal = useMemo(
-    () => cart.reduce((sum, item) => sum + item.quantity * item.price, 0),
+  const cartItemCount = useMemo(
+    () => cart.reduce((sum, item) => sum + Number(item.quantity || 0), 0),
+    [cart]
+  );
+  const cartSubtotal = useMemo(
+    () => cart.reduce((sum, item) => sum + Number(item.quantity || 0) * Number(item.price || 0), 0),
     [cart]
   );
   const cartCurrency = useMemo(
     () => String(cart[0]?.currency || "INR").toUpperCase(),
     [cart]
+  );
+  const cartDiscountRate = useMemo(
+    () => getLaunchDiscountRate(cartItemCount),
+    [cartItemCount]
+  );
+  const cartTotal = useMemo(
+    () =>
+      cart.reduce((sum, item) => {
+        const unit = getDiscountedUnitPrice(item.price, item.currency || cartCurrency, cartItemCount);
+        return sum + Number(item.quantity || 0) * unit;
+      }, 0),
+    [cart, cartCurrency, cartItemCount]
+  );
+  const cartDiscountAmount = useMemo(
+    () => Math.max(0, cartSubtotal - cartTotal),
+    [cartSubtotal, cartTotal]
   );
 
   const cartQuantityById = useMemo(
@@ -1364,6 +1432,12 @@ export default function WorksheetShop({
                 const thumbnailUrl = getThumbnailUrl(product.storageKey, product.imageUrl);
                 const ageLabel = !product.hideAgeLabel && product.ageLabel ? product.ageLabel : "";
                 const ratingStats = normalizeRatingStats(product);
+                const basePrice = getPriceAmount(product);
+                const currency = getPriceCurrency(product);
+                const singleItemPrice = getDiscountedUnitPrice(basePrice, currency, 1);
+                const twoPlusItemPrice = getDiscountedUnitPrice(basePrice, currency, 2);
+                const hasSingleDiscount = hasDisplayPriceChange(basePrice, singleItemPrice, currency);
+                const hasTwoPlusDiscount = hasDisplayPriceChange(basePrice, twoPlusItemPrice, currency);
                 return (
                   <article className="worksheet-card" key={product.id}>
                     <div className="worksheet-card__media worksheet-card__media--pdf">
@@ -1468,9 +1542,23 @@ export default function WorksheetShop({
                       )}
                     </p>
                     <div className="worksheet-card__footer">
-                      <p className="worksheet-card__price">
-                        {formatMoney(getPriceAmount(product), getPriceCurrency(product))}
-                      </p>
+                      <div className="worksheet-card__price-block">
+                        <p className="worksheet-card__price-tier">
+                          {hasSingleDiscount ? (
+                            <>
+                              <span className="worksheet-card__price-mrp">{formatMoney(basePrice, currency)}</span>
+                              <strong>{formatMoney(singleItemPrice, currency)}</strong>
+                            </>
+                          ) : (
+                            <strong>{formatMoney(basePrice, currency)}</strong>
+                          )}
+                        </p>
+                        {hasTwoPlusDiscount ? (
+                          <p className="worksheet-card__price-tier">
+                            <strong>{`2+: ${formatMoney(twoPlusItemPrice, currency)}`}</strong>
+                          </p>
+                        ) : null}
+                      </div>
                       <div className="worksheet-card__actions">
                         {quantity === 0 ? (
                           <button
@@ -1630,41 +1718,64 @@ export default function WorksheetShop({
 
             <div className="worksheet-cart__items">
               {cart.length === 0 && <p className="worksheet-cart__empty">Your cart is empty.</p>}
-              {cart.map((item) => (
-                <div className="worksheet-cart__item" key={item.id}>
-                  <div className="worksheet-cart__thumb-wrap">
-                    <span className={getSubjectBadgeClass(item.subject)}>
-                      {getSubjectLabel(item.subject)}
-                    </span>
+              {cart.map((item) => {
+                const currency = item.currency || "INR";
+                const discountedUnit = getDiscountedUnitPrice(item.price, currency, cartItemCount);
+                const showUnitDiscount = hasDisplayPriceChange(item.price, discountedUnit, currency);
+                return (
+                  <div className="worksheet-cart__item" key={item.id}>
+                    <div className="worksheet-cart__thumb-wrap">
+                      <span className={getSubjectBadgeClass(item.subject)}>
+                        {getSubjectLabel(item.subject)}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="worksheet-cart__item-title">{item.title}</p>
+                      <p className="worksheet-cart__item-price">
+                        {showUnitDiscount ? (
+                          <>
+                            <span className="worksheet-cart__item-price-old">
+                              {formatMoney(item.price, currency)}
+                            </span>
+                            <strong>{formatMoney(discountedUnit, currency)}</strong>
+                          </>
+                        ) : (
+                          <strong>{formatMoney(item.price, currency)}</strong>
+                        )}
+                      </p>
+                    </div>
+                    <div className="worksheet-cart__qty">
+                      <button
+                        type="button"
+                        onClick={() => updateCartItem(item, -1)}
+                        aria-label={`Decrease quantity for ${item.title}`}
+                      >
+                        -
+                      </button>
+                      <span>{item.quantity}</span>
+                      <button
+                        type="button"
+                        onClick={() => updateCartItem(item, 1)}
+                        aria-label={`Increase quantity for ${item.title}`}
+                      >
+                        +
+                      </button>
+                    </div>
                   </div>
-                  <div>
-                    <p className="worksheet-cart__item-title">{item.title}</p>
-                    <p className="worksheet-cart__item-price">
-                      {formatMoney(item.price, item.currency || "INR")}
-                    </p>
-                  </div>
-                  <div className="worksheet-cart__qty">
-                    <button
-                      type="button"
-                      onClick={() => updateCartItem(item, -1)}
-                      aria-label={`Decrease quantity for ${item.title}`}
-                    >
-                      -
-                    </button>
-                    <span>{item.quantity}</span>
-                    <button
-                      type="button"
-                      onClick={() => updateCartItem(item, 1)}
-                      aria-label={`Increase quantity for ${item.title}`}
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             <div className="worksheet-cart__footer">
+              {cartDiscountRate > 0 && cartDiscountAmount > 0 ? (
+                <p className="worksheet-cart__discount-line">
+                  <span className="worksheet-cart__discount-copy">
+                    <span>Discount</span>
+                    <small>{Math.round(cartDiscountRate * 100)}% applied</small>
+                  </span>
+                  <strong>-{formatMoney(cartDiscountAmount, cartCurrency)}</strong>
+                </p>
+              ) : null}
               <p>
                 Total <strong>{formatMoney(cartTotal, cartCurrency)}</strong>
               </p>

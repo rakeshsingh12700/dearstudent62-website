@@ -5,6 +5,7 @@ import Navbar from "../components/Navbar";
 import { useAuth } from "../context/AuthContext";
 import products from "../data/products";
 import { formatMoney, getCurrencySymbol, getPriceCurrency, readCurrencyPreference } from "../lib/pricing/client";
+import { getDiscountedUnitPrice } from "../lib/pricing/launchOffer";
 import { getSubjectBadgeClass, getSubjectLabel } from "../lib/subjectBadge";
 
 const RAZORPAY_SDK_SRC = "https://checkout.razorpay.com/v1/checkout.js";
@@ -217,9 +218,37 @@ export default function Checkout() {
     () => getPriceCurrency(displayCartPreviewItems[0] || { displayCurrency: readCurrencyPreference() || "INR" }),
     [displayCartPreviewItems]
   );
-  const totalAmount = useMemo(
+  const launchItemCount = useMemo(
+    () => displayCartPreviewItems.reduce((sum, item) => sum + Number(item.quantity || 0), 0),
+    [displayCartPreviewItems]
+  );
+  const subtotalAmount = useMemo(
     () => displayCartPreviewItems.reduce((sum, item) => sum + Number(item.lineTotal || 0), 0),
     [displayCartPreviewItems]
+  );
+  const launchTierAmount = useMemo(
+    () =>
+      displayCartPreviewItems.reduce((sum, item) => {
+        const launchUnit = getDiscountedUnitPrice(item.price, item.currency, 1);
+        return sum + Number(item.quantity || 0) * launchUnit;
+      }, 0),
+    [displayCartPreviewItems]
+  );
+  const totalAmount = useMemo(
+    () =>
+      displayCartPreviewItems.reduce((sum, item) => {
+        const unit = getDiscountedUnitPrice(item.price, item.currency, launchItemCount);
+        return sum + Number(item.quantity || 0) * unit;
+      }, 0),
+    [displayCartPreviewItems, launchItemCount]
+  );
+  const launchDiscountAmount = useMemo(
+    () => Math.max(0, subtotalAmount - launchTierAmount),
+    [subtotalAmount, launchTierAmount]
+  );
+  const multiItemDiscountAmount = useMemo(
+    () => Math.max(0, launchTierAmount - totalAmount),
+    [launchTierAmount, totalAmount]
   );
   const actionLabel = loading
     ? "Processing..."
@@ -406,7 +435,13 @@ export default function Checkout() {
                         </p>
                         <div className="checkout-item__meta">
                           <span>Qty {item.quantity}</span>
-                          <strong>{formatMoney(item.lineTotal, item.currency)}</strong>
+                          <strong>
+                            {formatMoney(
+                              getDiscountedUnitPrice(item.price, item.currency, launchItemCount)
+                                * Number(item.quantity || 0),
+                              item.currency
+                            )}
+                          </strong>
                         </div>
                       </div>
                     </article>
@@ -445,8 +480,20 @@ export default function Checkout() {
               </div>
               <div className="checkout-summary-row">
                 <span>Subtotal</span>
-                <strong>{pricesReady ? formatMoney(totalAmount, displayCurrency) : "..."}</strong>
+                <strong>{pricesReady ? formatMoney(subtotalAmount, displayCurrency) : "..."}</strong>
               </div>
+              {launchDiscountAmount > 0 ? (
+                <div className="checkout-summary-row">
+                  <span>Launch discount (10%)</span>
+                  <strong>-{pricesReady ? formatMoney(launchDiscountAmount, displayCurrency) : "..."}</strong>
+                </div>
+              ) : null}
+              {multiItemDiscountAmount > 0 ? (
+                <div className="checkout-summary-row">
+                  <span>Multi-item discount (+10%)</span>
+                  <strong>-{pricesReady ? formatMoney(multiItemDiscountAmount, displayCurrency) : "..."}</strong>
+                </div>
+              ) : null}
               <div className="checkout-summary-row">
                 <span>Tax</span>
                 <strong>{getCurrencySymbol(displayCurrency)}0</strong>
