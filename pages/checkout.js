@@ -9,6 +9,7 @@ import { getSubjectBadgeClass, getSubjectLabel } from "../lib/subjectBadge";
 
 const RAZORPAY_SDK_SRC = "https://checkout.razorpay.com/v1/checkout.js";
 const CART_STORAGE_KEY = "ds-worksheet-cart-v1";
+const LIVE_HOSTS = new Set(["dearstudent.in", "www.dearstudent.in"]);
 const PRODUCTS_BY_ID = products.reduce((acc, product) => {
   acc[product.id] = product;
   return acc;
@@ -254,6 +255,15 @@ export default function Checkout() {
 
       if (!process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID) {
         alert("Missing NEXT_PUBLIC_RAZORPAY_KEY_ID in environment.");
+        return;
+      }
+
+      if (
+        typeof window !== "undefined" &&
+        LIVE_HOSTS.has(String(window.location.hostname || "").toLowerCase()) &&
+        String(process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "").startsWith("rzp_test_")
+      ) {
+        alert("Live checkout is blocked: test Razorpay key detected on production domain.");
         return;
       }
 

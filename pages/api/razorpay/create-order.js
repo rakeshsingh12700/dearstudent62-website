@@ -40,11 +40,19 @@ export default async function handler(req, res) {
     const keyId =
       process.env.RAZORPAY_KEY_ID || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
     const keySecret = process.env.RAZORPAY_KEY_SECRET;
+    const host = String(req.headers?.host || "").trim().toLowerCase();
+    const isLiveDomain = host === "dearstudent.in" || host === "www.dearstudent.in";
 
     if (!keyId || !keySecret) {
       return res.status(500).json({
         error:
           "Razorpay server keys are missing. Set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET in Vercel.",
+      });
+    }
+
+    if (isLiveDomain && String(keyId).startsWith("rzp_test_")) {
+      return res.status(503).json({
+        error: "Checkout blocked on live domain because test Razorpay key is configured.",
       });
     }
 
