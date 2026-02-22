@@ -806,10 +806,21 @@ button {
 }
 
 .home-rail-card__media {
+  position: relative;
+  border-radius: 10px;
+  overflow: visible;
+  height: 120px;
+}
+
+.home-rail-card__media-link {
+  display: block;
+  width: 100%;
+  height: 100%;
   border-radius: 10px;
   overflow: hidden;
   background: #f8fafc;
-  height: 120px;
+  color: inherit;
+  text-decoration: none;
 }
 
 .home-rail-card__thumb {
@@ -841,11 +852,27 @@ button {
   text-transform: uppercase;
 }
 
+.home-rail-card__meta-link,
+.home-rail-card__title-link,
+.home-rail-card__sub-link {
+  color: inherit;
+  text-decoration: none;
+}
+
 .home-rail-card h3 {
   margin: 0;
   color: #111827;
   font-size: 0.92rem;
   line-height: 1.36;
+}
+
+.home-rail-card__media-link:focus-visible,
+.home-rail-card__meta-link:focus-visible,
+.home-rail-card__title-link:focus-visible,
+.home-rail-card__sub-link:focus-visible {
+  outline: 2px solid #f59e0b;
+  outline-offset: 2px;
+  border-radius: 6px;
 }
 
 .home-rail-card__sub {
@@ -5038,6 +5065,34 @@ button {
 
   .product-details-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 761px) and (max-width: 980px) {
+  .worksheet-card__footer {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .worksheet-card__actions {
+    flex: 1 1 100%;
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .worksheet-card__actions .cart-stepper,
+  .worksheet-card__actions .cart-stepper--empty {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .worksheet-card__actions .cart-stepper {
+    justify-content: space-between;
+  }
+
+  .cart-stepper__count {
+    flex: 1;
   }
 }
 
