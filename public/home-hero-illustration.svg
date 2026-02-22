@@ -1,0 +1,52 @@
+<svg width="760" height="520" viewBox="0 0 760 520" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="shirtBoy" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFD55C"/>
+      <stop offset="1" stop-color="#F4B632"/>
+    </linearGradient>
+    <linearGradient id="shirtGirl" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#A2E4EA"/>
+      <stop offset="1" stop-color="#81D2DB"/>
+    </linearGradient>
+  </defs>
+
+  <ellipse cx="545" cy="170" rx="120" ry="110" fill="#F2EFD8"/>
+  <ellipse cx="360" cy="210" rx="85" ry="80" fill="#F0EEDC"/>
+
+  <path d="M260 390L420 320L730 375L640 440L700 470L510 488L480 462L380 490L322 450L280 458L244 430L300 410L260 390Z" fill="#F6AE6F"/>
+
+  <ellipse cx="446" cy="259" rx="42" ry="42" fill="#4A2B22"/>
+  <path d="M405 257C405 232 423 210 447 210C470 210 488 232 488 257V270H405V257Z" fill="#3A211D"/>
+  <circle cx="446" cy="265" r="38" fill="#F5B57F"/>
+  <ellipse cx="436" cy="266" rx="4" ry="5" fill="#2A1E1D"/>
+  <ellipse cx="458" cy="266" rx="4" ry="5" fill="#2A1E1D"/>
+  <path d="M431 285C437 293 455 293 462 285" stroke="#A55239" stroke-width="4" stroke-linecap="round"/>
+
+  <path d="M375 355C375 325 401 300 433 300H460C492 300 518 325 518 355V388H375V355Z" fill="url(#shirtBoy)"/>
+  <path d="M430 385L490 450" stroke="#5A88CF" stroke-width="26" stroke-linecap="round"/>
+  <path d="M395 390L345 445" stroke="#5A88CF" stroke-width="26" stroke-linecap="round"/>
+  <ellipse cx="509" cy="459" rx="18" ry="10" fill="#E8F0F6"/>
+  <ellipse cx="334" cy="454" rx="18" ry="10" fill="#E8F0F6"/>
+
+  <path d="M530 254C530 224 553 200 584 200C616 200 640 224 640 254V268H530V254Z" fill="#A95C4F"/>
+  <circle cx="585" cy="273" r="44" fill="#F7BE8D"/>
+  <ellipse cx="574" cy="273" rx="4" ry="5" fill="#2A1E1D"/>
+  <ellipse cx="597" cy="273" rx="4" ry="5" fill="#2A1E1D"/>
+  <path d="M568 293C574 301 594 301 601 293" stroke="#A55239" stroke-width="4" stroke-linecap="round"/>
+
+  <path d="M540 365C540 330 568 303 603 303H627C661 303 689 330 689 365V395H540V365Z" fill="url(#shirtGirl)"/>
+  <path d="M613 394L684 451" stroke="#2E6CB5" stroke-width="26" stroke-linecap="round"/>
+  <path d="M569 391L518 447" stroke="#2E6CB5" stroke-width="26" stroke-linecap="round"/>
+  <ellipse cx="696" cy="458" rx="18" ry="10" fill="#E8F0F6"/>
+  <ellipse cx="503" cy="452" rx="18" ry="10" fill="#E8F0F6"/>
+
+  <rect x="545" y="402" width="86" height="108" rx="14" transform="rotate(12 545 402)" fill="#F3F4F6" stroke="#E2D3B2"/>
+  <text x="578" y="462" transform="rotate(12 578 462)" fill="#9CA3AF" font-size="34" font-family="Arial" font-weight="700">ABC</text>
+
+  <rect x="478" y="420" width="86" height="108" rx="14" transform="rotate(-11 478 420)" fill="#F3F4F6" stroke="#E2D3B2"/>
+  <text x="508" y="479" transform="rotate(-11 508 479)" fill="#9CA3AF" font-size="34" font-family="Arial" font-weight="700">123</text>
+
+  <rect x="511" y="136" width="36" height="36" rx="18" fill="#FFF3D9"/>
+  <path d="M529 145V159" stroke="#F07A29" stroke-width="2.8" stroke-linecap="round"/>
+  <path d="M522 152H536" stroke="#F07A29" stroke-width="2.8" stroke-linecap="round"/>
+</svg>

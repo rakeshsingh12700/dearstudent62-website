@@ -40,7 +40,9 @@ export default function App({ Component, pageProps }) {
 
   return (
     <div
-      className={`${bodyFont.variable} ${displayFont.variable} ${brandSerifFont.variable} ${brandSansFont.variable}`}
+      className={`${bodyFont.variable} ${displayFont.variable} ${brandSerifFont.variable} ${brandSansFont.variable} ${
+        router.pathname === "/" ? "page-home" : ""
+      }`}
     >
       <Script
         src="https://www.googletagmanager.com/gtag/js?id=G-WJ8XC7J81S"
