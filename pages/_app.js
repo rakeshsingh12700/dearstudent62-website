@@ -1,5 +1,7 @@
 import { AuthProvider } from "../context/AuthContext";
 import { Baloo_2, Cormorant_Garamond, Nunito, Poppins } from "next/font/google";
+import Head from "next/head";
+import { useRouter } from "next/router";
 import SiteFooter from "../components/SiteFooter";
 import "../styles/globals.css";
 
@@ -27,11 +29,21 @@ const brandSansFont = Poppins({
   weight: ["600"],
 });
 
+const SITE_URL = "https://dearstudent.in";
+
 export default function App({ Component, pageProps }) {
+  const router = useRouter();
+  const path = String(router.asPath || "/").split("?")[0].split("#")[0] || "/";
+  const canonicalUrl = `${SITE_URL}${path === "/" ? "" : path}`;
+
   return (
     <div
       className={`${bodyFont.variable} ${displayFont.variable} ${brandSerifFont.variable} ${brandSansFont.variable}`}
     >
+      <Head>
+        <link rel="canonical" href={canonicalUrl} />
+        <meta property="og:url" content={canonicalUrl} />
+      </Head>
       <AuthProvider>
         <div className="app-shell">
           <div className="app-shell__main">

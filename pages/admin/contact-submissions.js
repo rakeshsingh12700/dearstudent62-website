@@ -43,6 +43,7 @@ export default function AdminContactSubmissionsPage() {
   const [checkingAccess, setCheckingAccess] = useState(false);
   const [accessAllowed, setAccessAllowed] = useState(false);
   const [accessMessage, setAccessMessage] = useState("");
+  const showAdminNav = Boolean(user && accessAllowed);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -242,7 +243,7 @@ export default function AdminContactSubmissionsPage() {
       <Navbar />
       <main className="auth-page admin-page admin-submissions-page">
         <section className="container admin-wrap">
-          <AdminShell currentSection="support">
+          <AdminShell currentSection={showAdminNav ? "support" : "public"}>
             <section className="auth-card admin-card">
               <div className="admin-card__header">
                 <div>
@@ -256,9 +257,12 @@ export default function AdminContactSubmissionsPage() {
               {!user ? (
                 <div className="auth-status auth-status--error">
                   <p>Please login with your admin account to view submissions.</p>
-                  <p>
-                    <Link href="/auth?next=/admin/contact-submissions">Login to Admin</Link>
-                  </p>
+                  <Link
+                    href="/auth?next=/admin/contact-submissions"
+                    className="btn btn-primary auth-status__action"
+                  >
+                    Login to Admin
+                  </Link>
                 </div>
               ) : (
                 <p className="auth-subtext">

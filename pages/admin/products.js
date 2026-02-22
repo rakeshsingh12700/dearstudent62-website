@@ -57,6 +57,7 @@ export default function AdminProductsPage() {
   const [checkingAccess, setCheckingAccess] = useState(false);
   const [accessAllowed, setAccessAllowed] = useState(false);
   const [accessMessage, setAccessMessage] = useState("");
+  const showAdminNav = Boolean(user && accessAllowed);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -228,7 +229,7 @@ export default function AdminProductsPage() {
       <Navbar />
       <main className="auth-page admin-page admin-products-page">
         <section className="container admin-wrap">
-          <AdminShell currentSection="products">
+          <AdminShell currentSection={showAdminNav ? "products" : "public"}>
             <section className="auth-card admin-card">
               <div className="admin-card__header">
                 <div>
@@ -240,9 +241,9 @@ export default function AdminProductsPage() {
               {!user ? (
                 <div className="auth-status auth-status--error">
                   <p>Please login with your admin account to view products.</p>
-                  <p>
-                    <Link href="/auth?next=/admin/products">Login to Admin</Link>
-                  </p>
+                  <Link href="/auth?next=/admin/products" className="btn btn-primary auth-status__action">
+                    Login to Admin
+                  </Link>
                 </div>
               ) : (
                 <p className="auth-subtext">

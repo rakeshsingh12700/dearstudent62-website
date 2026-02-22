@@ -56,6 +56,7 @@ export default function AdminReviewsPage() {
   const [checkingAccess, setCheckingAccess] = useState(false);
   const [accessAllowed, setAccessAllowed] = useState(false);
   const [accessMessage, setAccessMessage] = useState("");
+  const showAdminNav = Boolean(user && accessAllowed);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -216,7 +217,7 @@ export default function AdminReviewsPage() {
       <Navbar />
       <main className="auth-page admin-page admin-reviews-page">
         <section className="container admin-wrap">
-          <AdminShell currentSection="reviews">
+          <AdminShell currentSection={showAdminNav ? "reviews" : "public"}>
             <section className="auth-card admin-card">
               <div className="admin-card__header">
                 <div>
@@ -230,9 +231,9 @@ export default function AdminReviewsPage() {
               {!user ? (
                 <div className="auth-status auth-status--error">
                   <p>Please login with your admin account to view reviews.</p>
-                  <p>
-                    <Link href="/auth?next=/admin/reviews">Login to Admin</Link>
-                  </p>
+                  <Link href="/auth?next=/admin/reviews" className="btn btn-primary auth-status__action">
+                    Login to Admin
+                  </Link>
                 </div>
               ) : (
                 <p className="auth-subtext">

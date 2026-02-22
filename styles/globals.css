@@ -1732,6 +1732,10 @@ button {
   font-weight: 700;
 }
 
+.auth-status__action {
+  margin-top: 10px;
+}
+
 .auth-status--error {
   background: #fef2f2;
   border: 1px solid #fecaca;
@@ -1809,6 +1813,10 @@ button {
   .admin-shell {
     grid-template-columns: 220px minmax(0, 1fr);
     align-items: start;
+  }
+
+  .admin-shell--content-only {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .admin-shell__nav {
