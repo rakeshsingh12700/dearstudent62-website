@@ -1,5 +1,6 @@
 import { AuthProvider } from "../context/AuthContext";
 import { Baloo_2, Cormorant_Garamond, Nunito, Poppins } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import SiteFooter from "../components/SiteFooter";
@@ -52,6 +53,7 @@ export default function App({ Component, pageProps }) {
           <SiteFooter />
         </div>
       </AuthProvider>
+      <Analytics />
     </div>
   );
 }
