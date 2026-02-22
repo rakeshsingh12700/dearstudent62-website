@@ -251,8 +251,11 @@ export default function Navbar() {
           {user && mobileProfileOpen && (
             <div className="navbar__mobile-profile-menu">
               <>
+                <Link href="/profile" onClick={() => setMobileProfileOpen(false)}>
+                  Profile
+                </Link>
                 <Link href="/my-purchases" onClick={() => setMobileProfileOpen(false)}>
-                  My History
+                  My Purchases
                 </Link>
                 <button type="button" onClick={handleLogout}>
                   Logout
@@ -314,8 +317,11 @@ export default function Navbar() {
                 </button>
                 {profileOpen && (
                   <div className="navbar__profile-menu">
+                    <Link href="/profile" onClick={() => setProfileOpen(false)}>
+                      Profile
+                    </Link>
                     <Link href="/my-purchases" onClick={() => setProfileOpen(false)}>
-                      My History
+                      My Purchases
                     </Link>
                     <button onClick={handleLogout} className="btn-link" type="button">
                       Logout
@@ -359,8 +365,11 @@ export default function Navbar() {
               {user && (
                 <>
                   <div className="navbar__mobile-group-title">Account</div>
+                  <Link href="/profile" onClick={() => setMobileMenuOpen(false)}>
+                    Profile
+                  </Link>
                   <Link href="/my-purchases" onClick={() => setMobileMenuOpen(false)}>
-                    My History
+                    My Purchases
                   </Link>
                   <button type="button" className="navbar__mobile-logout" onClick={handleLogout}>
                     Logout

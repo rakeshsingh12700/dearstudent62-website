@@ -29,11 +29,12 @@ const TYPE_TO_CATEGORY_LABEL = {
   bundle: "Bundle",
 };
 
-const SUBJECT_VALUES = new Set(["english", "maths", "evs"]);
+const SUBJECT_VALUES = new Set(["english", "maths", "evs", "hindi"]);
 const TOPICS_BY_SUBJECT = {
   english: new Set(["reading", "writing", "grammar", "poems", "sight-words"]),
   maths: new Set(["numbers", "addition", "subtraction", "shapes", "measurement"]),
   evs: new Set(["environment", "plants", "animals", "water", "food"]),
+  hindi: new Set(),
 };
 const ENGLISH_GRAMMAR_SUBTOPICS = new Set([
   "noun",

@@ -13,20 +13,21 @@ import { getSubjectBadgeClass, getSubjectLabel } from "../lib/subjectBadge";
 
 const CLASS_OPTIONS = [
   { value: "all", label: "All" },
-  { value: "pre-nursery", label: "PreN" },
+  { value: "pre-nursery", label: "Pre-Nursery" },
   { value: "nursery", label: "Nursery" },
   { value: "lkg", label: "LKG" },
   { value: "ukg", label: "UKG" },
-  { value: "class-1", label: "C1" },
-  { value: "class-2", label: "C2" },
-  { value: "class-3", label: "C3" }
+  { value: "class-1", label: "Class 1" },
+  { value: "class-2", label: "Class 2" },
+  { value: "class-3", label: "Class 3" }
 ];
 
 const SUBJECT_OPTIONS = [
   { value: "all", label: "All" },
   { value: "english", label: "English" },
   { value: "maths", label: "Maths" },
-  { value: "evs", label: "EVS" }
+  { value: "evs", label: "EVS" },
+  { value: "hindi", label: "Hindi" }
 ];
 
 const TYPE_OPTIONS = [
@@ -65,7 +66,8 @@ const TOPIC_OPTIONS_BY_SUBJECT = {
     { value: "animals", label: "Animals" },
     { value: "water", label: "Water" },
     { value: "food", label: "Food" }
-  ]
+  ],
+  hindi: []
 };
 
 const GRAMMAR_SUBTOPIC_OPTIONS = [
@@ -84,7 +86,8 @@ const GRAMMAR_SUBTOPIC_OPTIONS = [
 const SUBJECT_PATTERNS = {
   english: [/\benglish\b/i],
   maths: [/\bmaths?\b/i, /\bmathematics\b/i, /\baddition\b/i, /\bsubtraction\b/i],
-  evs: [/\bevs\b/i, /\benvironment(al)? studies\b/i, /\benvironment\b/i]
+  evs: [/\bevs\b/i, /\benvironment(al)? studies\b/i, /\benvironment\b/i],
+  hindi: [/\bhindi\b/i]
 };
 
 const TOPIC_PATTERNS = {
