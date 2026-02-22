@@ -26,6 +26,7 @@ const SUBJECT_OPTIONS = [
   { value: "english", label: "English" },
   { value: "maths", label: "Maths" },
   { value: "evs", label: "EVS" },
+  { value: "hindi", label: "Hindi" },
 ];
 
 const TOPIC_OPTIONS_BY_SUBJECT = {
@@ -50,6 +51,7 @@ const TOPIC_OPTIONS_BY_SUBJECT = {
     { value: "water", label: "Water" },
     { value: "food", label: "Food" },
   ],
+  hindi: [],
 };
 
 const GRAMMAR_SUBTOPIC_OPTIONS = [

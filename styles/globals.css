@@ -3609,6 +3609,11 @@ button {
   color: #424a82;
 }
 
+.subject-thumb--hindi {
+  background: #ffe7d6;
+  color: #7a3f16;
+}
+
 .subject-thumb--general {
   background: #fcfcd6;
   color: #666645;

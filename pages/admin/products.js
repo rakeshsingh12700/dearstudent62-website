@@ -45,6 +45,7 @@ function formatProductDate(value) {
 function humanize(value) {
   const slug = String(value || "").trim();
   if (!slug) return "NA";
+  if (slug.toLowerCase() === "evs") return "EVS";
   return slug
     .split("-")
     .filter(Boolean)
