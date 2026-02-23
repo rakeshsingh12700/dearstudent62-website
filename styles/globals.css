@@ -2273,6 +2273,55 @@ button {
   gap: 18px;
 }
 
+.admin-page .auth-card {
+  width: min(920px, 100%);
+  max-width: 100%;
+}
+
+.admin-page .auth-form,
+.admin-page .auth-status,
+.admin-page .auth-form p,
+.admin-page .auth-form label {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.admin-page .auth-form input,
+.admin-page .auth-form select {
+  width: 100%;
+  min-width: 0;
+}
+
+.admin-page .auth-form input[type="file"] {
+  width: 100%;
+}
+
+.admin-page .auth-status code {
+  white-space: normal;
+  word-break: break-word;
+}
+
+.admin-page .auth-status {
+  display: grid;
+  gap: 10px;
+  padding: 14px 14px;
+}
+
+.admin-page .auth-status p {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.admin-page .auth-status__action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  width: fit-content;
+  margin-top: 2px;
+  padding-inline: 18px;
+}
+
 .admin-shell {
   width: 100%;
   display: grid;
@@ -4768,6 +4817,16 @@ button {
     border-radius: 18px;
   }
 
+  .admin-page {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .admin-page .auth-card {
+    width: 100%;
+    padding: 20px 14px;
+  }
+
   .admin-shell__nav {
     padding: 10px;
   }
@@ -4833,6 +4892,15 @@ button {
   }
 
   .admin-pagination .btn {
+    width: 100%;
+  }
+
+  .admin-page .auth-form input,
+  .admin-page .auth-form select {
+    font-size: 16px;
+  }
+
+  .admin-page .auth-status__action {
     width: 100%;
   }
 

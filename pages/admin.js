@@ -71,6 +71,65 @@ function fileName(file) {
   return file?.name ? String(file.name) : "Not selected";
 }
 
+async function generatePreviewImageFile(pdfFile) {
+  if (!pdfFile) return null;
+
+  let pdf = null;
+  try {
+    const pdfjs = await import("pdfjs-dist/build/pdf.mjs");
+    if (!pdfjs.GlobalWorkerOptions.workerSrc) {
+      pdfjs.GlobalWorkerOptions.workerSrc =
+        "https://unpkg.com/pdfjs-dist@5.4.624/build/pdf.worker.min.mjs";
+    }
+
+    const buffer = await pdfFile.arrayBuffer();
+    const loadingTask = pdfjs.getDocument({
+      data: new Uint8Array(buffer),
+    });
+    pdf = await loadingTask.promise;
+
+    const page = await pdf.getPage(1);
+    const baseViewport = page.getViewport({ scale: 1 });
+    const maxWidth = 960;
+    const scale = Math.max(maxWidth / Math.max(baseViewport.width, 1), 1);
+    const viewport = page.getViewport({ scale });
+
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(Math.ceil(viewport.width), 1);
+    canvas.height = Math.max(Math.ceil(viewport.height), 1);
+    const context = canvas.getContext("2d");
+    if (!context) {
+      throw new Error("Canvas context is unavailable");
+    }
+
+    context.fillStyle = "#ffffff";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    await page.render({
+      canvasContext: context,
+      viewport,
+    }).promise;
+
+    const blob = await new Promise((resolve, reject) => {
+      canvas.toBlob((value) => {
+        if (value) resolve(value);
+        else reject(new Error("Could not generate preview image"));
+      }, "image/png");
+    });
+
+    return new File([blob], `${pdfFile.name.replace(/\.pdf$/i, "")}__preview1.png`, {
+      type: "image/png",
+      lastModified: Date.now(),
+    });
+  } catch (error) {
+    console.error("Preview image generation failed in browser:", error);
+    return null;
+  } finally {
+    if (pdf) {
+      await pdf.destroy();
+    }
+  }
+}
+
 export default function AdminPage() {
   const { user } = useAuth();
   const [form, setForm] = useState({
@@ -194,6 +253,14 @@ export default function AdminPage() {
       payload.append("showPreviewPage", String(form.showPreviewPage));
       payload.append("pdf", files.pdf);
       payload.append("coverImage", files.coverImage);
+      if (form.showPreviewPage) {
+        try {
+          const previewImage = await generatePreviewImageFile(files.pdf);
+          if (previewImage) payload.append("previewImage", previewImage);
+        } catch (previewGenError) {
+          console.error("Client preview generation failed; using server fallback.", previewGenError);
+        }
+      }
 
       if (!user) {
         throw new Error("Please login as admin before uploading.");
