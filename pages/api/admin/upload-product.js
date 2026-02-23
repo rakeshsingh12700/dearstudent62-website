@@ -149,7 +149,7 @@ function buildPdfKey({ classValue, typeValue, title, price }) {
 async function parseMultipart(req) {
   const form = formidable({
     multiples: false,
-    maxFiles: 2,
+    maxFiles: 3,
     maxFileSize: 40 * 1024 * 1024,
     allowEmptyFiles: false,
   });
@@ -335,6 +335,7 @@ export default async function handler(req, res) {
 
     const pdfFile = toSingleFile(files.pdf);
     const coverFile = toSingleFile(files.coverImage);
+    const previewImageFile = toSingleFile(files.previewImage);
     if (!pdfFile) {
       return res.status(400).json({ error: "PDF file is required" });
     }
@@ -352,10 +353,18 @@ export default async function handler(req, res) {
     if (!coverType.startsWith("image/")) {
       return res.status(400).json({ error: "Cover image file is invalid" });
     }
+    if (previewImageFile) {
+      const previewType = String(previewImageFile.mimetype || "").toLowerCase();
+      if (!previewType.startsWith("image/")) {
+        return res.status(400).json({ error: "Preview image file is invalid" });
+      }
+    }
 
     let pdfInfo;
     try {
-      pdfInfo = await readPdfInfo(pdfFile.filepath, { renderPreview: showPreviewPage });
+      pdfInfo = await readPdfInfo(pdfFile.filepath, {
+        renderPreview: showPreviewPage && !previewImageFile,
+      });
     } catch (pdfInfoError) {
       console.error("PDF read failed:", pdfInfoError);
       return res.status(400).json({ error: "Could not read pages from the uploaded PDF." });
@@ -390,10 +399,13 @@ export default async function handler(req, res) {
 
     if (showPreviewPage) {
       try {
-        if (!pdfInfo.previewPng) {
+        const previewBody = previewImageFile
+          ? await fs.readFile(previewImageFile.filepath)
+          : pdfInfo.previewPng;
+        if (!previewBody) {
           throw new Error("Missing generated preview image buffer");
         }
-        await putObject(r2Client, bucket, previewKey, pdfInfo.previewPng, "image/png");
+        await putObject(r2Client, bucket, previewKey, previewBody, "image/png");
         previewPageKey = previewKey;
       } catch (previewError) {
         console.error("Auto preview generation failed:", previewError);
