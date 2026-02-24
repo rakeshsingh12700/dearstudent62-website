@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -537,18 +538,8 @@ export default function WorksheetShop({
     type: true,
   });
   const [previewState, setPreviewState] = useState(null);
-  const [previewLoadFailed, setPreviewLoadFailed] = useState(false);
   const [shareMenuProductId, setShareMenuProductId] = useState("");
   const [shareStatus, setShareStatus] = useState({ productId: "", message: "" });
-  const [isAndroidDevice] = useState(() => {
-    if (typeof window === "undefined") return false;
-    const ua = String(window.navigator?.userAgent || "");
-    const platform = String(window.navigator?.platform || "");
-    const maxTouchPoints = Number(window.navigator?.maxTouchPoints || 0);
-    const isAndroidUa = /android/i.test(ua);
-    const isDesktopPlatform = /mac|win/i.test(platform);
-    return isAndroidUa && !isDesktopPlatform && maxTouchPoints > 0;
-  });
   const [cart, setCart] = useState(() => {
     if (typeof window === "undefined") return [];
     const savedCart = window.localStorage.getItem(CART_STORAGE_KEY);
@@ -966,7 +957,6 @@ export default function WorksheetShop({
   const openQuickPreview = (product) => {
     const url = getPreviewUrl(product?.storageKey, 1);
     if (!url) return;
-    setPreviewLoadFailed(false);
     setPreviewState(product);
   };
 
@@ -1426,9 +1416,8 @@ export default function WorksheetShop({
             )}
 
             <div className="worksheets-grid">
-              {visibleProducts.map((product) => {
+              {visibleProducts.map((product, index) => {
                 const quantity = getItemQuantity(product.id);
-                const singlePagePreviewUrl = getPreviewUrl(product.storageKey, 1);
                 const thumbnailUrl = getThumbnailUrl(product.storageKey, product.imageUrl);
                 const ageLabel = !product.hideAgeLabel && product.ageLabel ? product.ageLabel : "";
                 const ratingStats = normalizeRatingStats(product);
@@ -1438,6 +1427,7 @@ export default function WorksheetShop({
                 const twoPlusItemPrice = getDiscountedUnitPrice(basePrice, currency, 2);
                 const hasSingleDiscount = hasDisplayPriceChange(basePrice, singleItemPrice, currency);
                 const hasTwoPlusDiscount = hasDisplayPriceChange(basePrice, twoPlusItemPrice, currency);
+                const prioritizeThumbnail = index < 6;
                 return (
                   <article className="worksheet-card" key={product.id}>
                     <div className="worksheet-card__media worksheet-card__media--pdf">
@@ -1447,21 +1437,19 @@ export default function WorksheetShop({
                         aria-label={`Open ${product.title}`}
                       >
                         {thumbnailUrl ? (
-                          <img
+                          <Image
                             src={thumbnailUrl}
                             alt={`${product.title} thumbnail`}
-                            loading="lazy"
+                            fill
+                            sizes="(max-width: 767px) 50vw, (max-width: 1199px) 34vw, 24vw"
+                            quality={60}
+                            unoptimized
+                            {...(prioritizeThumbnail ? { priority: true } : { loading: "lazy" })}
                           />
-                        ) : isAndroidDevice ? (
-                          <div className="worksheet-card__thumb-android">
-                            <span>PDF Preview</span>
-                          </div>
                         ) : (
-                          <iframe
-                            src={`${singlePagePreviewUrl}#page=1&view=Fit&toolbar=0&navpanes=0&scrollbar=0`}
-                            title={`${product.title} page 1 thumbnail`}
-                            loading="lazy"
-                          />
+                          <div className="worksheet-card__thumb-fallback">
+                            <span>Preview available</span>
+                          </div>
                         )}
                       </Link>
                       <button
@@ -1633,45 +1621,40 @@ export default function WorksheetShop({
             </header>
             <p className="worksheet-preview-modal__hint">
               Preview shows cover image
-              {previewState?.showPreviewPage ? " and first-page of the pdf." : "."}
+              {previewState?.previewImageUrl ? " and first-page image." : "."}
             </p>
-            {previewState?.imageUrl ? (
+            {(previewState?.imageUrl || previewState?.previewImageUrl) ? (
               <div className="worksheet-preview-modal__pages">
-                <img
-                  className="worksheet-preview-modal__page-image"
-                  src={previewState.imageUrl}
-                  alt={`${previewState.title} cover`}
-                />
-                {Boolean(previewState?.showPreviewPage && previewState?.previewImageUrl) && (
-                  <img
+                {previewState?.imageUrl ? (
+                  <Image
+                    className="worksheet-preview-modal__page-image"
+                    src={previewState.imageUrl}
+                    alt={`${previewState.title} cover`}
+                    width={900}
+                    height={1273}
+                    sizes="(max-width: 767px) 92vw, 700px"
+                    loading="lazy"
+                    quality={70}
+                    unoptimized
+                  />
+                ) : null}
+                {previewState?.previewImageUrl ? (
+                  <Image
                     className="worksheet-preview-modal__page-image"
                     src={previewState.previewImageUrl}
                     alt={`${previewState.title} first page`}
+                    width={900}
+                    height={1273}
+                    sizes="(max-width: 767px) 92vw, 700px"
+                    loading="lazy"
+                    quality={70}
+                    unoptimized
                   />
-                )}
-                {Boolean(
-                  previewState?.showPreviewPage
-                  && !previewState?.previewImageUrl
-                  && previewState?.storageKey
-                ) && (
-                  <iframe
-                    className="worksheet-preview-modal__frame"
-                    src={`${getPreviewUrl(previewState.storageKey, 1)}#page=1&view=FitH,110&toolbar=0&navpanes=0&scrollbar=0`}
-                    title={`${previewState.title} first page preview`}
-                    onError={() => setPreviewLoadFailed(true)}
-                  />
-                )}
+                ) : null}
               </div>
-            ) : !previewLoadFailed ? (
-              <iframe
-                className="worksheet-preview-modal__frame"
-                src={`${getPreviewUrl(previewState.storageKey, 1)}#page=1&view=FitH,110&toolbar=0&navpanes=0&scrollbar=0`}
-                title={`${previewState.title} preview`}
-                onError={() => setPreviewLoadFailed(true)}
-              />
             ) : (
               <div className="worksheet-preview-modal__fallback">
-                <p>Preview could not load on this device/browser.</p>
+                <p>Preview image is not available for this worksheet.</p>
                 <a
                   href={getPreviewUrl(previewState.storageKey, 1)}
                   target="_blank"

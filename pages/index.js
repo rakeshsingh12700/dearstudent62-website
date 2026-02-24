@@ -142,15 +142,15 @@ export default function Home() {
   const { user } = useAuth();
   const router = useRouter();
   const [rails, setRails] = useState({
-    popular: FALLBACK_POPULAR,
-    recent: FALLBACK_RECENT,
+    popular: [],
+    recent: [],
   });
+  const [railsLoaded, setRailsLoaded] = useState(false);
   const [cardsPerRail, setCardsPerRail] = useState(4);
   const [cartNoticeById, setCartNoticeById] = useState({});
   const [cartQtyById, setCartQtyById] = useState({});
   const [instagramFollowersLabel, setInstagramFollowersLabel] = useState("122k+");
   const [previewState, setPreviewState] = useState(null);
-  const [previewLoadFailed, setPreviewLoadFailed] = useState(false);
   const [shareMenuCardKey, setShareMenuCardKey] = useState("");
   const [shareStatus, setShareStatus] = useState({ cardKey: "", message: "" });
 
@@ -177,7 +177,13 @@ export default function Home() {
     const loadRails = async () => {
       try {
         const response = await fetch("/api/home-rails");
-        if (!response.ok) return;
+        if (!response.ok) {
+          if (!cancelled) {
+            setRails({ popular: FALLBACK_POPULAR, recent: FALLBACK_RECENT });
+            setRailsLoaded(true);
+          }
+          return;
+        }
         const payload = await response.json().catch(() => null);
         if (!payload || cancelled) return;
         const popular = Array.isArray(payload.popular) && payload.popular.length > 0
@@ -187,8 +193,12 @@ export default function Home() {
           ? payload.recent
           : FALLBACK_RECENT;
         setRails({ popular, recent });
+        setRailsLoaded(true);
       } catch {
-        // Keep fallback rails.
+        if (!cancelled) {
+          setRails({ popular: FALLBACK_POPULAR, recent: FALLBACK_RECENT });
+          setRailsLoaded(true);
+        }
       }
     };
 
@@ -419,9 +429,8 @@ export default function Home() {
 
     const imageUrl = String(previewItem?.imageUrl || "").trim() || getThumbnailUrl(previewItem?.storageKey, "");
     const previewImageUrl = String(previewItem?.previewImageUrl || "").trim();
-    const showPreviewPage = Boolean(previewItem?.showPreviewPage);
+    const showPreviewPage = Boolean(previewImageUrl);
     if (!imageUrl && !previewImageUrl && !previewItem?.storageKey) return;
-    setPreviewLoadFailed(false);
     setPreviewState({
       ...previewItem,
       imageUrl,
@@ -597,7 +606,7 @@ export default function Home() {
               <h2>Popular</h2>
             </div>
             <div className="home-rail__track" role="list" aria-label="Popular worksheets">
-              {popularRail.map((item) => {
+              {(railsLoaded ? popularRail : []).map((item) => {
                 const singleItemPrice = getDiscountedUnitPrice(item.price, item.displayCurrency, 1);
                 const twoPlusItemPrice = getDiscountedUnitPrice(item.price, item.displayCurrency, 2);
                 const hasSingleDiscount = hasDisplayPriceChange(
@@ -611,6 +620,7 @@ export default function Home() {
                   item.displayCurrency
                 );
                 const cardKey = `popular-${item.id}`;
+                const thumbnailUrl = String(item.imageUrl || "").trim();
                 return (
                   <article className="home-rail-card" role="listitem" key={cardKey}>
                     <div className="home-rail-card__media">
@@ -619,9 +629,9 @@ export default function Home() {
                         className="home-rail-card__media-link"
                         aria-label={`Open ${item.title}`}
                       >
-                        {getThumbnailUrl(item.storageKey, item.imageUrl) ? (
+                        {thumbnailUrl ? (
                           <Image
-                            src={getThumbnailUrl(item.storageKey, item.imageUrl)}
+                            src={thumbnailUrl}
                             alt={`${item.title} thumbnail`}
                             width={520}
                             height={340}
@@ -764,7 +774,7 @@ export default function Home() {
               <h2>Recently Added</h2>
             </div>
             <div className="home-rail__track" role="list" aria-label="Recently added worksheets">
-              {recentRail.map((item) => {
+              {(railsLoaded ? recentRail : []).map((item) => {
                 const singleItemPrice = getDiscountedUnitPrice(item.price, item.displayCurrency, 1);
                 const twoPlusItemPrice = getDiscountedUnitPrice(item.price, item.displayCurrency, 2);
                 const hasSingleDiscount = hasDisplayPriceChange(
@@ -778,6 +788,7 @@ export default function Home() {
                   item.displayCurrency
                 );
                 const cardKey = `recent-${item.id}`;
+                const thumbnailUrl = String(item.imageUrl || "").trim();
                 return (
                   <article className="home-rail-card" role="listitem" key={cardKey}>
                     <div className="home-rail-card__media">
@@ -786,9 +797,9 @@ export default function Home() {
                         className="home-rail-card__media-link"
                         aria-label={`Open ${item.title}`}
                       >
-                        {getThumbnailUrl(item.storageKey, item.imageUrl) ? (
+                        {thumbnailUrl ? (
                           <Image
-                            src={getThumbnailUrl(item.storageKey, item.imageUrl)}
+                            src={thumbnailUrl}
                             alt={`${item.title} thumbnail`}
                             width={520}
                             height={340}
@@ -942,47 +953,40 @@ export default function Home() {
             </header>
             <p className="worksheet-preview-modal__hint">
               Preview shows cover image
-              {previewState?.showPreviewPage ? " and first-page of the pdf." : "."}
+              {previewState?.previewImageUrl ? " and first-page image." : "."}
             </p>
-            {previewState?.imageUrl ? (
+            {(previewState?.imageUrl || previewState?.previewImageUrl) ? (
               <div className="worksheet-preview-modal__pages">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  className="worksheet-preview-modal__page-image"
-                  src={previewState.imageUrl}
-                  alt={`${previewState.title} cover`}
-                />
-                {Boolean(previewState?.showPreviewPage && previewState?.previewImageUrl) && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
+                {previewState?.imageUrl ? (
+                  <Image
+                    className="worksheet-preview-modal__page-image"
+                    src={previewState.imageUrl}
+                    alt={`${previewState.title} cover`}
+                    width={900}
+                    height={1273}
+                    sizes="(max-width: 767px) 92vw, 700px"
+                    loading="lazy"
+                    quality={70}
+                    unoptimized
+                  />
+                ) : null}
+                {previewState?.previewImageUrl ? (
+                  <Image
                     className="worksheet-preview-modal__page-image"
                     src={previewState.previewImageUrl}
                     alt={`${previewState.title} first page`}
+                    width={900}
+                    height={1273}
+                    sizes="(max-width: 767px) 92vw, 700px"
+                    loading="lazy"
+                    quality={70}
+                    unoptimized
                   />
-                )}
-                {Boolean(
-                  previewState?.showPreviewPage
-                  && !previewState?.previewImageUrl
-                  && previewState?.storageKey
-                ) && (
-                  <iframe
-                    className="worksheet-preview-modal__frame"
-                    src={`${previewUrl}#page=1&view=FitH,110&toolbar=0&navpanes=0&scrollbar=0`}
-                    title={`${previewState.title} first page preview`}
-                    onError={() => setPreviewLoadFailed(true)}
-                  />
-                )}
+                ) : null}
               </div>
-            ) : !previewLoadFailed ? (
-              <iframe
-                className="worksheet-preview-modal__frame"
-                src={`${previewUrl}#page=1&view=FitH,110&toolbar=0&navpanes=0&scrollbar=0`}
-                title={`${previewState.title} preview`}
-                onError={() => setPreviewLoadFailed(true)}
-              />
             ) : (
               <div className="worksheet-preview-modal__fallback">
-                <p>Preview could not load on this device/browser.</p>
+                <p>Preview image is not available for this worksheet.</p>
                 <a
                   href={previewUrl}
                   target="_blank"

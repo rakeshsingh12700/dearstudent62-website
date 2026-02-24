@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
@@ -126,7 +127,6 @@ export default function ProductPage() {
   const [checkingAsset, setCheckingAsset] = useState(true);
   const [cartNotice, setCartNotice] = useState("");
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-  const [isAndroidDevice, setIsAndroidDevice] = useState(false);
   const [runtimeProduct, setRuntimeProduct] = useState(null);
   const [runtimeResolved, setRuntimeResolved] = useState(false);
   const [currencyRefreshKey, setCurrencyRefreshKey] = useState(0);
@@ -155,18 +155,7 @@ export default function ProductPage() {
     () => String(product?.previewImageUrl || "").trim(),
     [product?.previewImageUrl]
   );
-  const showPreviewImage = Boolean(product?.showPreviewPage && previewImageUrl);
-  const showPreviewFrameFallback = Boolean(product?.showPreviewPage && !previewImageUrl && product?.storageKey);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const ua = String(window.navigator?.userAgent || "");
-    const platform = String(window.navigator?.platform || "");
-    const maxTouchPoints = Number(window.navigator?.maxTouchPoints || 0);
-    const isAndroidUa = /android/i.test(ua);
-    const isDesktopPlatform = /mac|win/i.test(platform);
-    setIsAndroidDevice(isAndroidUa && !isDesktopPlatform && maxTouchPoints > 0);
-  }, []);
+  const showPreviewImage = Boolean(previewImageUrl);
 
   useEffect(() => {
     if (typeof window === "undefined") return undefined;
@@ -606,20 +595,19 @@ export default function ProductPage() {
                   )}
                 </div>
                 {thumbnailUrl ? (
-                  <img
+                  <Image
                     src={thumbnailUrl}
                     alt={`${product.title} thumbnail`}
-                    loading="lazy"
+                    fill
+                    sizes="(max-width: 767px) 92vw, (max-width: 1200px) 50vw, 420px"
+                    quality={65}
+                    priority
+                    unoptimized
                   />
-                ) : isAndroidDevice ? (
-                  <div className="product-preview-card__android-fallback">
-                    <span>PDF Preview</span>
-                  </div>
                 ) : (
-                  <iframe
-                    src={`${singlePagePreviewUrl}#page=1&view=Fit&toolbar=0&navpanes=0&scrollbar=0`}
-                    title={`${product.title} preview`}
-                  />
+                  <div className="product-preview-card__android-fallback">
+                    <span>Preview available</span>
+                  </div>
                 )}
               </div>
               <p className="product-preview-card__hint">
@@ -825,36 +813,44 @@ export default function ProductPage() {
             </header>
             <p className="worksheet-preview-modal__hint">
               Preview shows cover image
-              {(showPreviewImage || showPreviewFrameFallback) ? " and first-page of the pdf." : "."}
+              {showPreviewImage ? " and first-page image." : "."}
             </p>
-            {thumbnailUrl ? (
+            {(thumbnailUrl || showPreviewImage) ? (
               <div className="worksheet-preview-modal__pages">
-                <img
-                  className="worksheet-preview-modal__page-image"
-                  src={thumbnailUrl}
-                  alt={`${product.title} cover`}
-                />
+                {thumbnailUrl ? (
+                  <Image
+                    className="worksheet-preview-modal__page-image"
+                    src={thumbnailUrl}
+                    alt={`${product.title} cover`}
+                    width={900}
+                    height={1273}
+                    sizes="(max-width: 767px) 92vw, 700px"
+                    loading="lazy"
+                    quality={70}
+                    unoptimized
+                  />
+                ) : null}
                 {showPreviewImage && (
-                  <img
+                  <Image
                     className="worksheet-preview-modal__page-image"
                     src={previewImageUrl}
                     alt={`${product.title} first page`}
-                  />
-                )}
-                {showPreviewFrameFallback && (
-                  <iframe
-                    className="worksheet-preview-modal__frame"
-                    src={`${singlePagePreviewUrl}#page=1&view=FitH,110&toolbar=0&navpanes=0&scrollbar=0`}
-                    title={`${product.title} first page preview`}
+                    width={900}
+                    height={1273}
+                    sizes="(max-width: 767px) 92vw, 700px"
+                    loading="lazy"
+                    quality={70}
+                    unoptimized
                   />
                 )}
               </div>
             ) : (
-              <iframe
-                className="worksheet-preview-modal__frame"
-                src={`${singlePagePreviewUrl}#page=1&view=FitH,110&toolbar=0&navpanes=0&scrollbar=0`}
-                title={`${product.title} preview`}
-              />
+              <div className="worksheet-preview-modal__fallback">
+                <p>Preview image is not available for this worksheet.</p>
+                <a href={singlePagePreviewUrl} target="_blank" rel="noreferrer">
+                  Open preview in new tab
+                </a>
+              </div>
             )}
           </section>
         </div>
