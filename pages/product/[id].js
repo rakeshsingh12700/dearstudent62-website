@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
@@ -11,6 +12,8 @@ import { formatMoney, getPriceAmount, getPriceCurrency, readCurrencyPreference }
 import { buildRatingStars, formatRatingAverage, normalizeRatingStats } from "../../lib/productRatings";
 
 const CART_STORAGE_KEY = "ds-worksheet-cart-v1";
+const SITE_URL = "https://dearstudent.in";
+const DEFAULT_OG_IMAGE = `${SITE_URL}/social-preview.png`;
 
 const BENEFITS = [
   "Builds confidence through short, focused activities",
@@ -116,7 +119,7 @@ function humanize(value) {
     .replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
-export default function ProductPage() {
+export default function ProductPage({ initialProduct = null }) {
   const router = useRouter();
   const { query } = router;
   const { user } = useAuth();
@@ -128,7 +131,7 @@ export default function ProductPage() {
   const [cartNotice, setCartNotice] = useState("");
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [runtimeProduct, setRuntimeProduct] = useState(null);
-  const [runtimeResolved, setRuntimeResolved] = useState(false);
+  const [runtimeResolved, setRuntimeResolved] = useState(Boolean(initialProduct));
   const [currencyRefreshKey, setCurrencyRefreshKey] = useState(0);
   const [shareLinksOpen, setShareLinksOpen] = useState(false);
   const [shareStatus, setShareStatus] = useState("");
@@ -139,7 +142,9 @@ export default function ProductPage() {
   const [ratingNotice, setRatingNotice] = useState({ type: "", text: "" });
   const [editingRating, setEditingRating] = useState(false);
 
-  const staticProduct = products.find((item) => item.id === query.id);
+  const routeProductId =
+    typeof query.id === "string" && query.id ? query.id : String(initialProduct?.id || "");
+  const staticProduct = products.find((item) => item.id === routeProductId) || initialProduct;
   const product = runtimeProduct || (runtimeResolved ? staticProduct : null);
   const typeLabel = useMemo(() => humanize(product?.type), [product?.type]);
   const classLabel = useMemo(() => humanize(product?.class), [product?.class]);
@@ -167,7 +172,7 @@ export default function ProductPage() {
   }, []);
 
   useEffect(() => {
-    if (typeof query.id !== "string" || !query.id) return;
+    if (!routeProductId) return;
     let cancelled = false;
     setRuntimeResolved(false);
     setRuntimeProduct(null);
@@ -176,7 +181,7 @@ export default function ProductPage() {
       try {
         const preferredCurrency = readCurrencyPreference();
         const response = await fetch(
-          `/api/products?id=${encodeURIComponent(query.id)}${
+          `/api/products?id=${encodeURIComponent(routeProductId)}${
             preferredCurrency ? `&currency=${encodeURIComponent(preferredCurrency)}` : ""
           }`
         );
@@ -196,7 +201,7 @@ export default function ProductPage() {
     return () => {
       cancelled = true;
     };
-  }, [currencyRefreshKey, query.id]);
+  }, [currencyRefreshKey, routeProductId]);
 
   useEffect(() => {
     const checkPurchase = async () => {
@@ -309,9 +314,32 @@ export default function ProductPage() {
     };
   }, [product?.id, user]);
 
+  const canonicalUrl = product?.id
+    ? `${SITE_URL}/product/${encodeURIComponent(product.id)}`
+    : `${SITE_URL}/worksheets`;
+  const metadataTitle = product?.title
+    ? `${product.title} | Dear Student`
+    : "Worksheet | Dear Student";
+  const metadataDescription = product
+    ? `${product.title}. ${humanize(product?.class)} ${humanize(product?.type)} printable worksheet${
+        Number(product?.pages || 0) > 0 ? ` with ${Number(product.pages)} pages` : ""
+      }.`
+    : "Printable worksheet for young learners.";
+  const metadataImage = (() => {
+    const raw = String(product?.imageUrl || product?.previewImageUrl || "").trim();
+    if (!raw) return DEFAULT_OG_IMAGE;
+    if (/^https?:\/\//i.test(raw)) return raw;
+    return `${SITE_URL}${raw.startsWith("/") ? "" : "/"}${raw}`;
+  })();
+
   if (!product) {
     return (
       <>
+        <Head>
+          <title>Worksheet | Dear Student</title>
+          <link rel="canonical" href={`${SITE_URL}/worksheets`} />
+          <meta property="og:url" content={`${SITE_URL}/worksheets`} />
+        </Head>
         <Navbar />
         <p>Loading...</p>
       </>
@@ -522,6 +550,24 @@ export default function ProductPage() {
 
   return (
     <>
+      <Head>
+        <title>{metadataTitle}</title>
+        <meta name="description" content={metadataDescription} />
+        <link rel="canonical" href={canonicalUrl} />
+        <meta property="og:type" content="product" />
+        <meta property="og:url" content={canonicalUrl} />
+        <meta property="og:title" content={metadataTitle} />
+        <meta property="og:description" content={metadataDescription} />
+        <meta property="og:image" content={metadataImage} />
+        <meta property="og:image:secure_url" content={metadataImage} />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content={`${product.title} worksheet preview`} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={metadataTitle} />
+        <meta name="twitter:description" content={metadataDescription} />
+        <meta name="twitter:image" content={metadataImage} />
+      </Head>
       <Navbar />
       <main className="product-page">
         <section className="container product-wrap">
@@ -857,4 +903,19 @@ export default function ProductPage() {
       )}
     </>
   );
+}
+
+export async function getServerSideProps(context) {
+  const productId = String(context?.params?.id || "").trim();
+  const initialProduct = products.find((item) => item.id === productId) || null;
+
+  if (!initialProduct) {
+    return { notFound: true };
+  }
+
+  return {
+    props: {
+      initialProduct,
+    },
+  };
 }

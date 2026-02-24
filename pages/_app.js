@@ -33,6 +33,10 @@ const brandSansFont = Poppins({
 });
 
 const SITE_URL = "https://dearstudent.in";
+const DEFAULT_OG_IMAGE = "/social-preview.png";
+const DEFAULT_TITLE = "Dear Student | Printable Worksheets for Kids";
+const DEFAULT_DESCRIPTION =
+  "Teacher-crafted printable worksheets for young learners. Instant access after secure checkout.";
 const WEB_VITAL_EVENT = "web_vital";
 
 function sendWebVitalToGoogleAnalytics(metric) {
@@ -79,6 +83,21 @@ export default function App({ Component, pageProps }) {
       <Head>
         <link rel="canonical" href={canonicalUrl} />
         <meta property="og:url" content={canonicalUrl} />
+        <meta name="description" content={DEFAULT_DESCRIPTION} key="description" />
+        <meta property="og:site_name" content="Dear Student" key="og:site_name" />
+        <meta property="og:locale" content="en_IN" key="og:locale" />
+        <meta property="og:type" content="website" key="og:type" />
+        <meta property="og:title" content={DEFAULT_TITLE} key="og:title" />
+        <meta property="og:description" content={DEFAULT_DESCRIPTION} key="og:description" />
+        <meta property="og:image" content={`${SITE_URL}${DEFAULT_OG_IMAGE}`} key="og:image" />
+        <meta property="og:image:secure_url" content={`${SITE_URL}${DEFAULT_OG_IMAGE}`} key="og:image:secure_url" />
+        <meta property="og:image:width" content="1200" key="og:image:width" />
+        <meta property="og:image:height" content="630" key="og:image:height" />
+        <meta property="og:image:alt" content="Dear Student printable worksheets" key="og:image:alt" />
+        <meta name="twitter:card" content="summary_large_image" key="twitter:card" />
+        <meta name="twitter:title" content={DEFAULT_TITLE} key="twitter:title" />
+        <meta name="twitter:description" content={DEFAULT_DESCRIPTION} key="twitter:description" />
+        <meta name="twitter:image" content={`${SITE_URL}${DEFAULT_OG_IMAGE}`} key="twitter:image" />
       </Head>
       <AuthProvider>
         <div className="app-shell">

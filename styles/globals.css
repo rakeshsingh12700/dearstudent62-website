@@ -3718,6 +3718,29 @@ button {
   font-size: 1.1rem;
 }
 
+.checkout-inapp-warning {
+  margin-top: 6px;
+  border: 1px solid #fed7aa;
+  border-radius: 12px;
+  background: #fff7ed;
+  padding: 10px;
+  display: grid;
+  gap: 10px;
+}
+
+.checkout-inapp-warning p {
+  margin: 0;
+  color: #9a3412;
+  font-size: 0.86rem;
+  font-weight: 800;
+  line-height: 1.5;
+}
+
+.checkout-inapp-warning__btn {
+  width: 100%;
+  border-radius: 10px;
+}
+
 .checkout-pay-btn {
   width: 100%;
   border-radius: 14px;

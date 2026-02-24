@@ -21,6 +21,34 @@ const humanizeLabel = (value) =>
     .replace(/[-_]+/g, " ")
     .replace(/\b\w/g, (char) => char.toUpperCase());
 
+const getInAppBrowserName = () => {
+  if (typeof navigator === "undefined") return "";
+  const ua = String(navigator.userAgent || "");
+  if (/Instagram/i.test(ua)) return "Instagram";
+  if (/FBAN|FBAV|FBIOS/i.test(ua)) return "Facebook";
+  if (/Line/i.test(ua)) return "LINE";
+  return "";
+};
+
+const openCurrentUrlInBrowser = () => {
+  if (typeof window === "undefined") return false;
+  const href = String(window.location.href || "");
+  if (!href) return false;
+
+  const isAndroid = /Android/i.test(String(navigator.userAgent || ""));
+  if (isAndroid) {
+    const currentUrl = new URL(href);
+    const intentUrl =
+      `intent://${currentUrl.host}${currentUrl.pathname}${currentUrl.search}${currentUrl.hash}` +
+      "#Intent;scheme=https;package=com.android.chrome;end";
+    window.location.href = intentUrl;
+    return true;
+  }
+
+  window.open(href, "_blank", "noopener,noreferrer");
+  return true;
+};
+
 const loadRazorpaySdk = () => {
   if (typeof window === "undefined") return Promise.resolve(false);
   if (window.Razorpay) return Promise.resolve(true);
@@ -118,6 +146,7 @@ export default function Checkout() {
   const [cartPreviewItems, setCartPreviewItems] = useState(() => getCartPreviewItems());
   const [runtimeProducts, setRuntimeProducts] = useState([]);
   const [email, setEmail] = useState("");
+  const [inAppBrowserName, setInAppBrowserName] = useState("");
 
   const hasItems = cartSummary.count > 0;
 
@@ -136,6 +165,10 @@ export default function Checkout() {
       window.removeEventListener("storage", syncSummary);
       window.removeEventListener("ds-cart-updated", syncSummary);
     };
+  }, []);
+
+  useEffect(() => {
+    setInAppBrowserName(getInAppBrowserName());
   }, []);
 
   useEffect(() => {
@@ -259,6 +292,17 @@ export default function Checkout() {
   const payNow = async () => {
     try {
       setLoading(true);
+
+      if (inAppBrowserName) {
+        const continueInsideApp = window.confirm(
+          `${inAppBrowserName} in-app browser can block PhonePe/UPI app switching. Press Cancel to open this page in Chrome/browser for best payment success, or OK to continue here.`
+        );
+        if (!continueInsideApp) {
+          openCurrentUrlInBrowser();
+          return;
+        }
+      }
+
       const latestCart = getCartSummary();
       const latestItems = getCartItems();
       const buyerEmail = (loggedInEmail || email).trim().toLowerCase();
@@ -502,6 +546,21 @@ export default function Checkout() {
                 <span>Total payable</span>
                 <strong>{pricesReady ? formatMoney(totalAmount, displayCurrency) : "..."}</strong>
               </div>
+
+              {inAppBrowserName ? (
+                <div className="checkout-inapp-warning" role="alert">
+                  <p>
+                    You are inside {inAppBrowserName} browser. PhonePe/UPI app handoff may fail here.
+                  </p>
+                  <button
+                    type="button"
+                    className="btn btn-secondary checkout-inapp-warning__btn"
+                    onClick={openCurrentUrlInBrowser}
+                  >
+                    Open in Chrome / Browser
+                  </button>
+                </div>
+              ) : null}
 
               <button
                 type="button"
