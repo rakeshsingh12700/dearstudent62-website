@@ -19,25 +19,6 @@ function getR2Client() {
   });
 }
 
-async function bodyToBuffer(body) {
-  if (!body) return null;
-
-  if (typeof body.transformToByteArray === "function") {
-    const byteArray = await body.transformToByteArray();
-    return Buffer.from(byteArray);
-  }
-
-  if (typeof body[Symbol.asyncIterator] === "function") {
-    const chunks = [];
-    for await (const chunk of body) {
-      chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
-    }
-    return Buffer.concat(chunks);
-  }
-
-  return null;
-}
-
 export default async function handler(req, res) {
   if (req.method !== "GET") {
     return res.status(405).json({ error: "Method not allowed" });
@@ -90,15 +71,37 @@ export default async function handler(req, res) {
           Key: candidate,
         });
         const response = await r2Client.send(command);
-        const bytes = await bodyToBuffer(response.Body);
-        if (!bytes) continue;
+        const body = response.Body;
+        if (!body) continue;
 
         res.setHeader(
           "Content-Type",
           String(response.ContentType || contentTypeFromKey(candidate))
         );
-        res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
-        return res.status(200).send(bytes);
+        res.setHeader("Cache-Control", "public, max-age=31536000, s-maxage=31536000, immutable");
+
+        if (response.ContentLength) {
+          res.setHeader("Content-Length", String(response.ContentLength));
+        }
+
+        if (typeof body.pipe === "function") {
+          res.status(200);
+          body.pipe(res);
+          return;
+        }
+
+        if (typeof body.transformToByteArray === "function") {
+          const byteArray = await body.transformToByteArray();
+          return res.status(200).send(Buffer.from(byteArray));
+        }
+
+        if (typeof body[Symbol.asyncIterator] === "function") {
+          const chunks = [];
+          for await (const chunk of body) {
+            chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+          }
+          return res.status(200).send(Buffer.concat(chunks));
+        }
       } catch (error) {
         if (error?.name === "NoSuchKey" || error?.name === "NotFound") {
           continue;
