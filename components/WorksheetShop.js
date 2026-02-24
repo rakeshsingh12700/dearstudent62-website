@@ -509,8 +509,10 @@ export default function WorksheetShop({
   initialMobileView = "library"
 }) {
   const router = useRouter();
-  const [products, setProducts] = useState([]);
-  const [productsLoaded, setProductsLoaded] = useState(false);
+  const [products, setProducts] = useState(() => (Array.isArray(staticProducts) ? staticProducts : []));
+  const [productsLoaded, setProductsLoaded] = useState(
+    () => Array.isArray(staticProducts) && staticProducts.length > 0
+  );
   const [currencyRefreshKey, setCurrencyRefreshKey] = useState(0);
   const [selectedClass, setSelectedClass] = useState(toSlug(initialClass) || "all");
   const [selectedType, setSelectedType] = useState(normalizeType(initialType) || "all");
@@ -590,7 +592,6 @@ export default function WorksheetShop({
   useEffect(() => {
     let cancelled = false;
     const loadProducts = async () => {
-      if (!cancelled) setProductsLoaded(false);
       try {
         const preferredCurrency = readCurrencyPreference();
         const response = await fetch(
@@ -1426,7 +1427,7 @@ export default function WorksheetShop({
                 const twoPlusItemPrice = getDiscountedUnitPrice(basePrice, currency, 2);
                 const hasSingleDiscount = hasDisplayPriceChange(basePrice, singleItemPrice, currency);
                 const hasTwoPlusDiscount = hasDisplayPriceChange(basePrice, twoPlusItemPrice, currency);
-                const prioritizeThumbnail = index < 6;
+                const prioritizeThumbnail = index < 9;
                 return (
                   <article className="worksheet-card" key={product.id}>
                     <div className="worksheet-card__media worksheet-card__media--pdf">
@@ -1436,14 +1437,12 @@ export default function WorksheetShop({
                         aria-label={`Open ${product.title}`}
                       >
                         {thumbnailUrl ? (
-                          <Image
+                          <img
                             src={thumbnailUrl}
                             alt={`${product.title} thumbnail`}
-                            fill
-                            sizes="(max-width: 767px) 50vw, (max-width: 1199px) 34vw, 24vw"
-                            quality={60}
-                            unoptimized
-                            {...(prioritizeThumbnail ? { priority: true } : { loading: "lazy" })}
+                            loading={prioritizeThumbnail ? "eager" : "lazy"}
+                            fetchPriority={prioritizeThumbnail ? "high" : "auto"}
+                            decoding="async"
                           />
                         ) : (
                           <div className="worksheet-card__thumb-fallback">
