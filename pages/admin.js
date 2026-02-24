@@ -71,6 +71,58 @@ function fileName(file) {
   return file?.name ? String(file.name) : "Not selected";
 }
 
+function toUploadDescriptor(file) {
+  if (!file) return null;
+  return {
+    name: String(file.name || "").trim(),
+    contentType: String(file.type || "application/octet-stream").trim(),
+    size: Number(file.size || 0),
+  };
+}
+
+async function uploadFileWithSignedUrl(file, signedUpload) {
+  if (!file || !signedUpload?.url) return;
+  const response = await fetch(signedUpload.url, {
+    method: "PUT",
+    headers: {
+      "Content-Type": signedUpload.contentType || file.type || "application/octet-stream",
+    },
+    body: file,
+  });
+  if (!response.ok) {
+    throw new Error(`Direct upload failed (HTTP ${response.status})`);
+  }
+}
+
+async function readApiError(response) {
+  const contentType = String(response.headers.get("content-type") || "").toLowerCase();
+  let data = {};
+  let rawErrorText = "";
+  if (contentType.includes("application/json")) {
+    data = await response.json().catch(() => ({}));
+  } else {
+    rawErrorText = await response.text().catch(() => "");
+  }
+
+  if (response.ok) return { ok: true, data };
+
+  const serverMessage = String(data?.error || "").trim();
+  const textMessage = String(rawErrorText || "").trim();
+  const looksLikePayloadTooLarge =
+    response.status === 413 ||
+    /payload too large|request entity too large|FUNCTION_PAYLOAD_TOO_LARGE/i.test(
+      textMessage
+    );
+  const fallback = looksLikePayloadTooLarge
+    ? "Upload failed: file size is too large for production API limits."
+    : `Upload failed (HTTP ${response.status})`;
+
+  return {
+    ok: false,
+    error: serverMessage || textMessage || fallback,
+  };
+}
+
 async function generatePreviewImageFile(pdfFile) {
   if (!pdfFile) return null;
 
@@ -242,21 +294,21 @@ export default function AdminPage() {
     setResult(null);
 
     try {
-      const payload = new FormData();
-      payload.append("class", hideClassSelection ? "class-1" : form.class);
-      payload.append("type", form.type);
-      payload.append("title", form.title.trim());
-      payload.append("price", form.price);
-      payload.append("subject", form.subject);
-      payload.append("topic", form.topic || "");
-      payload.append("subtopic", isGrammarTopic ? form.subtopic || "" : "");
-      payload.append("showPreviewPage", String(form.showPreviewPage));
-      payload.append("pdf", files.pdf);
-      payload.append("coverImage", files.coverImage);
+      const fields = {
+        class: hideClassSelection ? "class-1" : form.class,
+        type: form.type,
+        title: form.title.trim(),
+        price: form.price,
+        subject: form.subject,
+        topic: form.topic || "",
+        subtopic: isGrammarTopic ? form.subtopic || "" : "",
+        showPreviewPage: String(form.showPreviewPage),
+      };
+
+      let previewImage = null;
       if (form.showPreviewPage) {
         try {
-          const previewImage = await generatePreviewImageFile(files.pdf);
-          if (previewImage) payload.append("previewImage", previewImage);
+          previewImage = await generatePreviewImageFile(files.pdf);
         } catch (previewGenError) {
           console.error("Client preview generation failed; using server fallback.", previewGenError);
         }
@@ -267,36 +319,97 @@ export default function AdminPage() {
       }
       const idToken = await user.getIdToken();
 
-      const response = await fetch("/api/admin/upload-product", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${idToken}`,
-        },
-        body: payload,
-      });
+      let data = null;
+      let completed = false;
+      try {
+        const presignResponse = await fetch("/api/admin/upload-product-presign", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            files: {
+              pdf: toUploadDescriptor(files.pdf),
+              coverImage: toUploadDescriptor(files.coverImage),
+              ...(previewImage ? { previewImage: toUploadDescriptor(previewImage) } : {}),
+            },
+          }),
+        });
 
-      const contentType = String(response.headers.get("content-type") || "").toLowerCase();
-      let data = {};
-      let rawErrorText = "";
-      if (contentType.includes("application/json")) {
-        data = await response.json().catch(() => ({}));
-      } else {
-        rawErrorText = await response.text().catch(() => "");
+        const presignData = await presignResponse.json().catch(() => ({}));
+        if (!presignResponse.ok) {
+          throw new Error(
+            String(presignData?.error || "").trim() || `Upload init failed (HTTP ${presignResponse.status})`
+          );
+        }
+
+        const uploads = presignData?.uploads || {};
+        await uploadFileWithSignedUrl(files.pdf, uploads.pdf);
+        await uploadFileWithSignedUrl(files.coverImage, uploads.coverImage);
+        if (previewImage && uploads.previewImage) {
+          await uploadFileWithSignedUrl(previewImage, uploads.previewImage);
+        }
+
+        const finalizeResponse = await fetch("/api/admin/upload-product", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            fields,
+            uploads: {
+              pdf: uploads.pdf,
+              coverImage: uploads.coverImage,
+              ...(previewImage && uploads.previewImage ? { previewImage: uploads.previewImage } : {}),
+            },
+          }),
+        });
+        const finalizeResult = await readApiError(finalizeResponse);
+        if (!finalizeResult.ok) {
+          throw new Error(finalizeResult.error);
+        }
+        data = finalizeResult.data;
+        completed = true;
+      } catch (directFlowError) {
+        const message = String(directFlowError?.message || directFlowError || "").toLowerCase();
+        const shouldFallback =
+          /failed to fetch|networkerror|cors|load failed|direct upload failed/.test(message);
+        if (!shouldFallback) {
+          throw directFlowError;
+        }
+
+        const multipart = new FormData();
+        multipart.append("class", fields.class);
+        multipart.append("type", fields.type);
+        multipart.append("title", fields.title);
+        multipart.append("price", fields.price);
+        multipart.append("subject", fields.subject);
+        multipart.append("topic", fields.topic);
+        multipart.append("subtopic", fields.subtopic);
+        multipart.append("showPreviewPage", fields.showPreviewPage);
+        multipart.append("pdf", files.pdf);
+        multipart.append("coverImage", files.coverImage);
+        if (previewImage) multipart.append("previewImage", previewImage);
+
+        const fallbackResponse = await fetch("/api/admin/upload-product", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+          },
+          body: multipart,
+        });
+        const fallbackResult = await readApiError(fallbackResponse);
+        if (!fallbackResult.ok) {
+          throw new Error(`${fallbackResult.error} (Direct upload fallback failed)`);
+        }
+        data = fallbackResult.data;
+        completed = true;
       }
 
-      if (!response.ok) {
-        const serverMessage = String(data?.error || "").trim();
-        const textMessage = String(rawErrorText || "").trim();
-        const looksLikePayloadTooLarge =
-          response.status === 413 ||
-          /payload too large|request entity too large|FUNCTION_PAYLOAD_TOO_LARGE/i.test(
-            textMessage
-          );
-        const fallback = looksLikePayloadTooLarge
-          ? "Upload failed: file size is too large for production API limits. Try a smaller PDF/image or move to direct R2 upload."
-          : `Upload failed (HTTP ${response.status})`;
-
-        throw new Error(serverMessage || textMessage || fallback);
+      if (!completed || !data) {
+        throw new Error("Upload failed");
       }
 
       setResult(data);
@@ -309,7 +422,14 @@ export default function AdminPage() {
         showPreviewPage: false,
       }));
     } catch (submitError) {
-      setError(String(submitError?.message || submitError || "Upload failed"));
+      const message = String(submitError?.message || submitError || "Upload failed");
+      if (/failed to fetch/i.test(message)) {
+        setError(
+          "Upload failed before finalize. If this happened during direct upload, configure R2 CORS to allow PUT from this site."
+        );
+      } else {
+        setError(message);
+      }
     } finally {
       setSubmitting(false);
     }

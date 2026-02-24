@@ -1,5 +1,5 @@
 import fs from "fs/promises";
-import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { doc, setDoc } from "firebase/firestore";
 import formidable from "formidable";
 import { PDFDocument } from "pdf-lib";
@@ -131,6 +131,110 @@ function extensionForContentType(contentType, fallback = "") {
   return ".bin";
 }
 
+function isJsonRequest(req) {
+  const contentType = String(req.headers?.["content-type"] || "").toLowerCase();
+  return contentType.includes("application/json");
+}
+
+async function parseJsonBody(req, { maxBytes = 1 * 1024 * 1024 } = {}) {
+  const chunks = [];
+  let total = 0;
+  for await (const chunk of req) {
+    const part = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+    total += part.length;
+    if (total > maxBytes) {
+      const error = new Error("JSON payload too large");
+      error.httpCode = 413;
+      throw error;
+    }
+    chunks.push(part);
+  }
+  const raw = Buffer.concat(chunks).toString("utf8").trim();
+  if (!raw) return {};
+  try {
+    return JSON.parse(raw);
+  } catch {
+    const error = new Error("Invalid JSON payload");
+    error.httpCode = 400;
+    throw error;
+  }
+}
+
+async function streamToBuffer(body) {
+  if (!body) return Buffer.alloc(0);
+  if (Buffer.isBuffer(body)) return body;
+  if (body instanceof Uint8Array) return Buffer.from(body);
+  if (typeof body.transformToByteArray === "function") {
+    const bytes = await body.transformToByteArray();
+    return Buffer.from(bytes);
+  }
+
+  const chunks = [];
+  for await (const chunk of body) {
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+  }
+  return Buffer.concat(chunks);
+}
+
+function normalizeUploadRef(value) {
+  if (!value || typeof value !== "object") return null;
+  const key = String(value.key || "").trim();
+  if (!key) return null;
+  return {
+    key,
+    contentType: String(value.contentType || "").trim(),
+    originalFilename: String(value.originalFilename || "").trim(),
+  };
+}
+
+async function getTempUploadFromR2(r2Client, bucket, uploadRef) {
+  const ref = normalizeUploadRef(uploadRef);
+  if (!ref?.key) return null;
+  if (!ref.key.startsWith("tmp/admin-uploads/")) {
+    throw new Error("Invalid temp upload key");
+  }
+
+  const response = await r2Client.send(
+    new GetObjectCommand({
+      Bucket: bucket,
+      Key: ref.key,
+    })
+  );
+  const body = await streamToBuffer(response.Body);
+
+  return {
+    sourceKey: ref.key,
+    buffer: body,
+    mimetype: ref.contentType || String(response.ContentType || "").trim(),
+    originalFilename: ref.originalFilename,
+  };
+}
+
+async function deleteKeysBestEffort(r2Client, bucket, keys = []) {
+  const unique = Array.from(
+    new Set(
+      (Array.isArray(keys) ? keys : [])
+        .map((value) => String(value || "").trim())
+        .filter(Boolean)
+    )
+  );
+
+  await Promise.all(
+    unique.map(async (key) => {
+      try {
+        await r2Client.send(
+          new DeleteObjectCommand({
+            Bucket: bucket,
+            Key: key,
+          })
+        );
+      } catch (error) {
+        console.warn("Temp upload cleanup failed:", key, error);
+      }
+    })
+  );
+}
+
 function buildPdfKey({ classValue, typeValue, title, price }) {
   const classLabel = CLASS_TO_LABEL[classValue] || classValue;
   const categoryLabel = TYPE_TO_CATEGORY_LABEL[typeValue] || typeValue;
@@ -253,8 +357,7 @@ function getBearerToken(req) {
   return authHeader.slice(7).trim();
 }
 
-async function readPdfInfo(pdfPath, { renderPreview = false } = {}) {
-  const bytes = await fs.readFile(pdfPath);
+async function readPdfInfoFromBytes(bytes, { renderPreview = false } = {}) {
   const parsedPdf = await PDFDocument.load(bytes, { ignoreEncryption: true });
   const pages = Math.max(
     Number.parseInt(String(parsedPdf.getPageCount() || "1"), 10) || 1,
@@ -298,7 +401,6 @@ async function readPdfInfo(pdfPath, { renderPreview = false } = {}) {
       console.error("Preview generation skipped:", previewReadError);
     }
   }
-
   return { pages, previewPng };
 }
 
@@ -324,37 +426,81 @@ export default async function handler(req, res) {
       return res.status(403).json({ error: "This account is not allowed to upload products" });
     }
 
+    const r2Client = getR2Client();
+    const tempKeysForCleanup = [];
+
     let fields;
-    let files;
+    let pdfInput;
+    let coverInput;
+    let previewImageInput;
     try {
-      const parsed = await parseMultipart(req);
-      fields = parsed.fields;
-      files = parsed.files;
+      if (isJsonRequest(req)) {
+        const payload = await parseJsonBody(req);
+        const uploadRefs = payload?.uploads && typeof payload.uploads === "object" ? payload.uploads : {};
+        fields = payload?.fields && typeof payload.fields === "object" ? payload.fields : {};
+
+        pdfInput = await getTempUploadFromR2(r2Client, bucket, uploadRefs.pdf);
+        if (pdfInput?.sourceKey) tempKeysForCleanup.push(pdfInput.sourceKey);
+        coverInput = await getTempUploadFromR2(r2Client, bucket, uploadRefs.coverImage);
+        if (coverInput?.sourceKey) tempKeysForCleanup.push(coverInput.sourceKey);
+        previewImageInput = await getTempUploadFromR2(r2Client, bucket, uploadRefs.previewImage);
+        if (previewImageInput?.sourceKey) tempKeysForCleanup.push(previewImageInput.sourceKey);
+      } else {
+        const parsed = await parseMultipart(req);
+        fields = parsed.fields;
+        const files = parsed.files;
+        const pdfFile = toSingleFile(files.pdf);
+        const coverFile = toSingleFile(files.coverImage);
+        const previewImageFile = toSingleFile(files.previewImage);
+        pdfInput = pdfFile
+          ? {
+              filepath: pdfFile.filepath,
+              mimetype: pdfFile.mimetype,
+              originalFilename: pdfFile.originalFilename,
+            }
+          : null;
+        coverInput = coverFile
+          ? {
+              filepath: coverFile.filepath,
+              mimetype: coverFile.mimetype,
+              originalFilename: coverFile.originalFilename,
+            }
+          : null;
+        previewImageInput = previewImageFile
+          ? {
+              filepath: previewImageFile.filepath,
+              mimetype: previewImageFile.mimetype,
+              originalFilename: previewImageFile.originalFilename,
+            }
+          : null;
+      }
     } catch (parseError) {
       const msg = String(parseError?.message || parseError || "Invalid upload payload");
       const tooLarge =
         Number(parseError?.httpCode) === 413 ||
         Number(parseError?.code) === 1009 ||
-        /maxFileSize|larger than|max total file size/i.test(msg);
+        /maxFileSize|larger than|max total file size|payload too large/i.test(msg);
+      await deleteKeysBestEffort(r2Client, bucket, tempKeysForCleanup);
       return res.status(tooLarge ? 413 : 400).json({
         error: tooLarge
           ? "Uploaded file is too large for this endpoint."
-          : "Invalid multipart form data.",
+          : "Invalid upload payload.",
       });
     }
 
-    const typeValue = toSingleField(fields.type);
-    const title = toSingleField(fields.title);
-    const price = toSingleField(fields.price);
-    const subject = toSingleField(fields.subject);
-    const topic = toSlug(toSingleField(fields.topic));
-    const subtopicRaw = toSlug(toSingleField(fields.subtopic));
-    const showPreviewPage = toSingleField(fields.showPreviewPage) === "true";
-    const classFromField = toSingleField(fields.class);
-    const classValue =
-      subject === "english" && typeValue === "worksheet"
-        ? "class-1"
-        : classFromField;
+    try {
+      const typeValue = toSingleField(fields.type);
+      const title = toSingleField(fields.title);
+      const price = toSingleField(fields.price);
+      const subject = toSingleField(fields.subject);
+      const topic = toSlug(toSingleField(fields.topic));
+      const subtopicRaw = toSlug(toSingleField(fields.subtopic));
+      const showPreviewPage = toSingleField(fields.showPreviewPage) === "true";
+      const classFromField = toSingleField(fields.class);
+      const classValue =
+        subject === "english" && typeValue === "worksheet"
+          ? "class-1"
+          : classFromField;
 
     if (!CLASS_TO_LABEL[classValue]) {
       return res.status(400).json({ error: "Invalid class" });
@@ -389,37 +535,44 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Price must be a positive number" });
     }
 
-    const pdfFile = toSingleFile(files.pdf);
-    const coverFile = toSingleFile(files.coverImage);
-    const previewImageFile = toSingleFile(files.previewImage);
-    if (!pdfFile) {
+    if (!pdfInput) {
       return res.status(400).json({ error: "PDF file is required" });
     }
 
-    if (!coverFile) {
+    if (!coverInput) {
       return res.status(400).json({ error: "Cover image is required" });
     }
 
-    const pdfType = String(pdfFile.mimetype || "").toLowerCase();
+    const pdfType = String(pdfInput.mimetype || "").toLowerCase();
     if (!pdfType.includes("pdf")) {
       return res.status(400).json({ error: "Uploaded PDF file is invalid" });
     }
 
-    const coverType = String(coverFile.mimetype || "").toLowerCase();
+    const coverType = String(coverInput.mimetype || "").toLowerCase();
     if (!coverType.startsWith("image/")) {
       return res.status(400).json({ error: "Cover image file is invalid" });
     }
-    if (previewImageFile) {
-      const previewType = String(previewImageFile.mimetype || "").toLowerCase();
+    if (previewImageInput) {
+      const previewType = String(previewImageInput.mimetype || "").toLowerCase();
       if (!previewType.startsWith("image/")) {
         return res.status(400).json({ error: "Preview image file is invalid" });
       }
     }
 
+    const pdfBody = pdfInput.buffer || (pdfInput.filepath ? await fs.readFile(pdfInput.filepath) : null);
+    const coverBody =
+      coverInput.buffer || (coverInput.filepath ? await fs.readFile(coverInput.filepath) : null);
+    if (!pdfBody || pdfBody.length === 0) {
+      return res.status(400).json({ error: "Uploaded PDF file is empty" });
+    }
+    if (!coverBody || coverBody.length === 0) {
+      return res.status(400).json({ error: "Uploaded cover image is empty" });
+    }
+
     let pdfInfo;
     try {
-      pdfInfo = await readPdfInfo(pdfFile.filepath, {
-        renderPreview: showPreviewPage && !previewImageFile,
+      pdfInfo = await readPdfInfoFromBytes(pdfBody, {
+        renderPreview: showPreviewPage && !previewImageInput,
       });
     } catch (pdfInfoError) {
       console.error("PDF read failed:", pdfInfoError);
@@ -437,18 +590,14 @@ export default async function handler(req, res) {
     const base = pdfKey.replace(/\.pdf$/i, "");
     const productId = `${toSlug(classValue)}-${toSlug(title)}`;
 
-    const coverExt = extensionForContentType(coverFile.mimetype, coverFile.originalFilename);
+    const coverExt = extensionForContentType(coverInput.mimetype, coverInput.originalFilename);
     const coverKey = `${base}__cover${coverExt}`;
     const previewKey = `${base}__preview1.png`;
 
     const metaKey = `${base}__meta.json`;
 
-    const r2Client = getR2Client();
-
-    const pdfBody = await fs.readFile(pdfFile.filepath);
-    const coverBody = await fs.readFile(coverFile.filepath);
     await putObject(r2Client, bucket, pdfKey, pdfBody, "application/pdf");
-    await putObject(r2Client, bucket, coverKey, coverBody, coverFile.mimetype);
+    await putObject(r2Client, bucket, coverKey, coverBody, coverInput.mimetype);
 
     let coverThumbKey = "";
     const coverThumbVariant = await generateThumbnailVariant(coverBody, { maxWidth: 640 });
@@ -468,8 +617,9 @@ export default async function handler(req, res) {
 
     if (showPreviewPage) {
       try {
-        const previewBody = previewImageFile
-          ? await fs.readFile(previewImageFile.filepath)
+        const previewBody = previewImageInput
+          ? previewImageInput.buffer ||
+            (previewImageInput.filepath ? await fs.readFile(previewImageInput.filepath) : null)
           : pdfInfo.previewPng;
         if (!previewBody) {
           throw new Error("Missing generated preview image buffer");
@@ -560,20 +710,23 @@ export default async function handler(req, res) {
       { merge: true }
     );
 
-    return res.status(200).json({
-      ok: true,
-      message: "Product assets uploaded to R2",
-      storage: {
-        productId,
-        pdfKey,
-        coverKey,
-        coverThumbKey,
-        previewKey: showPreviewPage ? previewPageKey : "",
-        previewThumbKey: showPreviewPage ? previewThumbKey : "",
-        metaKey,
-      },
-      nextStep: "Listing is saved to Firestore and should appear automatically in the library.",
-    });
+      return res.status(200).json({
+        ok: true,
+        message: "Product assets uploaded to R2",
+        storage: {
+          productId,
+          pdfKey,
+          coverKey,
+          coverThumbKey,
+          previewKey: showPreviewPage ? previewPageKey : "",
+          previewThumbKey: showPreviewPage ? previewThumbKey : "",
+          metaKey,
+        },
+        nextStep: "Listing is saved to Firestore and should appear automatically in the library.",
+      });
+    } finally {
+      await deleteKeysBestEffort(r2Client, bucket, tempKeysForCleanup);
+    }
   } catch (error) {
     console.error("Admin upload failed:", error);
     const message = String(error?.message || "").trim();
