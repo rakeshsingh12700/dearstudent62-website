@@ -1,6 +1,7 @@
 import { AuthProvider } from "../context/AuthContext";
 import { Baloo_2, Cormorant_Garamond, Nunito, Poppins } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import Head from "next/head";
 import Script from "next/script";
 import { useRouter } from "next/router";
@@ -32,6 +33,25 @@ const brandSansFont = Poppins({
 });
 
 const SITE_URL = "https://dearstudent.in";
+const WEB_VITAL_EVENT = "web_vital";
+
+function sendWebVitalToGoogleAnalytics(metric) {
+  if (typeof window === "undefined") return;
+  if (typeof window.gtag !== "function") return;
+
+  window.gtag("event", WEB_VITAL_EVENT, {
+    event_category: "Web Vitals",
+    event_label: metric.name,
+    metric_id: metric.id,
+    metric_value: Math.round(metric.name === "CLS" ? metric.value * 1000 : metric.value),
+    metric_delta: Math.round(metric.delta || 0),
+    non_interaction: true,
+  });
+}
+
+export function reportWebVitals(metric) {
+  sendWebVitalToGoogleAnalytics(metric);
+}
 
 export default function App({ Component, pageProps }) {
   const router = useRouter();
@@ -69,6 +89,7 @@ export default function App({ Component, pageProps }) {
         </div>
       </AuthProvider>
       <Analytics />
+      <SpeedInsights />
     </div>
   );
 }
