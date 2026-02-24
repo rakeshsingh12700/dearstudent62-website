@@ -1,4 +1,4 @@
-import { initializeApp } from "firebase/app";
+import { getApp, getApps, initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
@@ -11,7 +11,22 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-const app = initializeApp(firebaseConfig);
+function hasFirebaseWebConfig(config) {
+  return Boolean(
+    String(config?.apiKey || "").trim() &&
+    String(config?.authDomain || "").trim() &&
+    String(config?.projectId || "").trim() &&
+    String(config?.appId || "").trim()
+  );
+}
 
-export const auth = getAuth(app);
-export const db = getFirestore(app);
+let app = null;
+if (hasFirebaseWebConfig(firebaseConfig)) {
+  app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+} else if (typeof window !== "undefined") {
+  // Keep local/dev/CI from crashing when public Firebase envs are not configured.
+  console.warn("Firebase web config is missing. Auth/Firestore client features are disabled.");
+}
+
+export const auth = app && typeof window !== "undefined" ? getAuth(app) : null;
+export const db = app ? getFirestore(app) : null;
