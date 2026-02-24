@@ -285,7 +285,24 @@ export default async function handler(req, res) {
       return res.status(403).json({ error: "This account is not allowed to upload products" });
     }
 
-    const { fields, files } = await parseMultipart(req);
+    let fields;
+    let files;
+    try {
+      const parsed = await parseMultipart(req);
+      fields = parsed.fields;
+      files = parsed.files;
+    } catch (parseError) {
+      const msg = String(parseError?.message || parseError || "Invalid upload payload");
+      const tooLarge =
+        Number(parseError?.httpCode) === 413 ||
+        Number(parseError?.code) === 1009 ||
+        /maxFileSize|larger than|max total file size/i.test(msg);
+      return res.status(tooLarge ? 413 : 400).json({
+        error: tooLarge
+          ? "Uploaded file is too large for this endpoint."
+          : "Invalid multipart form data.",
+      });
+    }
 
     const typeValue = toSingleField(fields.type);
     const title = toSingleField(fields.title);
@@ -487,6 +504,10 @@ export default async function handler(req, res) {
     });
   } catch (error) {
     console.error("Admin upload failed:", error);
+    const message = String(error?.message || "").trim();
+    if (message) {
+      return res.status(500).json({ error: message });
+    }
     return res.status(500).json({ error: "Failed to upload product assets" });
   }
 }
