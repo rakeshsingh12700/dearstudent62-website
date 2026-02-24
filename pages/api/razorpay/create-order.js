@@ -1,36 +1,7 @@
 import Razorpay from "razorpay";
-import { doc, getDoc } from "firebase/firestore";
-import products from "../../../data/products";
-import { db } from "../../../firebase/config";
-import {
-  calculatePrice,
-  detectCountryFromRequest,
-  getCurrencyOverrideFromRequest,
-} from "../../../lib/pricing";
-import { getDiscountedUnitPrice, getLaunchDiscountRate } from "../../../lib/pricing/launchOffer";
-
-const STATIC_PRODUCTS_BY_ID = products.reduce((acc, product) => {
-  if (product?.id) {
-    acc[product.id] = product;
-  }
-  return acc;
-}, {});
-
-async function getProductBasePrice(productId) {
-  const normalizedId = String(productId || "").trim();
-  if (!normalizedId) return null;
-
-  try {
-    const snapshot = await getDoc(doc(db, "products", normalizedId));
-    if (snapshot.exists()) {
-      return Number(snapshot.data()?.price || 0);
-    }
-  } catch {
-    // Fall back to static data.
-  }
-
-  return Number(STATIC_PRODUCTS_BY_ID[normalizedId]?.price || 0);
-}
+import { computeCheckoutPricing } from "../../../lib/checkoutPricing";
+import { normalizeCouponCode } from "../../../lib/coupons/common";
+import { validateCouponForCheckout } from "../../../lib/coupons/server";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -57,81 +28,42 @@ export default async function handler(req, res) {
       });
     }
 
-    const requestedItems = (Array.isArray(req.body?.items) ? req.body.items : [])
-      .map((item) => ({
-        productId: String(item?.productId || "").trim(),
-        quantity: Number(item?.quantity || 0),
-      }))
-      .filter(
-        (item) =>
-          item.productId &&
-          Number.isFinite(item.quantity) &&
-          item.quantity > 0 &&
-          item.quantity <= 20
-      )
-      .slice(0, 25);
-
-    if (requestedItems.length === 0) {
-      return res.status(400).json({ error: "No valid items provided for checkout." });
+    const pricingResult = await computeCheckoutPricing({
+      req,
+      items: req.body?.items,
+      currencyOverride: req.body?.currencyOverride,
+    });
+    if (!pricingResult.ok) {
+      return res.status(pricingResult.status || 400).json({ error: pricingResult.error });
     }
+    const pricing = pricingResult.pricing;
 
-    const countryCode = detectCountryFromRequest(req);
-    const currencyOverrideFromRequest = getCurrencyOverrideFromRequest(req);
-    const currencyOverrideFromBody = String(req.body?.currencyOverride || "").trim().toUpperCase();
-    const currencyOverride = currencyOverrideFromBody || currencyOverrideFromRequest;
+    const couponCode = normalizeCouponCode(req.body?.couponCode || "");
+    const buyerEmail = String(req.body?.email || "").trim().toLowerCase();
+    const buyerUserId = String(req.body?.userId || "").trim() || null;
+    let couponSummary = null;
+    let finalAmount = Number(pricing.totalAmount || 0);
 
-    const pricedItems = await Promise.all(
-      requestedItems.map(async (item) => {
-        const basePriceINR = await getProductBasePrice(item.productId);
-        if (!Number.isFinite(basePriceINR) || basePriceINR <= 0) return null;
-
-        const pricing = calculatePrice({
-          basePriceINR,
-          countryCode,
-          currencyOverride,
-        });
-
-        return {
-          ...item,
-          unitAmount: Number(pricing.amount || 0),
-          currency: pricing.currency,
-        };
-      })
-    );
-
-    const validItems = pricedItems.filter(Boolean);
-    if (validItems.length === 0) {
-      return res.status(400).json({ error: "Could not compute prices for checkout items." });
-    }
-
-    const orderCurrency = validItems[0].currency;
-    const hasMixedCurrencies = validItems.some((item) => item.currency !== orderCurrency);
-    if (hasMixedCurrencies) {
-      return res.status(400).json({
-        error: "Mixed checkout currencies detected. Refresh and try again.",
+    if (couponCode) {
+      const couponResult = await validateCouponForCheckout({
+        code: couponCode,
+        email: buyerEmail,
+        userId: buyerUserId,
+        orderAmount: pricing.totalAmount,
+        currency: pricing.orderCurrency,
+        pricingContext: pricing,
       });
+
+      if (!couponResult.ok) {
+        return res.status(couponResult.status || 400).json({ error: couponResult.error });
+      }
+
+      couponSummary = couponResult.couponSummary;
+      finalAmount = Number(couponSummary.finalAmount || pricing.totalAmount);
     }
 
-    const totalItemQuantity = validItems.reduce(
-      (sum, item) => sum + Number(item.quantity || 0),
-      0
-    );
-    const launchDiscountRate = getLaunchDiscountRate(totalItemQuantity);
-
-    const computedAmount = validItems.reduce(
-      (sum, item) => {
-        const discountedUnitAmount = getDiscountedUnitPrice(
-          Number(item.unitAmount || 0),
-          orderCurrency,
-          totalItemQuantity
-        );
-        return sum + discountedUnitAmount * Number(item.quantity || 0);
-      },
-      0
-    );
-
-    if (!Number.isFinite(computedAmount) || computedAmount <= 0) {
-      return res.status(400).json({ error: "Invalid checkout total." });
+    if (!Number.isFinite(finalAmount) || finalAmount <= 0) {
+      return res.status(400).json({ error: "Invalid final checkout total." });
     }
 
     const razorpay = new Razorpay({
@@ -140,20 +72,25 @@ export default async function handler(req, res) {
     });
 
     const order = await razorpay.orders.create({
-      amount: Math.round(computedAmount * 100),
-      currency: orderCurrency,
+      amount: Math.round(finalAmount * 100),
+      currency: pricing.orderCurrency,
       receipt: `receipt_${Date.now()}`,
       notes: {
-        countryCode,
-        pricingTier: countryCode === "IN" ? "india" : "international",
+        countryCode: pricing.countryCode,
+        pricingTier: pricing.countryCode === "IN" ? "india" : "international",
+        couponCode: couponSummary?.code || "",
+        couponId: couponSummary?.id || "",
       },
     });
 
     return res.status(200).json({
       ...order,
-      displayAmount: computedAmount,
-      currency: orderCurrency,
-      launchDiscountRate,
+      displayAmount: finalAmount,
+      subtotalAmount: Number(pricing.totalAmount || 0),
+      couponDiscountAmount: Number(couponSummary?.discountAmount || 0),
+      currency: pricing.orderCurrency,
+      launchDiscountRate: pricing.launchDiscountRate,
+      appliedCoupon: couponSummary,
     });
   } catch (error) {
     console.error("Razorpay order creation error:", error);

@@ -2454,7 +2454,22 @@ button {
   color: #111827;
 }
 
+.admin-filter input {
+  min-height: 38px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #fff;
+  padding: 0 10px;
+  font-size: 0.9rem;
+  color: #111827;
+}
+
 .admin-filter select:focus-visible {
+  outline: 2px solid var(--ds-primary);
+  outline-offset: 1px;
+}
+
+.admin-filter input:focus-visible {
   outline: 2px solid var(--ds-primary);
   outline-offset: 1px;
 }
@@ -2619,6 +2634,165 @@ button {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+}
+
+.admin-submission-contact-actions {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.admin-submission-note-box {
+  display: grid;
+  gap: 6px;
+  width: min(440px, 100%);
+}
+
+.admin-submission-note-box label {
+  color: #475569;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.admin-submission-note-box textarea {
+  width: 100%;
+  min-height: 64px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #fff;
+  color: #111827;
+  padding: 8px 10px;
+  font-size: 0.88rem;
+  font-family: inherit;
+  line-height: 1.4;
+  resize: vertical;
+}
+
+.admin-submission-note-box textarea:focus-visible {
+  outline: 2px solid var(--ds-primary);
+  outline-offset: 1px;
+}
+
+.admin-submission-missing-contact {
+  margin: 0;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 0.82rem;
+  font-weight: 800;
+  padding: 8px 10px;
+}
+
+.admin-coupon-form {
+  margin-top: 8px;
+  border: 1px solid #ffedd5;
+  border-radius: 14px;
+  background: #fffdfa;
+  padding: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.admin-coupon-form__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.admin-coupon-form__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.admin-coupon-generate-btn {
+  min-height: 38px;
+  border-radius: 10px;
+}
+
+.admin-checkbox-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #475569;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.admin-checkbox-row input {
+  width: 16px;
+  height: 16px;
+}
+
+.admin-coupon-table-wrap {
+  margin-top: 10px;
+  border: 1px solid #ffedd5;
+  border-radius: 12px;
+  background: #fffdfa;
+  overflow-x: auto;
+}
+
+.admin-coupon-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 980px;
+}
+
+.admin-coupon-table th,
+.admin-coupon-table td {
+  border-bottom: 1px solid #ffedd5;
+  text-align: left;
+  vertical-align: top;
+  padding: 10px;
+  color: #334155;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.admin-coupon-table th {
+  color: #7c2d12;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: #fff7ed;
+}
+
+.admin-coupon-table td p {
+  margin: 4px 0 0;
+  color: #64748b;
+  font-size: 0.78rem;
+}
+
+.admin-coupon-action-row {
+  display: grid;
+  gap: 6px;
+}
+
+.admin-submission-status--coupon-active {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+  color: #166534;
+}
+
+.admin-submission-status--coupon-disabled {
+  border-color: #e5e7eb;
+  background: #f8fafc;
+  color: #475569;
+}
+
+.admin-submission-status--coupon-expired {
+  border-color: #fecaca;
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.admin-submission-status--coupon-scheduled {
+  border-color: #fde68a;
+  background: #fffbeb;
+  color: #92400e;
 }
 
 .admin-submission-actions label {
@@ -3716,6 +3890,107 @@ button {
 .checkout-summary-row--total strong {
   color: #0f172a;
   font-size: 1.1rem;
+}
+
+.checkout-coupon-panel {
+  border: 1px solid #ffedd5;
+  border-radius: 12px;
+  background: #fff7ed;
+  padding: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.checkout-coupon-panel__title {
+  margin: 0;
+  color: #7c2d12;
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.checkout-coupon-input-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.checkout-coupon-input-row input {
+  min-height: 38px;
+  border: 1px solid #f3d9bf;
+  border-radius: 10px;
+  background: #fff;
+  padding: 0 10px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.checkout-coupon-input-row input:focus-visible {
+  outline: 2px solid var(--ds-primary);
+  outline-offset: 1px;
+}
+
+.checkout-coupon-applied {
+  border: 1px solid #bbf7d0;
+  border-radius: 10px;
+  background: #f0fdf4;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.checkout-coupon-applied p {
+  margin: 0;
+  color: #166534;
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.checkout-coupon-error {
+  margin: 0;
+  color: #b91c1c;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.checkout-coupon-list {
+  display: grid;
+  gap: 6px;
+}
+
+.checkout-coupon-list__label {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.checkout-coupon-list__item {
+  border: 1px solid #f3d9bf;
+  border-radius: 10px;
+  background: #fff;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.checkout-coupon-list__item span {
+  color: #7c2d12;
+  font-size: 0.84rem;
+  font-weight: 900;
+}
+
+.checkout-coupon-list__item strong {
+  color: #111827;
+  font-size: 0.82rem;
 }
 
 .checkout-inapp-warning {
@@ -4893,6 +5168,7 @@ button {
   }
 
   .admin-filter select,
+  .admin-filter input,
   .admin-search input,
   .admin-refresh-btn {
     width: 100%;
@@ -4906,9 +5182,26 @@ button {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .admin-coupon-form__row {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-coupon-form__grid {
+    grid-template-columns: 1fr;
+  }
+
   .admin-submission-actions {
     width: 100%;
     justify-content: space-between;
+  }
+
+  .admin-submission-contact-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .admin-submission-note-box {
+    width: 100%;
   }
 
   .admin-review-item__meta {
@@ -5016,6 +5309,15 @@ button {
   .checkout-summary-row--total span,
   .checkout-summary-row--total strong {
     font-size: 1rem;
+  }
+
+  .checkout-coupon-input-row {
+    grid-template-columns: 1fr;
+  }
+
+  .checkout-coupon-applied {
+    display: grid;
+    justify-items: start;
   }
 
   .my-purchases-wrap {
@@ -5854,6 +6156,17 @@ button {
   padding: 16px;
   display: grid;
   gap: 12px;
+}
+
+.contact-logged-email {
+  margin: 0;
+  border: 1px solid #dbeafe;
+  border-radius: 10px;
+  background: #eff6ff;
+  color: #1e3a8a;
+  font-size: 0.88rem;
+  font-weight: 700;
+  padding: 10px 12px;
 }
 
 .contact-form label {

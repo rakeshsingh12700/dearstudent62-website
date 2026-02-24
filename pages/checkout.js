@@ -142,13 +142,26 @@ export default function Checkout() {
   const { user } = useAuth();
   const loggedInEmail = user?.email || "";
   const [loading, setLoading] = useState(false);
+  const [couponLoading, setCouponLoading] = useState(false);
   const [cartSummary, setCartSummary] = useState(() => getCartSummary());
   const [cartPreviewItems, setCartPreviewItems] = useState(() => getCartPreviewItems());
   const [runtimeProducts, setRuntimeProducts] = useState([]);
   const [email, setEmail] = useState("");
   const [inAppBrowserName, setInAppBrowserName] = useState("");
+  const [couponCodeInput, setCouponCodeInput] = useState("");
+  const [couponError, setCouponError] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [availableCoupons, setAvailableCoupons] = useState([]);
 
   const hasItems = cartSummary.count > 0;
+  const cartItemsSignature = useMemo(
+    () =>
+      cartPreviewItems
+        .map((item) => `${item.productId}:${Number(item.quantity || 0)}`)
+        .sort()
+        .join("|"),
+    [cartPreviewItems]
+  );
 
   useEffect(() => {
     if (typeof window === "undefined") return undefined;
@@ -283,11 +296,100 @@ export default function Checkout() {
     () => Math.max(0, launchTierAmount - totalAmount),
     [launchTierAmount, totalAmount]
   );
+  const buyerEmail = (loggedInEmail || email).trim().toLowerCase();
+  const couponDiscountAmount = Number(appliedCoupon?.discountAmount || 0);
+  const payableAmount = Math.max(0, Number(totalAmount || 0) - couponDiscountAmount);
   const actionLabel = loading
     ? "Processing..."
     : pricesReady
-      ? `Pay ${formatMoney(totalAmount, displayCurrency)}`
+      ? payableAmount <= 0
+        ? "Complete Free Order"
+        : `Pay ${formatMoney(payableAmount, displayCurrency)}`
       : "Updating prices...";
+
+  useEffect(() => {
+    setAppliedCoupon(null);
+    setCouponError("");
+  }, [cartItemsSignature, buyerEmail, displayCurrency]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadAvailableCoupons = async () => {
+      if (!hasItems) {
+        setAvailableCoupons([]);
+        return;
+      }
+
+      try {
+        setCouponLoading(true);
+        const response = await fetch("/api/coupons/available", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: buyerEmail,
+            userId: user?.uid || null,
+            items: getCartItems(),
+            currencyOverride: readCurrencyPreference(),
+          }),
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (cancelled) return;
+        if (!response.ok || !payload?.ok) {
+          setAvailableCoupons([]);
+          return;
+        }
+        setAvailableCoupons(Array.isArray(payload?.coupons) ? payload.coupons : []);
+      } catch {
+        if (cancelled) return;
+        setAvailableCoupons([]);
+      } finally {
+        if (!cancelled) setCouponLoading(false);
+      }
+    };
+
+    loadAvailableCoupons();
+    return () => {
+      cancelled = true;
+    };
+  }, [hasItems, buyerEmail, cartItemsSignature, user?.uid]);
+
+  const applyCoupon = async (rawCode) => {
+    const normalizedCode = String(rawCode || "").trim().toUpperCase();
+    if (!normalizedCode) {
+      setCouponError("Enter a coupon code.");
+      return;
+    }
+
+    try {
+      setCouponLoading(true);
+      setCouponError("");
+
+      const response = await fetch("/api/coupons/apply", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code: normalizedCode,
+          email: buyerEmail,
+          userId: user?.uid || null,
+          items: getCartItems(),
+          currencyOverride: readCurrencyPreference(),
+        }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok || !payload?.ok || !payload?.coupon) {
+        throw new Error(String(payload?.error || "Unable to apply coupon"));
+      }
+
+      setAppliedCoupon(payload.coupon);
+      setCouponCodeInput(payload.coupon.code || normalizedCode);
+    } catch (applyError) {
+      setAppliedCoupon(null);
+      setCouponError(String(applyError?.message || "Unable to apply coupon"));
+    } finally {
+      setCouponLoading(false);
+    }
+  };
 
   const payNow = async () => {
     try {
@@ -305,15 +407,53 @@ export default function Checkout() {
 
       const latestCart = getCartSummary();
       const latestItems = getCartItems();
-      const buyerEmail = (loggedInEmail || email).trim().toLowerCase();
+      const currentBuyerEmail = (loggedInEmail || email).trim().toLowerCase();
 
       if (latestCart.count <= 0 || latestItems.length === 0) {
         alert("Your cart is empty. Please add items before checkout.");
         return;
       }
 
-      if (!buyerEmail) {
+      if (!currentBuyerEmail) {
         alert("Please enter email to receive your download.");
+        return;
+      }
+
+      if (payableAmount <= 0) {
+        const freeOrderRes = await fetch("/api/checkout/complete-free-order", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            items: latestItems,
+            currencyOverride: readCurrencyPreference(),
+            couponCode: appliedCoupon?.code || "",
+            email: currentBuyerEmail,
+            userId: user?.uid || null,
+          }),
+        });
+
+        const freeOrderPayload = await freeOrderRes.json().catch(() => ({}));
+        if (!freeOrderRes.ok || !freeOrderPayload?.success) {
+          alert(freeOrderPayload.error || "Free checkout failed. Please try again.");
+          return;
+        }
+
+        if (typeof window !== "undefined") {
+          window.localStorage.removeItem(CART_STORAGE_KEY);
+          window.dispatchEvent(new CustomEvent("ds-cart-updated"));
+          window.sessionStorage.setItem("ds-last-checkout-email", currentBuyerEmail);
+        }
+        setCartSummary({ count: 0, total: 0 });
+        setCartPreviewItems([]);
+        const primaryProductId = encodeURIComponent(
+          freeOrderPayload.primaryProductId || ""
+        );
+        const productIdsParam = encodeURIComponent(
+          Array.isArray(freeOrderPayload.productIds)
+            ? freeOrderPayload.productIds.join(",")
+            : ""
+        );
+        window.location.href = `/success?token=${freeOrderPayload.token}&paymentId=${freeOrderPayload.paymentId}&email=${encodeURIComponent(currentBuyerEmail)}&productId=${primaryProductId}&productIds=${productIdsParam}`;
         return;
       }
 
@@ -346,6 +486,9 @@ export default function Checkout() {
         body: JSON.stringify({
           items: latestItems,
           currencyOverride: readCurrencyPreference(),
+          couponCode: appliedCoupon?.code || "",
+          email: currentBuyerEmail,
+          userId: user?.uid || null,
         }),
       });
 
@@ -376,11 +519,12 @@ export default function Checkout() {
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 ...response,
-                email: buyerEmail,
+                email: currentBuyerEmail,
                 userId: user?.uid || null,
                 items: latestItems,
                 orderCurrency: order.currency || "INR",
                 orderAmount: Number(order.displayAmount || 0),
+                appliedCoupon: order.appliedCoupon || null,
               }),
             });
 
@@ -390,7 +534,7 @@ export default function Checkout() {
               if (typeof window !== "undefined") {
                 window.localStorage.removeItem(CART_STORAGE_KEY);
                 window.dispatchEvent(new CustomEvent("ds-cart-updated"));
-                window.sessionStorage.setItem("ds-last-checkout-email", buyerEmail);
+                window.sessionStorage.setItem("ds-last-checkout-email", currentBuyerEmail);
               }
               setCartSummary({ count: 0, total: 0 });
               setCartPreviewItems([]);
@@ -400,7 +544,7 @@ export default function Checkout() {
               const productIdsParam = encodeURIComponent(
                 Array.isArray(result.productIds) ? result.productIds.join(",") : ""
               );
-              window.location.href = `/success?token=${result.token}&paymentId=${result.paymentId}&email=${encodeURIComponent(buyerEmail)}&productId=${primaryProductId}&productIds=${productIdsParam}`;
+              window.location.href = `/success?token=${result.token}&paymentId=${result.paymentId}&email=${encodeURIComponent(currentBuyerEmail)}&productId=${primaryProductId}&productIds=${productIdsParam}`;
             } else {
               alert(result.error || "Payment verification failed.");
             }
@@ -542,9 +686,84 @@ export default function Checkout() {
                 <span>Tax</span>
                 <strong>{getCurrencySymbol(displayCurrency)}0</strong>
               </div>
+              <div className="checkout-coupon-panel">
+                <p className="checkout-coupon-panel__title">Apply coupon</p>
+                <div className="checkout-coupon-input-row">
+                  <input
+                    type="text"
+                    value={couponCodeInput}
+                    onChange={(event) => setCouponCodeInput(event.target.value.toUpperCase())}
+                    placeholder="Enter coupon code"
+                  />
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => applyCoupon(couponCodeInput)}
+                    disabled={couponLoading || !hasItems}
+                  >
+                    {couponLoading ? "Applying..." : "Apply"}
+                  </button>
+                </div>
+
+                {appliedCoupon ? (
+                  <div className="checkout-coupon-applied">
+                    <p>
+                      Coupon applied: <strong>{appliedCoupon.code}</strong>
+                    </p>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() => {
+                        setAppliedCoupon(null);
+                        setCouponError("");
+                      }}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ) : null}
+
+                {couponError ? (
+                  <p className="checkout-coupon-error" role="alert">
+                    {couponError}
+                  </p>
+                ) : null}
+
+                {availableCoupons.length > 0 ? (
+                  <div className="checkout-coupon-list">
+                    <p className="checkout-coupon-list__label">Available coupons for you</p>
+                    {availableCoupons.map((coupon) => (
+                      <button
+                        type="button"
+                        key={coupon.id}
+                        className="checkout-coupon-list__item"
+                        onClick={() => applyCoupon(coupon.code)}
+                        disabled={couponLoading}
+                      >
+                        <span>{coupon.code}</span>
+                        <strong>
+                          {coupon.discountType === "percentage"
+                            ? `${coupon.discountValue}% off${
+                                coupon.discountScope === "single_highest_item" ? " (1 item)" : ""
+                              }`
+                            : coupon.discountType === "free_item"
+                              ? "1 highest item free"
+                              : `${getCurrencySymbol(coupon.currency)}${coupon.discountValue} off`}
+                        </strong>
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+              {couponDiscountAmount > 0 ? (
+                <div className="checkout-summary-row">
+                  <span>Coupon discount</span>
+                  <strong>-{formatMoney(couponDiscountAmount, displayCurrency)}</strong>
+                </div>
+              ) : null}
               <div className="checkout-summary-row checkout-summary-row--total">
                 <span>Total payable</span>
-                <strong>{pricesReady ? formatMoney(totalAmount, displayCurrency) : "..."}</strong>
+                <strong>{pricesReady ? formatMoney(payableAmount, displayCurrency) : "..."}</strong>
               </div>
 
               {inAppBrowserName ? (
@@ -566,7 +785,7 @@ export default function Checkout() {
                 type="button"
                 className="btn btn-primary checkout-pay-btn"
                 onClick={payNow}
-                disabled={loading || !hasItems || !pricesReady}
+                disabled={loading || couponLoading || !hasItems || !pricesReady}
               >
                 {actionLabel}
               </button>

@@ -2,6 +2,7 @@ import Head from "next/head";
 import Link from "next/link";
 import { useState } from "react";
 import Navbar from "../components/Navbar";
+import { useAuth } from "../context/AuthContext";
 
 const INSTAGRAM_PROFILE_URL = "https://www.instagram.com/dearstudent62/";
 
@@ -22,12 +23,14 @@ function getInitialForm() {
   return {
     name: "",
     email: "",
+    whatsapp: "",
     topic: TOPIC_OPTIONS[0].value,
     message: ""
   };
 }
 
 export default function ContactUsPage() {
+  const { user } = useAuth();
   const [form, setForm] = useState(() => getInitialForm());
   const [status, setStatus] = useState({ type: "", text: "" });
   const [submitting, setSubmitting] = useState(false);
@@ -42,6 +45,9 @@ export default function ContactUsPage() {
     const trimmedMessage = String(form.message || "").trim();
     const trimmedName = String(form.name || "").trim();
     const trimmedEmail = String(form.email || "").trim().toLowerCase();
+    const trimmedWhatsapp = String(form.whatsapp || "").trim();
+    const loggedInEmail = String(user?.email || "").trim().toLowerCase();
+    const effectiveEmail = trimmedEmail || loggedInEmail;
 
     if (!trimmedMessage) {
       setStatus({
@@ -50,17 +56,29 @@ export default function ContactUsPage() {
       });
       return;
     }
+    if (!effectiveEmail && !trimmedWhatsapp) {
+      setStatus({
+        type: "error",
+        text: "Please provide at least one contact method: Email or WhatsApp number."
+      });
+      return;
+    }
 
     try {
       setSubmitting(true);
       setStatus({ type: "", text: "" });
 
+      const idToken = user ? await user.getIdToken().catch(() => "") : "";
       const response = await fetch("/api/contact-submissions", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(idToken ? { Authorization: `Bearer ${idToken}` } : {}),
+        },
         body: JSON.stringify({
           name: trimmedName,
-          email: trimmedEmail,
+          email: effectiveEmail,
+          whatsapp: trimmedWhatsapp,
           topic: form.topic,
           topicLabel: getTopicLabel(form.topic),
           message: trimmedMessage
@@ -108,6 +126,11 @@ export default function ContactUsPage() {
 
           <div className="contact-layout">
             <form className="contact-form" onSubmit={handleSubmit}>
+              {user?.email && (
+                <p className="contact-logged-email">
+                  Logged in as <strong>{user.email}</strong>. We will use this email for support reply.
+                </p>
+              )}
               <label htmlFor="contact-name">
                 Name (optional)
                 <input
@@ -121,7 +144,7 @@ export default function ContactUsPage() {
               </label>
 
               <label htmlFor="contact-email">
-                Email (optional)
+                Email
                 <input
                   id="contact-email"
                   name="email"
@@ -129,6 +152,18 @@ export default function ContactUsPage() {
                   value={form.email}
                   onChange={handleFieldChange}
                   placeholder="parent@example.com"
+                />
+              </label>
+
+              <label htmlFor="contact-whatsapp">
+                WhatsApp Number
+                <input
+                  id="contact-whatsapp"
+                  name="whatsapp"
+                  type="tel"
+                  value={form.whatsapp}
+                  onChange={handleFieldChange}
+                  placeholder="+91XXXXXXXXXX"
                 />
               </label>
 
