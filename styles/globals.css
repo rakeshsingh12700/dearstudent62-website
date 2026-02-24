@@ -2301,6 +2301,30 @@ button {
 
 .admin-page .auth-form input[type="file"] {
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-page .auth-form input[type="file"]::file-selector-button {
+  margin-right: 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  background: #fff;
+  color: #111827;
+  padding: 7px 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.admin-page .auth-form button[type="submit"] {
+  width: 100%;
+}
+
+.admin-page .auth-form > * {
+  min-width: 0;
 }
 
 .admin-page .auth-status code {
@@ -5221,6 +5245,29 @@ button {
   .admin-page .auth-form input,
   .admin-page .auth-form select {
     font-size: 16px;
+  }
+
+  .admin-page .auth-form input[type="file"] {
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  .admin-page .auth-form input[type="file"]::file-selector-button {
+    display: block;
+    width: 100%;
+    margin: 0 0 8px;
+  }
+
+  .admin-page .auth-form .auth-checkbox {
+    display: grid;
+    grid-template-columns: 18px minmax(0, 1fr);
+    align-items: start;
+    column-gap: 10px;
+    row-gap: 6px;
+  }
+
+  .admin-page .auth-form .auth-checkbox input {
+    margin-top: 2px;
   }
 
   .admin-page .auth-status__action {
