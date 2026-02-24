@@ -275,9 +275,28 @@ export default function AdminPage() {
         body: payload,
       });
 
-      const data = await response.json().catch(() => ({}));
+      const contentType = String(response.headers.get("content-type") || "").toLowerCase();
+      let data = {};
+      let rawErrorText = "";
+      if (contentType.includes("application/json")) {
+        data = await response.json().catch(() => ({}));
+      } else {
+        rawErrorText = await response.text().catch(() => "");
+      }
+
       if (!response.ok) {
-        throw new Error(String(data?.error || "Upload failed"));
+        const serverMessage = String(data?.error || "").trim();
+        const textMessage = String(rawErrorText || "").trim();
+        const looksLikePayloadTooLarge =
+          response.status === 413 ||
+          /payload too large|request entity too large|FUNCTION_PAYLOAD_TOO_LARGE/i.test(
+            textMessage
+          );
+        const fallback = looksLikePayloadTooLarge
+          ? "Upload failed: file size is too large for production API limits. Try a smaller PDF/image or move to direct R2 upload."
+          : `Upload failed (HTTP ${response.status})`;
+
+        throw new Error(serverMessage || textMessage || fallback);
       }
 
       setResult(data);
