@@ -177,6 +177,45 @@ async function putObject(r2Client, bucket, key, body, contentType) {
   );
 }
 
+async function generateThumbnailVariant(buffer, { maxWidth = 640 } = {}) {
+  if (!buffer || buffer.length === 0) return null;
+  try {
+    const canvasApi = await import("@napi-rs/canvas");
+    const image = await canvasApi.loadImage(buffer);
+    const sourceWidth = Math.max(Number(image?.width || 0), 1);
+    const sourceHeight = Math.max(Number(image?.height || 0), 1);
+
+    const targetWidth = Math.max(1, Math.min(Math.round(maxWidth), sourceWidth));
+    const scale = targetWidth / sourceWidth;
+    const targetHeight = Math.max(1, Math.round(sourceHeight * scale));
+
+    const canvas = canvasApi.createCanvas(targetWidth, targetHeight);
+    const context = canvas.getContext("2d");
+    context.fillStyle = "#ffffff";
+    context.fillRect(0, 0, targetWidth, targetHeight);
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = "high";
+    context.drawImage(image, 0, 0, targetWidth, targetHeight);
+
+    try {
+      return {
+        body: canvas.toBuffer("image/jpeg"),
+        contentType: "image/jpeg",
+        extension: ".jpg",
+      };
+    } catch {
+      return {
+        body: canvas.toBuffer("image/png"),
+        contentType: "image/png",
+        extension: ".png",
+      };
+    }
+  } catch (error) {
+    console.error("Thumbnail variant generation failed:", error);
+    return null;
+  }
+}
+
 async function verifyFirebaseIdToken(idToken) {
   const token = String(idToken || "").trim();
   if (!token) return null;
@@ -400,7 +439,6 @@ export default async function handler(req, res) {
 
     const coverExt = extensionForContentType(coverFile.mimetype, coverFile.originalFilename);
     const coverKey = `${base}__cover${coverExt}`;
-
     const previewKey = `${base}__preview1.png`;
 
     const metaKey = `${base}__meta.json`;
@@ -412,7 +450,21 @@ export default async function handler(req, res) {
     await putObject(r2Client, bucket, pdfKey, pdfBody, "application/pdf");
     await putObject(r2Client, bucket, coverKey, coverBody, coverFile.mimetype);
 
+    let coverThumbKey = "";
+    const coverThumbVariant = await generateThumbnailVariant(coverBody, { maxWidth: 640 });
+    if (coverThumbVariant?.body) {
+      coverThumbKey = `${base}__cover__thumb640${coverThumbVariant.extension}`;
+      await putObject(
+        r2Client,
+        bucket,
+        coverThumbKey,
+        coverThumbVariant.body,
+        coverThumbVariant.contentType
+      );
+    }
+
     let previewPageKey = "";
+    let previewThumbKey = "";
 
     if (showPreviewPage) {
       try {
@@ -424,6 +476,18 @@ export default async function handler(req, res) {
         }
         await putObject(r2Client, bucket, previewKey, previewBody, "image/png");
         previewPageKey = previewKey;
+
+        const previewThumbVariant = await generateThumbnailVariant(previewBody, { maxWidth: 640 });
+        if (previewThumbVariant?.body) {
+          previewThumbKey = `${base}__preview1__thumb640${previewThumbVariant.extension}`;
+          await putObject(
+            r2Client,
+            bucket,
+            previewThumbKey,
+            previewThumbVariant.body,
+            previewThumbVariant.contentType
+          );
+        }
       } catch (previewError) {
         console.error("Auto preview generation failed:", previewError);
       }
@@ -446,7 +510,9 @@ export default async function handler(req, res) {
       assets: {
         pdfKey,
         coverKey,
+        coverThumbKey,
         previewPageKey,
+        previewThumbKey,
       },
       adminEmail: adminUser.email,
       createdAt: new Date().toISOString(),
@@ -479,8 +545,12 @@ export default async function handler(req, res) {
         ageLabel,
         hideAgeLabel,
         storageKey: pdfKey,
-        imageUrl: `/api/thumbnail?key=${encodeURIComponent(coverKey)}`,
+        imageUrl: `/api/thumbnail?key=${encodeURIComponent(coverThumbKey || coverKey)}`,
+        imageOriginalUrl: `/api/thumbnail?key=${encodeURIComponent(coverKey)}`,
         previewImageUrl: showPreviewPage && previewPageKey
+          ? `/api/thumbnail?key=${encodeURIComponent(previewThumbKey || previewPageKey)}`
+          : "",
+        previewImageOriginalUrl: showPreviewPage && previewPageKey
           ? `/api/thumbnail?key=${encodeURIComponent(previewPageKey)}`
           : "",
         showPreviewPage: Boolean(showPreviewPage),
@@ -497,7 +567,9 @@ export default async function handler(req, res) {
         productId,
         pdfKey,
         coverKey,
+        coverThumbKey,
         previewKey: showPreviewPage ? previewPageKey : "",
+        previewThumbKey: showPreviewPage ? previewThumbKey : "",
         metaKey,
       },
       nextStep: "Listing is saved to Firestore and should appear automatically in the library.",

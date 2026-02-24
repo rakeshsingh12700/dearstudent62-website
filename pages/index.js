@@ -7,7 +7,7 @@ import { useRouter } from "next/router";
 import { useAuth } from "../context/AuthContext";
 import { motion } from "framer-motion";
 import productsCatalog from "../data/products";
-import { getPreviewUrl, getThumbnailUrl } from "../lib/productAssetUrls";
+import { getPreviewUrl } from "../lib/productAssetUrls";
 import { getDiscountedUnitPrice, hasDisplayPriceChange } from "../lib/pricing/launchOffer";
 
 const FALLBACK_POPULAR = [...productsCatalog]
@@ -427,7 +427,7 @@ export default function Home() {
       }
     }
 
-    const imageUrl = String(previewItem?.imageUrl || "").trim() || getThumbnailUrl(previewItem?.storageKey, "");
+    const imageUrl = String(previewItem?.imageUrl || "").trim();
     const previewImageUrl = String(previewItem?.previewImageUrl || "").trim();
     const showPreviewPage = Boolean(previewImageUrl);
     if (!imageUrl && !previewImageUrl && !previewItem?.storageKey) return;

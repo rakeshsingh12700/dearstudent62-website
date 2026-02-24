@@ -6,7 +6,7 @@ import Navbar from "../../components/Navbar";
 import products from "../../data/products";
 import { useAuth } from "../../context/AuthContext";
 import { hasPurchased } from "../../firebase/purchases";
-import { getPreviewUrl, getThumbnailUrl } from "../../lib/productAssetUrls";
+import { getPreviewUrl } from "../../lib/productAssetUrls";
 import { formatMoney, getPriceAmount, getPriceCurrency, readCurrencyPreference } from "../../lib/pricing/client";
 import { buildRatingStars, formatRatingAverage, normalizeRatingStats } from "../../lib/productRatings";
 
@@ -148,8 +148,8 @@ export default function ProductPage() {
     [product?.storageKey]
   );
   const thumbnailUrl = useMemo(
-    () => getThumbnailUrl(product?.storageKey, product?.imageUrl),
-    [product?.storageKey, product?.imageUrl]
+    () => String(product?.imageUrl || "").trim(),
+    [product?.imageUrl]
   );
   const previewImageUrl = useMemo(
     () => String(product?.previewImageUrl || "").trim(),

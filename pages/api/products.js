@@ -16,6 +16,40 @@ function toSlug(value) {
     .replace(/^-+|-+$/g, "");
 }
 
+function toDateMs(rawValue) {
+  if (!rawValue) return 0;
+  if (typeof rawValue?.toDate === "function") {
+    const converted = rawValue.toDate();
+    return converted instanceof Date ? converted.getTime() : 0;
+  }
+  if (
+    typeof rawValue === "object"
+    && rawValue !== null
+    && Number.isFinite(Number(rawValue.seconds))
+  ) {
+    return Number(rawValue.seconds) * 1000;
+  }
+  if (rawValue instanceof Date) return rawValue.getTime();
+  if (typeof rawValue === "number") return Number.isFinite(rawValue) ? rawValue : 0;
+  if (typeof rawValue === "string") {
+    const parsed = Date.parse(rawValue);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+  return 0;
+}
+
+function appendVersion(urlValue, version) {
+  const raw = String(urlValue || "").trim();
+  if (!raw) return "";
+  const v = Number(version || 0);
+  if (!Number.isFinite(v) || v <= 0) return raw;
+  const [path, query = ""] = raw.split("?");
+  const params = new URLSearchParams(query);
+  params.set("v", String(Math.floor(v)));
+  const nextQuery = params.toString();
+  return nextQuery ? `${path}?${nextQuery}` : path;
+}
+
 function mergeRatingStats(rawProduct, rawStats) {
   const fromStats = normalizeRatingStats(rawStats || {});
   if (fromStats.ratingCount > 0) return fromStats;
@@ -26,7 +60,10 @@ function normalizeProduct(raw, fallbackId = "", rawStats = null, pricingContext 
   const id = String(raw?.id || fallbackId || "").trim();
   const storageKey = String(raw?.storageKey || "").trim();
   const imageUrl = String(raw?.imageUrl || "").trim();
+  const imageOriginalUrl = String(raw?.imageOriginalUrl || "").trim();
   const previewImageUrl = String(raw?.previewImageUrl || "").trim();
+  const previewImageOriginalUrl = String(raw?.previewImageOriginalUrl || "").trim();
+  const imageVersion = Math.max(toDateMs(raw?.updatedAt), toDateMs(raw?.createdAt), 0);
   const ratingStats = mergeRatingStats(raw, rawStats);
   const basePriceINR = Number(raw?.price || 0);
   const pricing = calculatePrice({
@@ -56,8 +93,10 @@ function normalizeProduct(raw, fallbackId = "", rawStats = null, pricingContext 
     ageLabel: String(raw?.ageLabel || "").trim(),
     hideAgeLabel: Boolean(raw?.hideAgeLabel),
     storageKey,
-    imageUrl,
-    previewImageUrl,
+    imageUrl: appendVersion(imageUrl, imageVersion),
+    imageOriginalUrl: appendVersion(imageOriginalUrl, imageVersion),
+    previewImageUrl: appendVersion(previewImageUrl, imageVersion),
+    previewImageOriginalUrl: appendVersion(previewImageOriginalUrl, imageVersion),
     showPreviewPage: Boolean(raw?.showPreviewPage),
     pages: Number.isFinite(Number(raw?.pages)) ? Number(raw.pages) : 1,
     averageRating: ratingStats.averageRating,
@@ -105,7 +144,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    res.setHeader("Cache-Control", "public, s-maxage=300, stale-while-revalidate=86400");
+    res.setHeader("Cache-Control", "public, max-age=0, s-maxage=300, stale-while-revalidate=1800, must-revalidate");
     res.setHeader("Vary", "CF-IPCountry, X-Vercel-IP-Country, Cookie");
     const countryCode = detectCountryFromRequest(req);
     const currencyOverride = getCurrencyOverrideFromRequest(req);

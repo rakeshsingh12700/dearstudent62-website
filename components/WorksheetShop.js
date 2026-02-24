@@ -6,7 +6,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import staticProducts from "../data/products";
 import {
   getPreviewUrl,
-  getThumbnailUrl,
 } from "../lib/productAssetUrls";
 import { formatMoney, getPriceAmount, getPriceCurrency, readCurrencyPreference } from "../lib/pricing/client";
 import { getDiscountedUnitPrice, getLaunchDiscountRate, hasDisplayPriceChange } from "../lib/pricing/launchOffer";
@@ -1418,7 +1417,7 @@ export default function WorksheetShop({
             <div className="worksheets-grid">
               {visibleProducts.map((product, index) => {
                 const quantity = getItemQuantity(product.id);
-                const thumbnailUrl = getThumbnailUrl(product.storageKey, product.imageUrl);
+                const thumbnailUrl = String(product?.imageUrl || "").trim();
                 const ageLabel = !product.hideAgeLabel && product.ageLabel ? product.ageLabel : "";
                 const ratingStats = normalizeRatingStats(product);
                 const basePrice = getPriceAmount(product);
