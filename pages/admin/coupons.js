@@ -16,7 +16,8 @@ const STATUS_FILTERS = [
 const SCOPE_FILTERS = [
   { value: "all", label: "All" },
   { value: "public", label: "Public" },
-  { value: "user", label: "User-specific" },
+  { value: "user_specific", label: "User-specific" },
+  { value: "hidden", label: "Hidden (Code Only)" },
 ];
 const PAGE_SIZE_OPTIONS = [20, 50, 100];
 
@@ -57,6 +58,15 @@ function normalizePerUserLabel(coupon) {
   return String(coupon.perUserLimit);
 }
 
+function formatVisibility(coupon) {
+  const scope = String(coupon?.visibilityScope || "public").trim().toLowerCase();
+  if (scope === "user_specific") {
+    return coupon?.userEmail ? `User: ${coupon.userEmail}` : "User-specific";
+  }
+  if (scope === "hidden") return "Hidden (Code only)";
+  return "Public";
+}
+
 export default function AdminCouponsPage() {
   const { user } = useAuth();
   const [checkingAccess, setCheckingAccess] = useState(false);
@@ -82,6 +92,7 @@ export default function AdminCouponsPage() {
     description: "",
     discountType: "percentage",
     discountValue: "10",
+    visibilityScope: "hidden",
     perUserMode: "one_item",
     perUserLimit: "",
     totalUsageMode: "custom",
@@ -220,6 +231,7 @@ export default function AdminCouponsPage() {
         ...prev,
         code: "",
         description: "",
+        visibilityScope: "hidden",
         discountValue:
           prev.discountType === "percentage"
             ? "10"
@@ -274,6 +286,7 @@ export default function AdminCouponsPage() {
       { label: "Active", value: stats.active || 0 },
       { label: "Expired", value: stats.expired || 0 },
       { label: "User-specific", value: stats.userSpecific || 0 },
+      { label: "Hidden", value: stats.hidden || 0 },
     ];
   }, [stats]);
 
@@ -410,6 +423,25 @@ export default function AdminCouponsPage() {
                       </label>
 
                       <label className="admin-filter">
+                        <span>Visibility</span>
+                        <select
+                          value={form.visibilityScope}
+                          onChange={(event) =>
+                            setForm((prev) => ({
+                              ...prev,
+                              visibilityScope: event.target.value,
+                              userEmail:
+                                event.target.value === "user_specific" ? prev.userEmail : "",
+                            }))
+                          }
+                        >
+                          <option value="hidden">Hidden (Code only)</option>
+                          <option value="public">Public</option>
+                          <option value="user_specific">User-specific (email)</option>
+                        </select>
+                      </label>
+
+                      <label className="admin-filter">
                         <span>Per User Usage</span>
                         <select
                           value={form.perUserMode}
@@ -478,15 +510,18 @@ export default function AdminCouponsPage() {
                         </label>
                       )}
 
-                      <label className="admin-filter">
-                        <span>User Email (Optional)</span>
-                        <input
-                          type="email"
-                          value={form.userEmail}
-                          onChange={(event) => setForm((prev) => ({ ...prev, userEmail: event.target.value }))}
-                          placeholder="parent@example.com"
-                        />
-                      </label>
+                      {form.visibilityScope === "user_specific" ? (
+                        <label className="admin-filter">
+                          <span>User Email (Required)</span>
+                          <input
+                            type="email"
+                            value={form.userEmail}
+                            onChange={(event) => setForm((prev) => ({ ...prev, userEmail: event.target.value }))}
+                            placeholder="parent@example.com"
+                            required
+                          />
+                        </label>
+                      ) : null}
 
                       <label className="admin-filter">
                         <span>Minimum Order Amount</span>
@@ -651,7 +686,7 @@ export default function AdminCouponsPage() {
                           <th>Discount</th>
                           <th>Usage</th>
                           <th>Per User</th>
-                          <th>Email Scope</th>
+                          <th>Visibility</th>
                           <th>Min Order</th>
                           <th>First Buy</th>
                           <th>Created</th>
@@ -677,7 +712,7 @@ export default function AdminCouponsPage() {
                             <td>{formatDiscount(coupon)}</td>
                             <td>{formatUsage(coupon)}</td>
                             <td>{normalizePerUserLabel(coupon)}</td>
-                            <td>{coupon.userEmail || "Public"}</td>
+                            <td>{formatVisibility(coupon)}</td>
                             <td>{coupon.minOrderAmount || "-"}</td>
                             <td>{coupon.firstPurchaseOnly ? "Yes" : "No"}</td>
                             <td>{formatDate(coupon.createdAt)}</td>

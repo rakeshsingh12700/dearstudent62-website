@@ -17,7 +17,7 @@ function normalizeStatusFilter(value) {
 
 function normalizeScopeFilter(value) {
   const normalized = String(value || "all").trim().toLowerCase();
-  if (["all", "public", "user"].includes(normalized)) return normalized;
+  if (["all", "public", "user_specific", "hidden"].includes(normalized)) return normalized;
   return "all";
 }
 
@@ -37,8 +37,7 @@ function matchesFilters(item, { status, scope, search }) {
   const runtimeStatus = getCouponRuntimeStatus(item, new Date());
 
   if (status !== "all" && runtimeStatus !== status) return false;
-  if (scope === "public" && item.userEmail) return false;
-  if (scope === "user" && !item.userEmail) return false;
+  if (scope !== "all" && String(item.visibilityScope || "public") !== scope) return false;
 
   const searchQuery = String(search || "").trim().toLowerCase();
   if (!searchQuery) return true;
@@ -47,6 +46,7 @@ function matchesFilters(item, { status, scope, search }) {
     item.code,
     item.description,
     item.discountType,
+    item.visibilityScope,
     item.userEmail,
     runtimeStatus,
   ]
@@ -84,7 +84,9 @@ export default async function handler(req, res) {
           acc.total += 1;
           const statusValue = item.runtimeStatus;
           acc[statusValue] = (acc[statusValue] || 0) + 1;
-          if (item.userEmail) acc.userSpecific += 1;
+          const visibilityScope = String(item.visibilityScope || "public");
+          if (visibilityScope === "user_specific") acc.userSpecific += 1;
+          else if (visibilityScope === "hidden") acc.hidden += 1;
           else acc.public += 1;
           return acc;
         },
@@ -96,6 +98,7 @@ export default async function handler(req, res) {
           scheduled: 0,
           public: 0,
           userSpecific: 0,
+          hidden: 0,
         }
       );
 
