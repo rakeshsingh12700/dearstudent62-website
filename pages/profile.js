@@ -71,7 +71,7 @@ export default function ProfilePage() {
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    const sourceUser = auth.currentUser || user;
+    const sourceUser = auth?.currentUser || user;
     if (!sourceUser) return;
     const split = splitDisplayName(sourceUser.displayName, sourceUser.email);
     setFirstName(split.firstName);
@@ -80,7 +80,7 @@ export default function ProfilePage() {
   }, [user]);
 
   const currentEmail = useMemo(
-    () => String(auth.currentUser?.email || user?.email || "").trim().toLowerCase(),
+    () => String(auth?.currentUser?.email || user?.email || "").trim().toLowerCase(),
     [user?.email]
   );
 
@@ -108,7 +108,7 @@ export default function ProfilePage() {
       return;
     }
 
-    const currentUser = auth.currentUser;
+    const currentUser = auth?.currentUser;
     if (!currentUser) {
       setError("Please login again to update your profile.");
       return;
