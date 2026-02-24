@@ -299,12 +299,17 @@ export default function Checkout() {
   const buyerEmail = (loggedInEmail || email).trim().toLowerCase();
   const couponDiscountAmount = Number(appliedCoupon?.discountAmount || 0);
   const payableAmount = Math.max(0, Number(totalAmount || 0) - couponDiscountAmount);
+  const couponFinalAmount = Number(appliedCoupon?.finalAmount);
+  const effectiveFinalAmount =
+    Number.isFinite(couponFinalAmount) && couponFinalAmount >= 0
+      ? couponFinalAmount
+      : payableAmount;
   const actionLabel = loading
     ? "Processing..."
     : pricesReady
-      ? payableAmount <= 0
+      ? effectiveFinalAmount <= 0
         ? "Complete Free Order"
-        : `Pay ${formatMoney(payableAmount, displayCurrency)}`
+        : `Pay ${formatMoney(effectiveFinalAmount, displayCurrency)}`
       : "Updating prices...";
 
   useEffect(() => {
@@ -419,7 +424,7 @@ export default function Checkout() {
         return;
       }
 
-      if (payableAmount <= 0) {
+      if (effectiveFinalAmount <= 0) {
         const freeOrderRes = await fetch("/api/checkout/complete-free-order", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -434,27 +439,33 @@ export default function Checkout() {
 
         const freeOrderPayload = await freeOrderRes.json().catch(() => ({}));
         if (!freeOrderRes.ok || !freeOrderPayload?.success) {
-          alert(freeOrderPayload.error || "Free checkout failed. Please try again.");
-          return;
+          const freeOrderError = String(freeOrderPayload?.error || "").trim();
+          const isNotFree = /not free/i.test(freeOrderError);
+          if (!isNotFree) {
+            alert(freeOrderError || "Free checkout failed. Please try again.");
+            return;
+          }
         }
 
-        if (typeof window !== "undefined") {
-          window.localStorage.removeItem(CART_STORAGE_KEY);
-          window.dispatchEvent(new CustomEvent("ds-cart-updated"));
-          window.sessionStorage.setItem("ds-last-checkout-email", currentBuyerEmail);
+        if (freeOrderRes.ok && freeOrderPayload?.success) {
+          if (typeof window !== "undefined") {
+            window.localStorage.removeItem(CART_STORAGE_KEY);
+            window.dispatchEvent(new CustomEvent("ds-cart-updated"));
+            window.sessionStorage.setItem("ds-last-checkout-email", currentBuyerEmail);
+          }
+          setCartSummary({ count: 0, total: 0 });
+          setCartPreviewItems([]);
+          const primaryProductId = encodeURIComponent(
+            freeOrderPayload.primaryProductId || ""
+          );
+          const productIdsParam = encodeURIComponent(
+            Array.isArray(freeOrderPayload.productIds)
+              ? freeOrderPayload.productIds.join(",")
+              : ""
+          );
+          window.location.href = `/success?token=${freeOrderPayload.token}&paymentId=${freeOrderPayload.paymentId}&email=${encodeURIComponent(currentBuyerEmail)}&productId=${primaryProductId}&productIds=${productIdsParam}`;
+          return;
         }
-        setCartSummary({ count: 0, total: 0 });
-        setCartPreviewItems([]);
-        const primaryProductId = encodeURIComponent(
-          freeOrderPayload.primaryProductId || ""
-        );
-        const productIdsParam = encodeURIComponent(
-          Array.isArray(freeOrderPayload.productIds)
-            ? freeOrderPayload.productIds.join(",")
-            : ""
-        );
-        window.location.href = `/success?token=${freeOrderPayload.token}&paymentId=${freeOrderPayload.paymentId}&email=${encodeURIComponent(currentBuyerEmail)}&productId=${primaryProductId}&productIds=${productIdsParam}`;
-        return;
       }
 
       const isSdkLoaded = await loadRazorpaySdk();
