@@ -130,15 +130,31 @@ export default async function handler(req, res) {
       if (!couponId) {
         return res.status(400).json({ error: "couponId is required" });
       }
+      if (!["disable", "enable", "enable_new_campaign"].includes(action)) {
+        return res.status(400).json({ error: "Invalid action" });
+      }
 
-      const isActive = action === "enable";
       const now = new Date().toISOString();
-      await updateDoc(doc(db, "coupons", couponId), {
-        isActive,
-        updatedAt: now,
-        disabledAt: isActive ? null : now,
-        disabledBy: isActive ? null : auth.adminUser.email,
-      });
+      if (action === "enable_new_campaign") {
+        await updateDoc(doc(db, "coupons", couponId), {
+          isActive: true,
+          usedCount: 0,
+          updatedAt: now,
+          disabledAt: null,
+          disabledBy: null,
+          usageResetAt: now,
+          usageResetBy: auth.adminUser.email,
+          usageResetReason: "enable_new_campaign",
+        });
+      } else {
+        const isActive = action === "enable";
+        await updateDoc(doc(db, "coupons", couponId), {
+          isActive,
+          updatedAt: now,
+          disabledAt: isActive ? null : now,
+          disabledBy: isActive ? null : auth.adminUser.email,
+        });
+      }
 
       return res.status(200).json({ ok: true });
     } catch (error) {

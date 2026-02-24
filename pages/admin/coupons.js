@@ -252,6 +252,12 @@ export default function AdminCouponsPage() {
 
   const handleToggleCoupon = async (couponId, action) => {
     if (!user || !accessAllowed || !couponId) return;
+    if (action === "enable_new_campaign") {
+      const confirmed = window.confirm(
+        "Enable as new campaign?\n\nThis will reactivate the coupon and reset total/per-user usage counters from now."
+      );
+      if (!confirmed) return;
+    }
 
     setError("");
     setSuccess("");
@@ -272,7 +278,13 @@ export default function AdminCouponsPage() {
         throw new Error(String(payload?.error || "Failed to update coupon"));
       }
 
-      setSuccess(action === "enable" ? "Coupon enabled." : "Coupon disabled.");
+      const successMessage =
+        action === "enable"
+          ? "Coupon enabled."
+          : action === "enable_new_campaign"
+            ? "Coupon enabled as new campaign. Usage counters reset."
+            : "Coupon disabled.";
+      setSuccess(successMessage);
       await loadCoupons();
     } catch (toggleError) {
       setError(String(toggleError?.message || "Failed to update coupon"));
@@ -736,13 +748,22 @@ export default function AdminCouponsPage() {
                                     Disable
                                   </button>
                                 ) : (
-                                  <button
-                                    type="button"
-                                    className="btn btn-secondary"
-                                    onClick={() => handleToggleCoupon(coupon.id, "enable")}
-                                  >
-                                    Enable
-                                  </button>
+                                  <>
+                                    <button
+                                      type="button"
+                                      className="btn btn-secondary"
+                                      onClick={() => handleToggleCoupon(coupon.id, "enable")}
+                                    >
+                                      Enable
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className="btn btn-secondary"
+                                      onClick={() => handleToggleCoupon(coupon.id, "enable_new_campaign")}
+                                    >
+                                      Enable New Campaign
+                                    </button>
+                                  </>
                                 )}
                               </div>
                             </td>
