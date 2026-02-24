@@ -38,6 +38,12 @@ function formatSubmissionDate(value) {
   }).format(date);
 }
 
+function getWhatsAppHref(value) {
+  const digits = String(value || "").replace(/[^\d]/g, "");
+  if (!digits) return "";
+  return `https://wa.me/${digits}`;
+}
+
 export default function AdminContactSubmissionsPage() {
   const { user } = useAuth();
   const [checkingAccess, setCheckingAccess] = useState(false);
@@ -50,6 +56,8 @@ export default function AdminContactSubmissionsPage() {
   const [submissions, setSubmissions] = useState([]);
   const [refreshKey, setRefreshKey] = useState(0);
   const [updatingSubmissionId, setUpdatingSubmissionId] = useState("");
+  const [savingNoteSubmissionId, setSavingNoteSubmissionId] = useState("");
+  const [noteDrafts, setNoteDrafts] = useState({});
 
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -133,6 +141,15 @@ export default function AdminContactSubmissionsPage() {
         }
 
         setSubmissions(Array.isArray(payload?.submissions) ? payload.submissions : []);
+        setNoteDrafts(
+          (Array.isArray(payload?.submissions) ? payload.submissions : []).reduce(
+            (acc, item) => {
+              acc[item.id] = String(item?.statusNote || "");
+              return acc;
+            },
+            {}
+          )
+        );
       } catch (fetchError) {
         if (cancelled) return;
         setSubmissions([]);
@@ -173,6 +190,7 @@ export default function AdminContactSubmissionsPage() {
         item?.topicLabel,
         item?.name,
         item?.email,
+        item?.whatsapp,
         item?.message,
       ]
         .map((value) => String(value || "").toLowerCase())
@@ -225,6 +243,7 @@ export default function AdminContactSubmissionsPage() {
             ? {
                 ...item,
                 status: normalized,
+                statusNote: noteDrafts[submissionId] ?? item.statusNote ?? "",
               }
             : item
         )
@@ -233,6 +252,52 @@ export default function AdminContactSubmissionsPage() {
       setError(String(statusError?.message || "Failed to update status"));
     } finally {
       setUpdatingSubmissionId("");
+    }
+  };
+
+  const handleSaveNote = async (submissionId) => {
+    if (!submissionId) return;
+
+    try {
+      setSavingNoteSubmissionId(submissionId);
+      setError("");
+
+      if (!user) {
+        throw new Error("Please login as admin.");
+      }
+      const idToken = await user.getIdToken();
+      const statusNote = String(noteDrafts[submissionId] || "").trim();
+
+      const response = await fetch("/api/admin/contact-submissions", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${idToken}`,
+        },
+        body: JSON.stringify({
+          id: submissionId,
+          statusNote,
+        }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok || !payload?.ok) {
+        throw new Error(String(payload?.error || "Failed to save note"));
+      }
+
+      setSubmissions((prev) =>
+        prev.map((item) =>
+          item.id === submissionId
+            ? {
+                ...item,
+                statusNote,
+              }
+            : item
+        )
+      );
+    } catch (noteError) {
+      setError(String(noteError?.message || "Failed to save note"));
+    } finally {
+      setSavingNoteSubmissionId("");
     }
   };
 
@@ -409,9 +474,16 @@ export default function AdminContactSubmissionsPage() {
                               <div className="admin-submission-meta">
                                 <span>Name: {item?.name || "Not provided"}</span>
                                 <span>Email: {item?.email || "Not provided"}</span>
+                                <span>WhatsApp: {item?.whatsapp || "Not provided"}</span>
                                 <span>Received: {formatSubmissionDate(item?.createdAt)}</span>
                                 <span className="admin-submission-id">ID: {item.id}</span>
                               </div>
+
+                              {!item?.email && !item?.whatsapp && (
+                                <p className="admin-submission-missing-contact" role="alert">
+                                  Missing contact details. Cannot reply directly.
+                                </p>
+                              )}
 
                               <div className="admin-submission-actions">
                                 <label htmlFor={`status-${item.id}`}>Update status</label>
@@ -425,6 +497,65 @@ export default function AdminContactSubmissionsPage() {
                                   <option value="in-progress">In Progress</option>
                                   <option value="resolved">Resolved</option>
                                 </select>
+                                <div className="admin-submission-note-box">
+                                  <label htmlFor={`note-${item.id}`}>Admin note</label>
+                                  <textarea
+                                    id={`note-${item.id}`}
+                                    rows={2}
+                                    placeholder="Add note (e.g. No contact details provided)"
+                                    value={noteDrafts[item.id] ?? String(item?.statusNote || "")}
+                                    onChange={(event) =>
+                                      setNoteDrafts((prev) => ({
+                                        ...prev,
+                                        [item.id]: event.target.value,
+                                      }))
+                                    }
+                                  />
+                                  <button
+                                    type="button"
+                                    className="btn btn-secondary"
+                                    onClick={() => handleSaveNote(item.id)}
+                                    disabled={savingNoteSubmissionId === item.id}
+                                  >
+                                    {savingNoteSubmissionId === item.id ? "Saving..." : "Save Note"}
+                                  </button>
+                                </div>
+                                <div className="admin-submission-contact-actions">
+                                  {item?.email ? (
+                                    <a
+                                      href={`mailto:${encodeURIComponent(item.email)}`}
+                                      className="btn btn-secondary"
+                                    >
+                                      Email
+                                    </a>
+                                  ) : null}
+                                  {item?.whatsapp ? (
+                                    <a
+                                      href={getWhatsAppHref(item.whatsapp)}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="btn btn-secondary"
+                                    >
+                                      WhatsApp
+                                    </a>
+                                  ) : null}
+                                  <button
+                                    type="button"
+                                    className="btn btn-secondary"
+                                    onClick={async () => {
+                                      const copyValue = item?.email || item?.whatsapp || "";
+                                      if (!copyValue) return;
+                                      try {
+                                        await navigator.clipboard.writeText(copyValue);
+                                      } catch {
+                                        // Ignore clipboard failure.
+                                      }
+                                    }}
+                                    disabled={!item?.email && !item?.whatsapp}
+                                  >
+                                    Copy
+                                  </button>
+                                </div>
                               </div>
                             </article>
                           );

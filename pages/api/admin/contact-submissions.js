@@ -65,6 +65,13 @@ function normalizeMutableStatus(value) {
   return MUTABLE_STATUSES.has(normalized) ? normalized : "";
 }
 
+function sanitizeStatusNote(value, maxLength = 600) {
+  return String(value || "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, maxLength);
+}
+
 function toIsoDate(value) {
   if (typeof value?.toDate === "function") {
     const date = value.toDate();
@@ -81,11 +88,15 @@ function normalizeSubmission(item, id) {
     id: String(id || "").trim(),
     name: String(item?.name || "").trim(),
     email: String(item?.email || "").trim(),
+    whatsapp: String(item?.whatsapp || "").trim(),
     topic: String(item?.topic || "general-feedback").trim(),
     topicLabel: String(item?.topicLabel || "General feedback").trim(),
     message: String(item?.message || "").trim(),
     status: String(item?.status || "new").trim().toLowerCase() || "new",
+    statusNote: String(item?.statusNote || "").trim(),
     createdAt: toIsoDate(item?.createdAt),
+    statusUpdatedAt: toIsoDate(item?.statusUpdatedAt),
+    statusUpdatedBy: String(item?.statusUpdatedBy || "").trim().toLowerCase() || null,
   };
 }
 
@@ -109,19 +120,27 @@ export default async function handler(req, res) {
     if (req.method === "PATCH") {
       const submissionId = String(req.body?.id || "").trim();
       const nextStatus = normalizeMutableStatus(req.body?.status);
+      const statusNote = sanitizeStatusNote(req.body?.statusNote);
       if (!submissionId) {
         return res.status(400).json({ error: "Submission id is required" });
       }
-      if (!nextStatus) {
-        return res.status(400).json({ error: "Invalid status" });
+      if (!nextStatus && !statusNote) {
+        return res.status(400).json({ error: "Provide status or note to update" });
       }
 
       try {
-        await updateDoc(doc(db, "contact_submissions", submissionId), {
-          status: nextStatus,
+        const updatePayload = {
           statusUpdatedAt: new Date(),
           statusUpdatedBy: adminUser.email,
-        });
+        };
+        if (nextStatus) {
+          updatePayload.status = nextStatus;
+        }
+        if (statusNote || statusNote === "") {
+          updatePayload.statusNote = statusNote || null;
+        }
+
+        await updateDoc(doc(db, "contact_submissions", submissionId), updatePayload);
       } catch (updateError) {
         const message = String(updateError?.message || "").toLowerCase();
         if (message.includes("no document to update")) {
@@ -133,7 +152,8 @@ export default async function handler(req, res) {
       return res.status(200).json({
         ok: true,
         id: submissionId,
-        status: nextStatus,
+        status: nextStatus || null,
+        statusNote: statusNote || "",
       });
     }
 
