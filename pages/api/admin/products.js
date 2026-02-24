@@ -92,7 +92,9 @@ function normalizeProduct(raw, id) {
     pages: Number(raw?.pages || 0),
     storageKey: String(raw?.storageKey || "").trim(),
     imageUrl: String(raw?.imageUrl || "").trim(),
+    imageOriginalUrl: String(raw?.imageOriginalUrl || "").trim(),
     previewImageUrl: String(raw?.previewImageUrl || "").trim(),
+    previewImageOriginalUrl: String(raw?.previewImageOriginalUrl || "").trim(),
     showPreviewPage: Boolean(raw?.showPreviewPage),
     updatedBy: String(raw?.updatedBy || "").trim(),
     updatedAt: toIsoDate(raw?.updatedAt),
@@ -131,14 +133,22 @@ function buildDerivedKeys(product) {
 
   const coverKeyFromUrl = extractKeyFromThumbUrl(product?.imageUrl);
   if (coverKeyFromUrl) keys.add(coverKeyFromUrl);
+  const coverOriginalFromUrl = extractKeyFromThumbUrl(product?.imageOriginalUrl);
+  if (coverOriginalFromUrl) keys.add(coverOriginalFromUrl);
 
   const previewKeyFromUrl = extractKeyFromThumbUrl(product?.previewImageUrl);
   if (previewKeyFromUrl) keys.add(previewKeyFromUrl);
+  const previewOriginalFromUrl = extractKeyFromThumbUrl(product?.previewImageOriginalUrl);
+  if (previewOriginalFromUrl) keys.add(previewOriginalFromUrl);
 
   if (storageKey) {
     const base = storageKey.replace(/\.pdf$/i, "");
     keys.add(`${base}__meta.json`);
     keys.add(`${base}__preview1.png`);
+    keys.add(`${base}__cover__thumb640.jpg`);
+    keys.add(`${base}__cover__thumb640.png`);
+    keys.add(`${base}__preview1__thumb640.jpg`);
+    keys.add(`${base}__preview1__thumb640.png`);
   }
 
   return Array.from(keys).filter(Boolean);

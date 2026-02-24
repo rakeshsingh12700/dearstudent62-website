@@ -263,17 +263,42 @@ async function generateProducts() {
       const coverKey =
         findFirstMatchingKey(
           base,
-          [".jpg", ".jpeg", ".png", ".webp", "__cover.jpg", "__cover.jpeg", "__cover.png", "__cover.webp"],
+          [
+            "__cover__thumb640.jpg",
+            "__cover__thumb640.png",
+            ".jpg",
+            ".jpeg",
+            ".png",
+            ".webp",
+            "__cover.jpg",
+            "__cover.jpeg",
+            "__cover.png",
+            "__cover.webp",
+          ],
           allKeysSet
         ) ||
         findFirstMatchingKey(
           base,
-          ["__cover.jpg", "__cover.jpeg", "__cover.png", "__cover.webp"],
+          [
+            "__cover__thumb640.jpg",
+            "__cover__thumb640.png",
+            "__cover.jpg",
+            "__cover.jpeg",
+            "__cover.png",
+            "__cover.webp",
+          ],
           allKeysSet
         );
       const previewImageKey = findFirstMatchingKey(
         base,
-        ["__preview1.jpg", "__preview1.jpeg", "__preview1.png", "__preview1.webp"],
+        [
+          "__preview1__thumb640.jpg",
+          "__preview1__thumb640.png",
+          "__preview1.jpg",
+          "__preview1.jpeg",
+          "__preview1.png",
+          "__preview1.webp",
+        ],
         allKeysSet
       );
       const metadataKey = `${base}__meta.json`;

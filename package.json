@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "generate:products": "node scripts/generate-products.mjs",
+    "refresh:home-rails": "node scripts/refresh-home-rails.mjs",
+    "backfill:thumbnails": "node scripts/backfill-product-thumbnails.mjs",
     "dev": "next dev -H 0.0.0.0",
     "build": "next build",
     "start": "next start",

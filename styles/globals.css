@@ -1746,10 +1746,15 @@ button {
 }
 
 .worksheet-preview-modal__page-image {
-  width: 100%;
+  width: auto;
+  max-width: 100%;
+  max-height: min(68vh, 760px);
+  height: auto;
   border: 1px solid #e5e7eb;
   border-radius: 10px;
   background: #fff;
+  display: block;
+  margin: 0 auto;
 }
 
 .worksheet-preview-modal__fallback {
@@ -6279,5 +6284,100 @@ button {
   .page-home .navbar__inner,
   .page-home .navbar__mobile-top {
     background: #f3e2c4 !important;
+  }
+}
+
+@media (max-width: 380px) {
+  .navbar__mobile-top {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 6px;
+  }
+
+  .navbar__mobile-top .navbar__brand-row {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .navbar__mobile-top .navbar__brand {
+    min-width: 0;
+  }
+
+  .navbar__mobile-top .navbar__brand-dear {
+    display: none;
+  }
+
+  .navbar__mobile-top .navbar__brand-student {
+    font-size: 1.2rem;
+  }
+
+  .navbar__mobile-actions {
+    gap: 4px;
+  }
+
+  .navbar__currency-select--mobile {
+    max-width: 56px;
+    padding: 0 6px;
+    font-size: 0.74rem;
+  }
+
+  .navbar__mobile-actions .navbar__menu-btn,
+  .navbar__mobile-actions .navbar__icon-btn,
+  .navbar__mobile-top .navbar__menu-btn {
+    min-width: 34px;
+    height: 34px;
+    border-radius: 10px;
+  }
+
+  .home-rail__track {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .home-rail-card {
+    min-height: 0;
+    padding: 10px;
+  }
+
+  .home-rail-card__media {
+    height: 110px;
+  }
+
+  .home-rail-card__meta {
+    font-size: 0.68rem;
+  }
+
+  .home-rail-card h3 {
+    font-size: 0.86rem;
+  }
+
+  .home-rail-card__sub {
+    font-size: 0.78rem;
+  }
+
+  .home-rail-card__foot {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .home-rail-card__price-tier {
+    font-size: 0.78rem;
+    gap: 4px;
+  }
+
+  .home-rail-card__cart-btn,
+  .home-rail-card__stepper {
+    min-height: 30px;
+  }
+
+  .worksheet-preview-modal__panel {
+    margin: 2vh auto;
+    width: min(96vw, 420px);
+    max-height: 94vh;
+    padding: 12px;
+  }
+
+  .worksheet-preview-modal__page-image {
+    max-height: 58vh;
   }
 }
