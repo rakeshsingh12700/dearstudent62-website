@@ -68,6 +68,7 @@ export default function AuthPage() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [busyAction, setBusyAction] = useState("");
+  const authUnavailable = !auth;
 
   const safeNext = useMemo(
     () => resolveSafeNext(router.query.next),
@@ -136,6 +137,7 @@ export default function AuthPage() {
   };
 
   const handleLogin = async (normalizedEmail, loginPassword) => {
+    if (!auth) throw new Error("Auth is not configured right now.");
     await signInWithEmailAndPassword(
       auth,
       normalizedEmail,
@@ -146,6 +148,7 @@ export default function AuthPage() {
   };
 
   const handleSignup = async (normalizedEmail, signupPassword, signupName) => {
+    if (!auth) throw new Error("Auth is not configured right now.");
     const normalizedName = signupName.trim().replace(/\s+/g, " ");
 
     if (!normalizedName) {
@@ -177,6 +180,11 @@ export default function AuthPage() {
     const normalizedEmail = String(email || "").trim().toLowerCase();
     setError("");
     setMessage("");
+
+    if (!auth) {
+      setError("Auth is not configured right now.");
+      return;
+    }
 
     if (!normalizedEmail) {
       setError("Enter your email first, then click Forgot password.");
@@ -248,6 +256,10 @@ export default function AuthPage() {
   const handleGoogleLogin = async () => {
     setError("");
     setMessage("");
+    if (!auth) {
+      setError("Auth is not configured right now.");
+      return;
+    }
 
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: "select_account" });
@@ -272,13 +284,18 @@ export default function AuthPage() {
           <p className="auth-subtext">
             Continue with Google, or use email below.
           </p>
+          {authUnavailable && (
+            <p className="auth-message auth-message--error">
+              Login is temporarily unavailable due to missing Firebase configuration.
+            </p>
+          )}
 
           <div className="auth-social-row">
             <button
               type="button"
               className="auth-social-btn auth-social-btn--google"
               onClick={handleGoogleLogin}
-              disabled={busyAction !== ""}
+              disabled={busyAction !== "" || authUnavailable}
             >
               <span aria-hidden="true">G</span>
               {busyAction === "social-google" ? "Please wait..." : "Google"}
@@ -319,6 +336,7 @@ export default function AuthPage() {
                   placeholder="First and last name"
                   autoComplete="name"
                   required
+                  disabled={authUnavailable}
                 />
               </>
             )}
@@ -333,6 +351,7 @@ export default function AuthPage() {
               placeholder="you@example.com"
               autoComplete="email"
               required
+              disabled={authUnavailable}
             />
 
             <label htmlFor="auth-password">Password</label>
@@ -346,6 +365,7 @@ export default function AuthPage() {
                 placeholder="Enter password"
                 autoComplete={mode === "signup" ? "new-password" : "current-password"}
                 required
+                disabled={authUnavailable}
               />
               <button
                 type="button"
@@ -363,7 +383,7 @@ export default function AuthPage() {
                 type="button"
                 className="auth-forgot-btn"
                 onClick={handleForgotPassword}
-                disabled={busyAction !== ""}
+                disabled={busyAction !== "" || authUnavailable}
               >
                 Forgot password?
               </button>
@@ -381,7 +401,11 @@ export default function AuthPage() {
               </p>
             )}
 
-            <button className="btn btn-primary auth-submit-btn" type="submit" disabled={busyAction !== ""}>
+            <button
+              className="btn btn-primary auth-submit-btn"
+              type="submit"
+              disabled={busyAction !== "" || authUnavailable}
+            >
               {busyAction === "email"
                 ? "Please wait..."
                 : mode === "signup"

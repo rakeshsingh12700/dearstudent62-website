@@ -7,7 +7,6 @@ const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(Boolean(auth));
 
   useEffect(() => {
     if (!auth) return undefined;
@@ -22,15 +21,13 @@ export function AuthProvider({ children }) {
           console.error("Failed to link guest purchases:", error);
         }
       }
-
-      setLoading(false);
     });
     return () => unsub();
   }, []);
 
   return (
     <AuthContext.Provider value={{ user }}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 }

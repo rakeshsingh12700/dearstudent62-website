@@ -51,7 +51,9 @@ export default function Navbar() {
       window.localStorage.removeItem(CART_STORAGE_KEY);
       window.dispatchEvent(new CustomEvent("ds-cart-updated"));
     }
-    await signOut(auth);
+    if (auth) {
+      await signOut(auth);
+    }
     setMobileMenuOpen(false);
     setProfileOpen(false);
     setMobileProfileOpen(false);
