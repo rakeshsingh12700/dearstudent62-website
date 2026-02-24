@@ -55,11 +55,7 @@ export default function Success() {
       cancelled = true;
     };
   }, [productId, productIdsParam]);
-  const checkoutEmail = useMemo(() => {
-    if (queryEmail) return queryEmail;
-    if (typeof window === "undefined") return "";
-    return window.sessionStorage.getItem("ds-last-checkout-email") || "";
-  }, [queryEmail]);
+  const checkoutEmail = queryEmail;
 
   const handleDownload = (product) => {
     if (!product?.storageKey) {

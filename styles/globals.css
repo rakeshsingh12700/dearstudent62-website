@@ -6241,6 +6241,12 @@ button {
   resize: vertical;
 }
 
+.contact-form__hint {
+  margin: -2px 0 2px;
+  font-size: 0.84rem;
+  color: #64748b;
+}
+
 .contact-form input:focus-visible,
 .contact-form select:focus-visible,
 .contact-form textarea:focus-visible {

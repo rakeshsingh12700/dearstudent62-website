@@ -144,7 +144,7 @@ export default function ContactUsPage() {
               </label>
 
               <label htmlFor="contact-email">
-                Email
+                Email (optional if WhatsApp provided)
                 <input
                   id="contact-email"
                   name="email"
@@ -156,7 +156,7 @@ export default function ContactUsPage() {
               </label>
 
               <label htmlFor="contact-whatsapp">
-                WhatsApp Number
+                WhatsApp Number (optional if Email provided)
                 <input
                   id="contact-whatsapp"
                   name="whatsapp"
@@ -166,6 +166,9 @@ export default function ContactUsPage() {
                   placeholder="+91XXXXXXXXXX"
                 />
               </label>
+              <p className="contact-form__hint">
+                Required: Provide at least one contact method, Email or WhatsApp.
+              </p>
 
               <label htmlFor="contact-topic">
                 Topic

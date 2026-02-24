@@ -47,7 +47,10 @@ export default async function handler(req, res) {
       }
 
       appliedCoupon = couponResult.couponSummary;
-      finalAmount = Number(appliedCoupon.finalAmount || pricing.totalAmount);
+      const couponFinalAmount = Number(appliedCoupon?.finalAmount);
+      finalAmount = Number.isFinite(couponFinalAmount)
+        ? couponFinalAmount
+        : Number(pricing.totalAmount || 0);
     }
 
     if (!Number.isFinite(finalAmount) || finalAmount > 0) {

@@ -52,6 +52,7 @@ export default async function handler(req, res) {
         orderAmount: pricing.totalAmount,
         currency: pricing.orderCurrency,
         pricingContext: pricing,
+        allowZeroFinal: true,
       });
 
       if (!couponResult.ok) {
@@ -59,11 +60,16 @@ export default async function handler(req, res) {
       }
 
       couponSummary = couponResult.couponSummary;
-      finalAmount = Number(couponSummary.finalAmount || pricing.totalAmount);
+      const couponFinalAmount = Number(couponSummary?.finalAmount);
+      finalAmount = Number.isFinite(couponFinalAmount)
+        ? couponFinalAmount
+        : Number(pricing.totalAmount || 0);
     }
 
     if (!Number.isFinite(finalAmount) || finalAmount <= 0) {
-      return res.status(400).json({ error: "Invalid final checkout total." });
+      return res.status(400).json({
+        error: "This order is fully free. Please use Complete Free Order.",
+      });
     }
 
     const razorpay = new Razorpay({
