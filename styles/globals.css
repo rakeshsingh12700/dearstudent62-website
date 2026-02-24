@@ -1743,12 +1743,14 @@ button {
 .worksheet-preview-modal__pages {
   display: grid;
   gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  align-items: start;
 }
 
 .worksheet-preview-modal__page-image {
-  width: auto;
-  max-width: 100%;
-  max-height: min(68vh, 760px);
+  width: 100%;
+  max-width: min(760px, 100%);
+  max-height: min(78vh, 980px);
   height: auto;
   border: 1px solid #e5e7eb;
   border-radius: 10px;
@@ -6156,6 +6158,10 @@ button {
   .browse-grid--compact {
     grid-template-columns: 1fr;
   }
+
+  .worksheet-preview-modal__pages {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (min-width: 761px) {
@@ -6379,5 +6385,6 @@ button {
 
   .worksheet-preview-modal__page-image {
     max-height: 58vh;
+    max-width: 100%;
   }
 }
