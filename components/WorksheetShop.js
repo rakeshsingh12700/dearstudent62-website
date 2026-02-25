@@ -345,6 +345,17 @@ function getOptionLabel(options, value) {
   return options.find((item) => item.value === value)?.label || toLabel(value);
 }
 
+function isClassAgnosticWorksheet(product, taxonomy, normalizedType) {
+  if (normalizedType !== "worksheet") return false;
+  return taxonomy?.subject === "english" || taxonomy?.subject === "maths";
+}
+
+function matchesClassFilter(product, taxonomy, normalizedType, selectedClass) {
+  if (selectedClass === "all") return true;
+  if (product?.class === selectedClass) return true;
+  return isClassAgnosticWorksheet(product, taxonomy, normalizedType);
+}
+
 function EyeIcon() {
   return (
     <svg
@@ -790,12 +801,12 @@ export default function WorksheetShop({
     const values = new Set();
 
     products.forEach((product) => {
-      const classMatch = selectedClass === "all" || product.class === selectedClass;
-      const typeMatch =
-        selectedType === "all" || normalizedTypeById.get(product.id) === selectedType;
+      const normalizedType = normalizedTypeById.get(product.id);
+      const taxonomy = taxonomyById.get(product.id);
+      const classMatch = matchesClassFilter(product, taxonomy, normalizedType, selectedClass);
+      const typeMatch = selectedType === "all" || normalizedType === selectedType;
       if (!classMatch || !typeMatch) return;
 
-      const taxonomy = taxonomyById.get(product.id);
       if (taxonomy?.subject) values.add(taxonomy.subject);
     });
 
@@ -808,7 +819,7 @@ export default function WorksheetShop({
     [...predefined, ...dynamic].forEach((item) => byValue.set(item.value, item));
 
     return [{ value: "all", label: "All" }, ...Array.from(byValue.values())];
-  }, [products, selectedClass, selectedType, taxonomyById]);
+  }, [normalizedTypeById, products, selectedClass, selectedType, taxonomyById]);
 
   const topicOptions = useMemo(() => {
     if (selectedSubject === "all") return [{ value: "all", label: "All" }];
@@ -820,9 +831,9 @@ export default function WorksheetShop({
       const taxonomy = taxonomyById.get(product.id);
       if (!taxonomy) return;
 
-      const classMatch = selectedClass === "all" || product.class === selectedClass;
-      const typeMatch =
-        selectedType === "all" || normalizedTypeById.get(product.id) === selectedType;
+      const normalizedType = normalizedTypeById.get(product.id);
+      const classMatch = matchesClassFilter(product, taxonomy, normalizedType, selectedClass);
+      const typeMatch = selectedType === "all" || normalizedType === selectedType;
       const subjectMatch = taxonomy.subject === selectedSubject;
       if (!classMatch || !typeMatch || !subjectMatch) return;
 
@@ -837,14 +848,14 @@ export default function WorksheetShop({
     [...predefined, ...dynamic].forEach((item) => byValue.set(item.value, item));
 
     return [{ value: "all", label: "All" }, ...Array.from(byValue.values())];
-  }, [products, selectedClass, selectedSubject, selectedType, taxonomyById]);
+  }, [normalizedTypeById, products, selectedClass, selectedSubject, selectedType, taxonomyById]);
 
   const visibleProducts = useMemo(() => {
     const filtered = products.filter((product) => {
       const taxonomy = taxonomyById.get(product.id);
-      const classMatch = selectedClass === "all" || product.class === selectedClass;
-      const typeMatch =
-        selectedType === "all" || normalizedTypeById.get(product.id) === selectedType;
+      const normalizedType = normalizedTypeById.get(product.id);
+      const classMatch = matchesClassFilter(product, taxonomy, normalizedType, selectedClass);
+      const typeMatch = selectedType === "all" || normalizedType === selectedType;
       const subjectMatch = selectedSubject === "all" || taxonomy?.subject === selectedSubject;
       const topicMatch = selectedTopic === "all" || taxonomy?.topic === selectedTopic;
       const subtopicMatch =

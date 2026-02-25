@@ -118,6 +118,22 @@ function getAgeLabelByClass(classValue) {
   return String(map[classValue] || "").trim();
 }
 
+function getProductId({ classValue, subject, typeValue, title }) {
+  const titleSlug = toSlug(title);
+  if (!titleSlug) return "";
+
+  const subjectSlug = toSlug(subject);
+  const classSlug = toSlug(classValue);
+  const isCrossClassWorksheet =
+    typeValue === "worksheet" && (subjectSlug === "english" || subjectSlug === "maths");
+
+  if (isCrossClassWorksheet) {
+    return `${subjectSlug}-${titleSlug}`;
+  }
+
+  return `${classSlug}-${titleSlug}`;
+}
+
 function extensionForContentType(contentType, fallback = "") {
   const type = String(contentType || "").toLowerCase();
   const original = String(fallback || "").toLowerCase();
@@ -236,7 +252,7 @@ async function deleteKeysBestEffort(r2Client, bucket, keys = []) {
 }
 
 function buildPdfKey({ classValue, typeValue, title, price }) {
-  const classLabel = CLASS_TO_LABEL[classValue] || classValue;
+  const classLabel = CLASS_TO_LABEL[classValue] || "All Classes";
   const categoryLabel = TYPE_TO_CATEGORY_LABEL[typeValue] || typeValue;
   const safeClass = sanitizeFilenamePart(classLabel);
   const safeCategory = sanitizeFilenamePart(categoryLabel);
@@ -497,12 +513,11 @@ export default async function handler(req, res) {
       const subtopicRaw = toSlug(toSingleField(fields.subtopic));
       const showPreviewPage = toSingleField(fields.showPreviewPage) === "true";
       const classFromField = toSingleField(fields.class);
-      const classValue =
-        subject === "english" && typeValue === "worksheet"
-          ? "class-1"
-          : classFromField;
+      const isCrossClassWorksheet =
+        typeValue === "worksheet" && (subject === "english" || subject === "maths");
+      const classValue = isCrossClassWorksheet ? "" : classFromField;
 
-    if (!CLASS_TO_LABEL[classValue]) {
+    if (!isCrossClassWorksheet && !CLASS_TO_LABEL[classValue]) {
       return res.status(400).json({ error: "Invalid class" });
     }
 
@@ -588,7 +603,10 @@ export default async function handler(req, res) {
       price: normalizedPrice,
     });
     const base = pdfKey.replace(/\.pdf$/i, "");
-    const productId = `${toSlug(classValue)}-${toSlug(title)}`;
+    const productId = getProductId({ classValue, subject, typeValue, title });
+    if (!productId) {
+      return res.status(400).json({ error: "Unable to generate product id" });
+    }
 
     const coverExt = extensionForContentType(coverInput.mimetype, coverInput.originalFilename);
     const coverKey = `${base}__cover${coverExt}`;

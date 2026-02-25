@@ -7,9 +7,11 @@ import Navbar from "../../components/Navbar";
 import products from "../../data/products";
 import { useAuth } from "../../context/AuthContext";
 import { hasPurchased } from "../../firebase/purchases";
+import { db } from "../../firebase/config";
 import { getPreviewUrl } from "../../lib/productAssetUrls";
 import { formatMoney, getPriceAmount, getPriceCurrency, readCurrencyPreference } from "../../lib/pricing/client";
 import { buildRatingStars, formatRatingAverage, normalizeRatingStats } from "../../lib/productRatings";
+import { doc, getDoc } from "firebase/firestore";
 
 const CART_STORAGE_KEY = "ds-worksheet-cart-v1";
 const SITE_URL = "https://dearstudent.in";
@@ -909,13 +911,34 @@ export async function getServerSideProps(context) {
   const productId = String(context?.params?.id || "").trim();
   const initialProduct = products.find((item) => item.id === productId) || null;
 
-  if (!initialProduct) {
+  if (initialProduct) {
+    return {
+      props: {
+        initialProduct,
+      },
+    };
+  }
+
+  if (!productId || !db) {
     return { notFound: true };
   }
 
-  return {
-    props: {
-      initialProduct,
-    },
-  };
+  try {
+    const snapshot = await getDoc(doc(db, "products", productId));
+    if (!snapshot.exists()) {
+      return { notFound: true };
+    }
+
+    return {
+      props: {
+        initialProduct: {
+          ...snapshot.data(),
+          id: snapshot.id,
+        },
+      },
+    };
+  } catch (error) {
+    console.error("SSR product fetch failed:", error);
+    return { notFound: true };
+  }
 }
