@@ -220,7 +220,8 @@ export default function AdminPage() {
     () => TOPIC_OPTIONS_BY_SUBJECT[form.subject] || [],
     [form.subject]
   );
-  const hideClassSelection = form.subject === "english" && form.type === "worksheet";
+  const hideClassSelection =
+    form.type === "worksheet" && (form.subject === "english" || form.subject === "maths");
   const isGrammarTopic = form.subject === "english" && form.topic === "grammar";
 
   const onFieldChange = (event) => {
@@ -295,7 +296,7 @@ export default function AdminPage() {
 
     try {
       const fields = {
-        class: hideClassSelection ? "class-1" : form.class,
+        class: hideClassSelection ? "" : form.class,
         type: form.type,
         title: form.title.trim(),
         price: form.price,
@@ -502,7 +503,7 @@ export default function AdminPage() {
                       </select>
                     </>
                   ) : (
-                    <p>Class is auto-set to Class 1 for English Worksheets.</p>
+                    <p>Class is not assigned for English/Maths worksheets.</p>
                   )}
 
                   <label htmlFor="title">Title</label>
