@@ -185,7 +185,7 @@ async function generatePreviewImageFile(pdfFile) {
 export default function AdminPage() {
   const { user } = useAuth();
   const [form, setForm] = useState({
-    class: "class-1",
+    class: "",
     type: "worksheet",
     title: "",
     price: "",
@@ -220,18 +220,34 @@ export default function AdminPage() {
     () => TOPIC_OPTIONS_BY_SUBJECT[form.subject] || [],
     [form.subject]
   );
-  const hideClassSelection =
+  const isEnglishMathWorksheet =
     form.type === "worksheet" && (form.subject === "english" || form.subject === "maths");
+  const classOptionsForForm = isEnglishMathWorksheet
+    ? [{ value: "", label: "All Classes (Optional)" }, ...CLASS_OPTIONS]
+    : CLASS_OPTIONS;
   const isGrammarTopic = form.subject === "english" && form.topic === "grammar";
 
   const onFieldChange = (event) => {
     const { name, value, type, checked } = event.target;
-    setForm((prev) => ({
-      ...prev,
-      ...(name === "subject" ? { topic: "", subtopic: "" } : {}),
-      ...(name === "topic" ? { subtopic: "" } : {}),
-      [name]: type === "checkbox" ? checked : value,
-    }));
+    setForm((prev) => {
+      const nextValue = type === "checkbox" ? checked : value;
+      const next = {
+        ...prev,
+        ...(name === "subject" ? { topic: "", subtopic: "" } : {}),
+        ...(name === "topic" ? { subtopic: "" } : {}),
+        [name]: nextValue,
+      };
+      const nextType = name === "type" ? String(nextValue) : next.type;
+      const nextSubject = name === "subject" ? String(nextValue) : next.subject;
+      const shouldAllowAllClasses =
+        nextType === "worksheet" && (nextSubject === "english" || nextSubject === "maths");
+      if (shouldAllowAllClasses) {
+        next.class = "";
+      } else if (!next.class) {
+        next.class = "class-1";
+      }
+      return next;
+    });
   };
 
   const onFileChange = (event) => {
@@ -296,7 +312,7 @@ export default function AdminPage() {
 
     try {
       const fields = {
-        class: hideClassSelection ? "" : form.class,
+        class: isEnglishMathWorksheet ? form.class || "" : form.class,
         type: form.type,
         title: form.title.trim(),
         price: form.price,
@@ -491,20 +507,17 @@ export default function AdminPage() {
                   ))}
                 </select>
 
-                  {!hideClassSelection ? (
-                    <>
-                      <label htmlFor="class">Class</label>
-                      <select id="class" name="class" value={form.class} onChange={onFieldChange}>
-                        {CLASS_OPTIONS.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
-                    </>
-                  ) : (
-                    <p>Class is not assigned for English/Maths worksheets.</p>
-                  )}
+                  <label htmlFor="class">Class</label>
+                  <select id="class" name="class" value={form.class} onChange={onFieldChange}>
+                    {classOptionsForForm.map((option) => (
+                      <option key={option.value || "all-classes"} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                  {isEnglishMathWorksheet ? (
+                    <p>Choose a class to make it class-specific, or keep All Classes.</p>
+                  ) : null}
 
                   <label htmlFor="title">Title</label>
                   <input

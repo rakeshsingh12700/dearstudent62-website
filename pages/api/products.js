@@ -60,8 +60,6 @@ function normalizeProduct(raw, fallbackId = "", rawStats = null, pricingContext 
   const id = String(raw?.id || fallbackId || "").trim();
   const normalizedType = toSlug(raw?.type) || "worksheet";
   const normalizedSubject = toSlug(raw?.subject) || "";
-  const isCrossClassWorksheet =
-    normalizedType === "worksheet" && (normalizedSubject === "english" || normalizedSubject === "maths");
   const storageKey = String(raw?.storageKey || "").trim();
   const imageUrl = String(raw?.imageUrl || "").trim();
   const imageOriginalUrl = String(raw?.imageOriginalUrl || "").trim();
@@ -78,7 +76,7 @@ function normalizeProduct(raw, fallbackId = "", rawStats = null, pricingContext 
 
   return {
     id,
-    class: isCrossClassWorksheet ? "all" : (toSlug(raw?.class) || "all"),
+    class: toSlug(raw?.class) || "all",
     type: normalizedType,
     subject: normalizedSubject,
     topic: toSlug(raw?.topic) || "",
