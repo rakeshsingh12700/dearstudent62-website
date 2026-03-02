@@ -778,8 +778,10 @@ button {
 }
 
 .home-rail__head {
-  display: grid;
-  gap: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .home-rail__head h2 {
@@ -787,6 +789,19 @@ button {
   font-size: clamp(1.42rem, 2.2vw, 1.9rem);
   line-height: 1.08;
   color: #1a202c;
+}
+
+.home-rail__view-all {
+  color: #1f4ed8;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+}
+
+.home-rail__view-all:hover,
+.home-rail__view-all:focus-visible {
+  text-decoration: underline;
 }
 
 .home-rail__track {
