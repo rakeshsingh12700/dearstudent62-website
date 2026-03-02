@@ -124,14 +124,17 @@ function getProductId({ classValue, subject, typeValue, title }) {
 
   const subjectSlug = toSlug(subject);
   const classSlug = toSlug(classValue);
+  const hasExplicitClass = Boolean(classSlug && classSlug !== "all");
   const isCrossClassWorksheet =
-    typeValue === "worksheet" && (subjectSlug === "english" || subjectSlug === "maths");
+    typeValue === "worksheet"
+    && (subjectSlug === "english" || subjectSlug === "maths")
+    && !hasExplicitClass;
 
   if (isCrossClassWorksheet) {
     return `${subjectSlug}-${titleSlug}`;
   }
 
-  return `${classSlug}-${titleSlug}`;
+  return `${classSlug || subjectSlug || "all"}-${titleSlug}`;
 }
 
 function extensionForContentType(contentType, fallback = "") {
@@ -512,12 +515,15 @@ export default async function handler(req, res) {
       const topic = toSlug(toSingleField(fields.topic));
       const subtopicRaw = toSlug(toSingleField(fields.subtopic));
       const showPreviewPage = toSingleField(fields.showPreviewPage) === "true";
-      const classFromField = toSingleField(fields.class);
-      const isCrossClassWorksheet =
+      const classFromField = toSlug(toSingleField(fields.class));
+      const isEnglishMathWorksheet =
         typeValue === "worksheet" && (subject === "english" || subject === "maths");
-      const classValue = isCrossClassWorksheet ? "" : classFromField;
+      const classValue = isEnglishMathWorksheet ? (classFromField || "all") : classFromField;
 
-    if (!isCrossClassWorksheet && !CLASS_TO_LABEL[classValue]) {
+    if (classValue !== "all" && !CLASS_TO_LABEL[classValue]) {
+      return res.status(400).json({ error: "Invalid class" });
+    }
+    if (!isEnglishMathWorksheet && classValue === "all") {
       return res.status(400).json({ error: "Invalid class" });
     }
 

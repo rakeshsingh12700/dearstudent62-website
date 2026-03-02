@@ -347,7 +347,9 @@ function getOptionLabel(options, value) {
 
 function isClassAgnosticWorksheet(product, taxonomy, normalizedType) {
   if (normalizedType !== "worksheet") return false;
-  return taxonomy?.subject === "english" || taxonomy?.subject === "maths";
+  if (!(taxonomy?.subject === "english" || taxonomy?.subject === "maths")) return false;
+  const classValue = toSlug(product?.class) || "all";
+  return classValue === "all";
 }
 
 function matchesClassFilter(product, taxonomy, normalizedType, selectedClass) {
