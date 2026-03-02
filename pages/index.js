@@ -554,7 +554,7 @@ export default function Home() {
               </p>
               <div className="hero__actions">
                 <Link href="/worksheets" className="btn btn-primary">
-                  Shop Worksheets
+                  Shop All Worksheets
                 </Link>
                 {!user && (
                   <Link href="/auth" className="btn btn-secondary">
@@ -604,6 +604,9 @@ export default function Home() {
           <section className="home-rail">
             <div className="home-rail__head">
               <h2>Popular</h2>
+              <Link href="/worksheets" className="home-rail__view-all">
+                View All
+              </Link>
             </div>
             <div className="home-rail__track" role="list" aria-label="Popular worksheets">
               {(railsLoaded ? popularRail : []).map((item) => {
@@ -772,6 +775,9 @@ export default function Home() {
           <section className="home-rail">
             <div className="home-rail__head">
               <h2>Recently Added</h2>
+              <Link href="/worksheets" className="home-rail__view-all">
+                View All
+              </Link>
             </div>
             <div className="home-rail__track" role="list" aria-label="Recently added worksheets">
               {(railsLoaded ? recentRail : []).map((item) => {
