@@ -46,6 +46,25 @@ export async function savePurchase({ email, userId, productId }) {
 export async function getUserPurchases(user) {
   if (!user) return [];
 
+  if (typeof user?.getIdToken === "function") {
+    try {
+      const idToken = await user.getIdToken();
+      const response = await fetch("/api/purchases/me", {
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+        },
+      });
+      if (response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        if (Array.isArray(payload?.purchases)) {
+          return dedupePurchases(payload.purchases);
+        }
+      }
+    } catch {
+      // Fall through to client Firestore fallback.
+    }
+  }
+
   const byUserId = await getPurchasesByUserId(user?.uid);
   const byEmail = await getPurchasesByEmail(user?.email);
   return dedupePurchases([...byUserId, ...byEmail]);

@@ -14,6 +14,14 @@ function toDate(value) {
   if (!value) return null;
   if (typeof value?.toDate === "function") return value.toDate();
   if (value instanceof Date) return value;
+  if (typeof value === "object") {
+    const seconds = Number(value?._seconds ?? value?.seconds);
+    const nanoseconds = Number(value?._nanoseconds ?? value?.nanoseconds ?? 0);
+    if (Number.isFinite(seconds)) {
+      const date = new Date(seconds * 1000 + Math.floor(nanoseconds / 1000000));
+      if (!Number.isNaN(date.getTime())) return date;
+    }
+  }
 
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return null;
@@ -392,14 +400,26 @@ export default function MyPurchases() {
 
     try {
       const idToken = await user.getIdToken();
+      const response = await fetch(getDownloadUrl(key, idToken));
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        const errorText = String(payload?.error || "Download failed. Please try again.");
+        const errorCode = String(payload?.code || "").trim();
+        alert(errorCode ? `${errorText} (${errorCode})` : errorText);
+        return;
+      }
+
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
       const link = document.createElement("a");
-      link.href = getDownloadUrl(key, idToken);
+      link.href = blobUrl;
       link.download = key;
       document.body.appendChild(link);
       link.click();
       link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
     } catch {
-      alert("Unable to verify your login. Please login again.");
+      alert("Download failed. Please try again.");
     }
   };
 

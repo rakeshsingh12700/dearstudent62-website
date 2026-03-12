@@ -222,20 +222,34 @@ export default async function handler(req, res) {
       try {
         snapshots = await Promise.all(
           ids.map(async (productId) => {
-            const [snap, ratingSnap] = await Promise.all([
+            const [activeSnap, archivedSnap, ratingSnap] = await Promise.all([
               getDoc(doc(db, "products", productId)),
+              getDoc(doc(db, "archived_products", productId)),
               getDoc(doc(db, "product_rating_stats", productId)),
             ]);
-            if (!snap.exists()) return null;
-            const raw = snap.data();
+
+            let raw = null;
+            let effectiveId = productId;
+            if (activeSnap.exists()) {
+              raw = activeSnap.data();
+              effectiveId = activeSnap.id;
+            } else if (archivedSnap.exists()) {
+              raw = archivedSnap.data();
+              effectiveId = archivedSnap.id;
+            } else {
+              return staticById.get(productId) || null;
+            }
+
             const exists = await r2ObjectExists(r2Client, bucket, String(raw?.storageKey || "").trim());
             if (!exists) {
-              await deleteDoc(doc(db, "products", snap.id)).catch(() => {});
-              return null;
+              if (activeSnap.exists()) {
+                await deleteDoc(doc(db, "products", activeSnap.id)).catch(() => {});
+              }
+              return staticById.get(productId) || null;
             }
             return normalizeProduct(
               raw,
-              snap.id,
+              effectiveId,
               ratingSnap.exists() ? ratingSnap.data() : null,
               pricingContext
             );
