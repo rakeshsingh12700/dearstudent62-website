@@ -1,0 +1,69 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwnerByEmail(email) {
+      return isSignedIn()
+        && email is string
+        && request.auth.token.email is string
+        && lower(request.auth.token.email) == lower(email);
+    }
+
+    function isOwnerByUserId(userId) {
+      return isSignedIn()
+        && userId is string
+        && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isSignedIn()
+        && request.auth.token.admin == true;
+    }
+
+    // Public product catalog
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Public rating aggregates shown on product cards
+    match /product_rating_stats/{productId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // User purchase records
+    match /purchases/{purchaseId} {
+      allow read: if isOwnerByUserId(resource.data.userId) || isOwnerByEmail(resource.data.email) || isAdmin();
+      allow create: if isSignedIn()
+        && (
+          isOwnerByEmail(request.resource.data.email)
+          || (
+            request.resource.data.userId is string
+            && request.resource.data.userId == request.auth.uid
+          )
+        );
+      allow update: if isOwnerByUserId(resource.data.userId) || isOwnerByEmail(resource.data.email) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // Reviews: readable by all, writable by signed-in users for own identity
+    match /product_feedback/{docId} {
+      allow read: if true;
+      allow create, update: if isSignedIn()
+        && (
+          (request.resource.data.userId is string && request.resource.data.userId == request.auth.uid)
+          || isOwnerByEmail(request.resource.data.email)
+        );
+      allow delete: if isAdmin();
+    }
+
+    // Keep everything else private by default.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

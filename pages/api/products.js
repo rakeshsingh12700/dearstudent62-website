@@ -1,5 +1,6 @@
 import { HeadObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { collection, deleteDoc, doc, getDoc, getDocs, limit, query } from "firebase/firestore";
+import staticProducts from "../../data/products";
 import { db } from "../../firebase/config";
 import { normalizeRatingStats } from "../../lib/productRatings";
 import {
@@ -116,11 +117,24 @@ function getR2Client() {
   return new S3Client({
     region: "auto",
     endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+    forcePathStyle: true,
     credentials: {
       accessKeyId,
       secretAccessKey,
     },
   });
+}
+
+function isFirestorePermissionError(error) {
+  const code = String(error?.code || error?.name || "").toLowerCase();
+  return code.includes("permission-denied");
+}
+
+function getStaticProducts(pricingContext = {}) {
+  if (!Array.isArray(staticProducts)) return [];
+  return staticProducts
+    .map((item) => normalizeProduct(item, item?.id, null, pricingContext))
+    .filter((item) => item && item.id);
 }
 
 async function r2ObjectExists(r2Client, bucket, key) {
@@ -155,12 +169,25 @@ export default async function handler(req, res) {
     const bucket = String(process.env.R2_BUCKET_NAME || "").trim();
     const id = String(req.query.id || "").trim();
     const idsRaw = String(req.query.ids || "").trim();
+    const staticList = getStaticProducts(pricingContext);
+    const staticById = new Map(staticList.map((item) => [item.id, item]));
 
     if (id) {
-      const [snapshot, ratingSnapshot] = await Promise.all([
-        getDoc(doc(db, "products", id)),
-        getDoc(doc(db, "product_rating_stats", id)),
-      ]);
+      let snapshot;
+      let ratingSnapshot;
+      try {
+        [snapshot, ratingSnapshot] = await Promise.all([
+          getDoc(doc(db, "products", id)),
+          getDoc(doc(db, "product_rating_stats", id)),
+        ]);
+      } catch (error) {
+        if (isFirestorePermissionError(error)) {
+          const fallback = staticById.get(id);
+          if (!fallback) return res.status(404).json({ error: "Product not found" });
+          return res.status(200).json({ product: fallback });
+        }
+        throw error;
+      }
       if (!snapshot.exists()) {
         return res.status(404).json({ error: "Product not found" });
       }
@@ -191,35 +218,53 @@ export default async function handler(req, res) {
         return res.status(200).json({ products: [] });
       }
 
-      const snapshots = await Promise.all(
-        ids.map(async (productId) => {
-          const [snap, ratingSnap] = await Promise.all([
-            getDoc(doc(db, "products", productId)),
-            getDoc(doc(db, "product_rating_stats", productId)),
-          ]);
-          if (!snap.exists()) return null;
-          const raw = snap.data();
-          const exists = await r2ObjectExists(r2Client, bucket, String(raw?.storageKey || "").trim());
-          if (!exists) {
-            await deleteDoc(doc(db, "products", snap.id)).catch(() => {});
-            return null;
-          }
-          return normalizeProduct(
-            raw,
-            snap.id,
-            ratingSnap.exists() ? ratingSnap.data() : null,
-            pricingContext
-          );
-        })
-      );
+      let snapshots;
+      try {
+        snapshots = await Promise.all(
+          ids.map(async (productId) => {
+            const [snap, ratingSnap] = await Promise.all([
+              getDoc(doc(db, "products", productId)),
+              getDoc(doc(db, "product_rating_stats", productId)),
+            ]);
+            if (!snap.exists()) return null;
+            const raw = snap.data();
+            const exists = await r2ObjectExists(r2Client, bucket, String(raw?.storageKey || "").trim());
+            if (!exists) {
+              await deleteDoc(doc(db, "products", snap.id)).catch(() => {});
+              return null;
+            }
+            return normalizeProduct(
+              raw,
+              snap.id,
+              ratingSnap.exists() ? ratingSnap.data() : null,
+              pricingContext
+            );
+          })
+        );
+      } catch (error) {
+        if (isFirestorePermissionError(error)) {
+          const fallbackProducts = ids.map((productId) => staticById.get(productId)).filter(Boolean);
+          return res.status(200).json({ products: fallbackProducts });
+        }
+        throw error;
+      }
 
       return res.status(200).json({ products: snapshots.filter(Boolean) });
     }
 
-    const [snapshot, ratingsSnapshot] = await Promise.all([
-      getDocs(query(collection(db, "products"), limit(1000))),
-      getDocs(query(collection(db, "product_rating_stats"), limit(2000))),
-    ]);
+    let snapshot;
+    let ratingsSnapshot;
+    try {
+      [snapshot, ratingsSnapshot] = await Promise.all([
+        getDocs(query(collection(db, "products"), limit(1000))),
+        getDocs(query(collection(db, "product_rating_stats"), limit(2000))),
+      ]);
+    } catch (error) {
+      if (isFirestorePermissionError(error)) {
+        return res.status(200).json({ products: staticList });
+      }
+      throw error;
+    }
     const ratingStatsByProductId = new Map(
       ratingsSnapshot.docs.map((ratingDoc) => [ratingDoc.id, ratingDoc.data()])
     );

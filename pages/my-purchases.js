@@ -6,10 +6,10 @@ import { getUserPurchases } from "../firebase/purchases";
 import Navbar from "../components/Navbar";
 import products from "../data/products";
 import { getDownloadUrl } from "../lib/productAssetUrls";
+import { readCartStorage, writeCartStorage } from "../lib/cartStorage";
 import { buildRatingStars } from "../lib/productRatings";
 import { getSubjectBadgeClass, getSubjectLabel } from "../lib/subjectBadge";
 
-const CART_STORAGE_KEY = "ds-worksheet-cart-v1";
 function toDate(value) {
   if (!value) return null;
   if (typeof value?.toDate === "function") return value.toDate();
@@ -336,16 +336,7 @@ export default function MyPurchases() {
 
   const handleBuyAgain = (order) => {
     if (typeof window === "undefined") return;
-
-    const raw = window.localStorage.getItem(CART_STORAGE_KEY);
-    let existingCart = [];
-
-    try {
-      const parsed = JSON.parse(raw || "[]");
-      existingCart = Array.isArray(parsed) ? parsed : [];
-    } catch {
-      existingCart = [];
-    }
+    const existingCart = readCartStorage();
 
     const byId = new Map(
       existingCart.map((item) => [
@@ -386,7 +377,7 @@ export default function MyPurchases() {
     });
 
     const nextCart = Array.from(byId.values());
-    window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(nextCart));
+    writeCartStorage(nextCart);
     window.dispatchEvent(new CustomEvent("ds-cart-updated"));
     router.push("/worksheets?openCart=1");
   };

@@ -4,6 +4,7 @@ import { useRouter } from "next/router";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import staticProducts from "../data/products";
+import { readCartStorage, writeCartStorage } from "../lib/cartStorage";
 import {
   getPreviewUrl,
 } from "../lib/productAssetUrls";
@@ -135,8 +136,6 @@ const TYPE_ALIASES = {
   bundle: "bundle",
   all: "all"
 };
-
-const CART_STORAGE_KEY = "ds-worksheet-cart-v1";
 
 function toSlug(value) {
   return String(value || "")
@@ -554,23 +553,23 @@ export default function WorksheetShop({
   const [previewState, setPreviewState] = useState(null);
   const [shareMenuProductId, setShareMenuProductId] = useState("");
   const [shareStatus, setShareStatus] = useState({ productId: "", message: "" });
-  const [cart, setCart] = useState(() => {
-    if (typeof window === "undefined") return [];
-    const savedCart = window.localStorage.getItem(CART_STORAGE_KEY);
-    if (!savedCart) return [];
-    try {
-      const parsed = JSON.parse(savedCart);
-      return Array.isArray(parsed) ? parsed : [];
-    } catch {
-      return [];
-    }
-  });
+  const [cart, setCart] = useState([]);
+  const [cartHydrated, setCartHydrated] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+    const timer = window.setTimeout(() => {
+      setCart(readCartStorage());
+      setCartHydrated(true);
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !cartHydrated) return;
+    writeCartStorage(cart);
     window.dispatchEvent(new CustomEvent("ds-cart-updated"));
-  }, [cart]);
+  }, [cart, cartHydrated]);
 
   useEffect(() => {
     if (typeof window === "undefined") return undefined;

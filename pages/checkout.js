@@ -5,11 +5,11 @@ import Navbar from "../components/Navbar";
 import { useAuth } from "../context/AuthContext";
 import products from "../data/products";
 import { formatMoney, getCurrencySymbol, getPriceCurrency, readCurrencyPreference } from "../lib/pricing/client";
+import { readCartStorage } from "../lib/cartStorage";
 import { getDiscountedUnitPrice } from "../lib/pricing/launchOffer";
 import { getSubjectBadgeClass, getSubjectLabel } from "../lib/subjectBadge";
 
 const RAZORPAY_SDK_SRC = "https://checkout.razorpay.com/v1/checkout.js";
-const CART_STORAGE_KEY = "ds-worksheet-cart-v1";
 const LIVE_HOSTS = new Set(["dearstudent.in", "www.dearstudent.in"]);
 const PRODUCTS_BY_ID = products.reduce((acc, product) => {
   acc[product.id] = product;
@@ -78,16 +78,7 @@ const loadRazorpaySdk = () => {
 };
 
 const readCartFromStorage = () => {
-  if (typeof window === "undefined") return [];
-  const raw = window.localStorage.getItem(CART_STORAGE_KEY);
-  if (!raw) return [];
-
-  try {
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
+  return readCartStorage();
 };
 
 const getCartSummary = () => {

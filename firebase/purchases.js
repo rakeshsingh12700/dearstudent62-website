@@ -13,12 +13,17 @@ import {
 export async function savePurchase({ email, userId, productId }) {
   const normalizedEmail = String(email || "").trim().toLowerCase();
 
-  return addDoc(collection(db, "purchases"), {
-    email: normalizedEmail,
-    userId: userId || null,
-    productId,
-    purchasedAt: new Date()
-  });
+  try {
+    return await addDoc(collection(db, "purchases"), {
+      email: normalizedEmail,
+      userId: userId || null,
+      productId,
+      purchasedAt: new Date()
+    });
+  } catch (error) {
+    console.error("Failed to save purchase in Firestore:", error);
+    return null;
+  }
 }
 
 // Get purchases for logged-in user
@@ -37,8 +42,13 @@ export async function getPurchasesByEmail(email) {
     where("email", "==", normalizedEmail)
   );
 
-  const snapshot = await getDocs(q);
-  return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+  try {
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch (error) {
+    console.error("Failed to read purchases from Firestore:", error);
+    return [];
+  }
 }
 
 // Link guest purchases after login
@@ -52,15 +62,19 @@ export async function linkGuestPurchases(user) {
     where("userId", "==", null)
   );
 
-  const snapshot = await getDocs(q);
+  try {
+    const snapshot = await getDocs(q);
 
-  await Promise.all(
-    snapshot.docs.map((d) =>
-      updateDoc(doc(db, "purchases", d.id), {
-        userId: user.uid
-      })
-    )
-  );
+    await Promise.all(
+      snapshot.docs.map((d) =>
+        updateDoc(doc(db, "purchases", d.id), {
+          userId: user.uid
+        })
+      )
+    );
+  } catch (error) {
+    console.error("Failed to link guest purchases:", error);
+  }
 }
 
 // Helper to check if product is purchased
@@ -73,6 +87,11 @@ export async function hasPurchased({ email, productId }) {
     where("productId", "==", productId)
   );
 
-  const snapshot = await getDocs(q);
-  return !snapshot.empty;
+  try {
+    const snapshot = await getDocs(q);
+    return !snapshot.empty;
+  } catch (error) {
+    console.error("Failed to verify purchase in Firestore:", error);
+    return false;
+  }
 }

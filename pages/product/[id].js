@@ -9,11 +9,11 @@ import { useAuth } from "../../context/AuthContext";
 import { hasPurchased } from "../../firebase/purchases";
 import { db } from "../../firebase/config";
 import { getPreviewUrl } from "../../lib/productAssetUrls";
+import { readCartStorage, writeCartStorage } from "../../lib/cartStorage";
 import { formatMoney, getPriceAmount, getPriceCurrency, readCurrencyPreference } from "../../lib/pricing/client";
 import { buildRatingStars, formatRatingAverage, normalizeRatingStats } from "../../lib/productRatings";
 import { doc, getDoc } from "firebase/firestore";
 
-const CART_STORAGE_KEY = "ds-worksheet-cart-v1";
 const SITE_URL = "https://dearstudent.in";
 const DEFAULT_OG_IMAGE = `${SITE_URL}/social-preview.png`;
 
@@ -213,14 +213,18 @@ export default function ProductPage({ initialProduct = null }) {
         setChecking(false);
         return;
       }
-
-      const result = await hasPurchased({
-        email,
-        productId: product.id,
-      });
-
-      setPurchased(result);
-      setChecking(false);
+      try {
+        const result = await hasPurchased({
+          email,
+          productId: product.id,
+        });
+        setPurchased(result);
+      } catch (error) {
+        console.error("Failed to check purchase:", error);
+        setPurchased(false);
+      } finally {
+        setChecking(false);
+      }
     };
 
     checkPurchase();
@@ -350,15 +354,7 @@ export default function ProductPage({ initialProduct = null }) {
 
   const addProductToCart = () => {
     if (typeof window === "undefined") return;
-
-    const raw = window.localStorage.getItem(CART_STORAGE_KEY);
-    let existingCart = [];
-    try {
-      const parsed = JSON.parse(raw || "[]");
-      existingCart = Array.isArray(parsed) ? parsed : [];
-    } catch {
-      existingCart = [];
-    }
+    const existingCart = readCartStorage();
 
     const existingItem = existingCart.find((item) => item.id === product.id);
     const nextCart = existingItem
@@ -381,7 +377,7 @@ export default function ProductPage({ initialProduct = null }) {
           },
         ];
 
-    window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(nextCart));
+    writeCartStorage(nextCart);
     window.dispatchEvent(new CustomEvent("ds-cart-updated"));
   };
 

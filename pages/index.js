@@ -7,6 +7,7 @@ import { useRouter } from "next/router";
 import { useAuth } from "../context/AuthContext";
 import { motion } from "framer-motion";
 import productsCatalog from "../data/products";
+import { readCartStorage, writeCartStorage } from "../lib/cartStorage";
 import { getPreviewUrl } from "../lib/productAssetUrls";
 import { getDiscountedUnitPrice, hasDisplayPriceChange } from "../lib/pricing/launchOffer";
 
@@ -45,8 +46,6 @@ const FALLBACK_RECENT = [...productsCatalog]
     storageKey: item.storageKey || "",
     imageUrl: item.imageUrl || "",
   }));
-
-const CART_STORAGE_KEY = "ds-worksheet-cart-v1";
 
 function formatPrice(value, symbol, currency) {
   const amount = Number(value || 0);
@@ -234,29 +233,15 @@ export default function Home() {
     if (typeof window === "undefined") return;
     const syncCartQty = () => {
       const next = {};
-      const raw = window.localStorage.getItem(CART_STORAGE_KEY);
-      if (!raw) {
-        setCartQtyById({});
-        return;
-      }
-      try {
-        const parsed = JSON.parse(raw);
-        if (!Array.isArray(parsed)) {
-          setCartQtyById({});
-          return;
-        }
-        parsed.forEach((item) => {
-          const id = String(item?.id || "").trim();
-          const qty =
-            Number.isFinite(Number(item?.quantity)) && Number(item.quantity) > 0
-              ? Number(item.quantity)
-              : 0;
-          if (id && qty > 0) next[id] = qty;
-        });
-        setCartQtyById(next);
-      } catch {
-        setCartQtyById({});
-      }
+      readCartStorage().forEach((item) => {
+        const id = String(item?.id || "").trim();
+        const qty =
+          Number.isFinite(Number(item?.quantity)) && Number(item.quantity) > 0
+            ? Number(item.quantity)
+            : 0;
+        if (id && qty > 0) next[id] = qty;
+      });
+      setCartQtyById(next);
     };
 
     syncCartQty();
@@ -312,16 +297,7 @@ export default function Home() {
 
   const addRailItemToCart = (item) => {
     if (typeof window === "undefined" || !item?.id) return;
-    let cartItems = [];
-    const raw = window.localStorage.getItem(CART_STORAGE_KEY);
-    if (raw) {
-      try {
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed)) cartItems = parsed;
-      } catch {
-        cartItems = [];
-      }
-    }
+    const cartItems = readCartStorage();
 
     const index = cartItems.findIndex((entry) => entry?.id === item.id);
     if (index >= 0) {
@@ -347,7 +323,7 @@ export default function Home() {
       });
     }
 
-    window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
+    writeCartStorage(cartItems);
     window.dispatchEvent(new CustomEvent("ds-cart-updated"));
     setCartNoticeById((prev) => ({ ...prev, [item.id]: "Added" }));
     window.setTimeout(() => {
@@ -357,16 +333,7 @@ export default function Home() {
 
   const updateRailItemQty = (item, delta) => {
     if (typeof window === "undefined" || !item?.id) return;
-    let cartItems = [];
-    const raw = window.localStorage.getItem(CART_STORAGE_KEY);
-    if (raw) {
-      try {
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed)) cartItems = parsed;
-      } catch {
-        cartItems = [];
-      }
-    }
+    const cartItems = readCartStorage();
 
     const index = cartItems.findIndex((entry) => entry?.id === item.id);
     if (index === -1 && delta > 0) {
@@ -397,7 +364,7 @@ export default function Home() {
       }
     }
 
-    window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
+    writeCartStorage(cartItems);
     window.dispatchEvent(new CustomEvent("ds-cart-updated"));
   };
 
