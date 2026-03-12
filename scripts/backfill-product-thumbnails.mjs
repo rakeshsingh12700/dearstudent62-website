@@ -37,6 +37,7 @@ const bucket = required("R2_BUCKET_NAME");
 const r2Client = new S3Client({
   region: "auto",
   endpoint: `https://${required("R2_ACCOUNT_ID")}.r2.cloudflarestorage.com`,
+  forcePathStyle: true,
   credentials: {
     accessKeyId: required("R2_ACCESS_KEY_ID"),
     secretAccessKey: required("R2_SECRET_ACCESS_KEY"),

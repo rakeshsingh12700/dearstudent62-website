@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { signOut } from "firebase/auth";
 import { auth } from "../firebase/config";
 import { useRouter } from "next/router";
+import { clearCartStorage, readCartStorage } from "../lib/cartStorage";
 import { PRICING_CONFIG } from "../lib/pricing/config";
 import {
   getCurrencySymbol,
@@ -11,8 +12,6 @@ import {
   readCurrencyPreference,
   setCurrencyPreference,
 } from "../lib/pricing/client";
-
-const CART_STORAGE_KEY = "ds-worksheet-cart-v1";
 
 const NAV_LINKS = [
   { label: "Home", href: "/" },
@@ -48,7 +47,7 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     if (typeof window !== "undefined") {
-      window.localStorage.removeItem(CART_STORAGE_KEY);
+      clearCartStorage();
       window.dispatchEvent(new CustomEvent("ds-cart-updated"));
     }
     if (auth) {
@@ -64,20 +63,9 @@ export default function Navbar() {
     if (typeof window === "undefined") return;
 
     const refreshCount = () => {
-      const raw = window.localStorage.getItem(CART_STORAGE_KEY);
-      if (!raw) {
-        setCartCount(0);
-        return;
-      }
-      try {
-        const parsed = JSON.parse(raw);
-        const count = Array.isArray(parsed)
-          ? parsed.reduce((sum, item) => sum + (item.quantity || 0), 0)
-          : 0;
-        setCartCount(count);
-      } catch {
-        setCartCount(0);
-      }
+      const cartItems = readCartStorage();
+      const count = cartItems.reduce((sum, item) => sum + Number(item.quantity || 0), 0);
+      setCartCount(count);
     };
 
     refreshCount();
