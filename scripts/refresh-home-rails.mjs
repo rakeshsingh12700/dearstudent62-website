@@ -62,6 +62,9 @@ function toDateMs(rawValue) {
 }
 
 function normalizeProduct(raw, fallbackId = "") {
+  const purchaseCount = Number(
+    raw?.purchaseCount ?? raw?.purchases ?? raw?.soldCount ?? raw?.totalSales ?? 0
+  );
   return {
     id: String(raw?.id || fallbackId || "").trim(),
     title: String(raw?.title || "").trim() || "Worksheet",
@@ -71,22 +74,65 @@ function normalizeProduct(raw, fallbackId = "") {
     imageUrl: String(raw?.imageUrl || "").trim(),
     previewImageUrl: String(raw?.previewImageUrl || "").trim(),
     priceINR: Number(raw?.price || 0),
+    purchaseCount: Number.isFinite(purchaseCount) && purchaseCount > 0 ? purchaseCount : 0,
     createdAtMs: Math.max(toDateMs(raw?.createdAt), toDateMs(raw?.updatedAt)),
   };
+}
+
+function parsePositiveQuantity(rawValue, fallback = 1) {
+  const parsed = Number(rawValue);
+  if (Number.isFinite(parsed) && parsed > 0) return parsed;
+  return fallback;
+}
+
+function incrementPurchaseCount(map, productId, quantity = 1) {
+  const normalizedProductId = String(productId || "").trim();
+  if (!normalizedProductId) return;
+  map.set(
+    normalizedProductId,
+    Number(map.get(normalizedProductId) || 0) + parsePositiveQuantity(quantity, 1)
+  );
+}
+
+function accumulatePurchaseCounts(rawPurchase = {}, purchaseCountByProductId = new Map()) {
+  const primaryProductId = String(rawPurchase?.productId || rawPurchase?.id || "").trim();
+  if (primaryProductId) {
+    incrementPurchaseCount(purchaseCountByProductId, primaryProductId, rawPurchase?.quantity);
+  }
+
+  const orderItems = Array.isArray(rawPurchase?.items)
+    ? rawPurchase.items
+    : Array.isArray(rawPurchase?.products)
+      ? rawPurchase.products
+      : [];
+
+  orderItems.forEach((item) => {
+    incrementPurchaseCount(
+      purchaseCountByProductId,
+      item?.productId || item?.id,
+      item?.quantity
+    );
+  });
 }
 
 function buildRails(products = [], purchaseCountByProductId = new Map()) {
   const popular = [...products]
     .sort((first, second) => {
-      const firstCount = Number(purchaseCountByProductId.get(first.id) || 0);
-      const secondCount = Number(purchaseCountByProductId.get(second.id) || 0);
+      const firstCount = Number(
+        purchaseCountByProductId.get(first.id) ?? first.purchaseCount ?? 0
+      );
+      const secondCount = Number(
+        purchaseCountByProductId.get(second.id) ?? second.purchaseCount ?? 0
+      );
       if (secondCount !== firstCount) return secondCount - firstCount;
       return String(first.title).localeCompare(String(second.title));
     })
     .slice(0, CACHE_SIZE)
     .map((item) => ({
       ...item,
-      purchaseCount: Number(purchaseCountByProductId.get(item.id) || 0),
+      purchaseCount: Number(
+        purchaseCountByProductId.get(item.id) ?? item.purchaseCount ?? 0
+      ),
     }));
 
   const recent = [...products]
@@ -97,31 +143,27 @@ function buildRails(products = [], purchaseCountByProductId = new Map()) {
     .slice(0, CACHE_SIZE)
     .map((item) => ({
       ...item,
-      purchaseCount: Number(purchaseCountByProductId.get(item.id) || 0),
+      purchaseCount: Number(
+        purchaseCountByProductId.get(item.id) ?? item.purchaseCount ?? 0
+      ),
     }));
 
   return { popular, recent };
 }
 
 async function main() {
-  const [productsSnapshot, purchasesSnapshot] = await Promise.all([
-    getDocs(query(collection(db, "products"), limit(1000))),
-    getDocs(query(collection(db, "purchases"), limit(5000))),
-  ]);
+  const productsSnapshot = await getDocs(query(collection(db, "products"), limit(1000)));
 
   const purchaseCountByProductId = new Map();
-  purchasesSnapshot.docs.forEach((docSnapshot) => {
-    const raw = docSnapshot.data() || {};
-    const productId = String(raw?.productId || "").trim();
-    if (!productId) return;
-    const quantity = Number.isFinite(Number(raw?.quantity)) && Number(raw?.quantity) > 0
-      ? Number(raw.quantity)
-      : 1;
-    purchaseCountByProductId.set(
-      productId,
-      Number(purchaseCountByProductId.get(productId) || 0) + quantity
-    );
-  });
+  try {
+    const purchasesSnapshot = await getDocs(query(collection(db, "purchases"), limit(5000)));
+    purchasesSnapshot.docs.forEach((docSnapshot) => {
+      const raw = docSnapshot.data() || {};
+      accumulatePurchaseCounts(raw, purchaseCountByProductId);
+    });
+  } catch {
+    // Firestore rules may block reads; keep product-level sale counts as fallback.
+  }
 
   const products = productsSnapshot.docs
     .map((item) => normalizeProduct(item.data(), item.id))
