@@ -9,6 +9,7 @@ import { motion } from "framer-motion";
 import productsCatalog from "../data/products";
 import { readCartStorage, writeCartStorage } from "../lib/cartStorage";
 import { getPreviewUrl } from "../lib/productAssetUrls";
+import { readCurrencyPreference } from "../lib/pricing/client";
 import { getDiscountedUnitPrice, hasDisplayPriceChange } from "../lib/pricing/launchOffer";
 
 const FALLBACK_POPULAR = [...productsCatalog]
@@ -22,6 +23,7 @@ const FALLBACK_POPULAR = [...productsCatalog]
     id: item.id,
     title: item.title,
     class: item.class,
+    subject: item.subject,
     type: item.type,
     price: Number(item.price || 0),
     displaySymbol: "INR",
@@ -38,6 +40,7 @@ const FALLBACK_RECENT = [...productsCatalog]
     id: item.id,
     title: item.title,
     class: item.class,
+    subject: item.subject,
     type: item.type,
     price: Number(item.price || 0),
     displaySymbol: "INR",
@@ -46,6 +49,59 @@ const FALLBACK_RECENT = [...productsCatalog]
     storageKey: item.storageKey || "",
     imageUrl: item.imageUrl || "",
   }));
+
+function mergeRuntimeProductsIntoRail(railItems = [], runtimeProducts = []) {
+  const byId = new Map(
+    (Array.isArray(runtimeProducts) ? runtimeProducts : [])
+      .filter((item) => item?.id)
+      .map((item) => [item.id, item])
+  );
+
+  return (Array.isArray(railItems) ? railItems : []).map((item) => {
+    const runtime = byId.get(item?.id);
+    if (!runtime) return item;
+    return {
+      ...item,
+      price: Number(runtime?.displayPrice ?? runtime?.price ?? item?.price ?? 0),
+      subject: String(runtime?.subject || item?.subject || "").trim(),
+      displayCurrency: String(runtime?.displayCurrency || runtime?.currency || item?.displayCurrency || "INR"),
+      displaySymbol: String(runtime?.displaySymbol || item?.displaySymbol || "INR"),
+      imageUrl: String(runtime?.imageUrl || item?.imageUrl || ""),
+      storageKey: String(runtime?.storageKey || item?.storageKey || ""),
+    };
+  });
+}
+
+async function buildCurrencyAwareFallbackRails(preferredCurrency) {
+  const fallbackPopular = [...FALLBACK_POPULAR];
+  const fallbackRecent = [...FALLBACK_RECENT];
+  const popularIds = fallbackPopular.map((item) => item.id).filter(Boolean).join(",");
+  const recentIds = fallbackRecent.map((item) => item.id).filter(Boolean).join(",");
+  const currencyQuery = preferredCurrency ? `&currency=${encodeURIComponent(preferredCurrency)}` : "";
+
+  try {
+    const [popularResponse, recentResponse] = await Promise.all([
+      popularIds
+        ? fetch(`/api/products?ids=${encodeURIComponent(popularIds)}${currencyQuery}`)
+        : Promise.resolve(null),
+      recentIds
+        ? fetch(`/api/products?ids=${encodeURIComponent(recentIds)}${currencyQuery}`)
+        : Promise.resolve(null),
+    ]);
+
+    const [popularPayload, recentPayload] = await Promise.all([
+      popularResponse?.ok ? popularResponse.json().catch(() => ({})) : Promise.resolve({}),
+      recentResponse?.ok ? recentResponse.json().catch(() => ({})) : Promise.resolve({}),
+    ]);
+
+    return {
+      popular: mergeRuntimeProductsIntoRail(fallbackPopular, popularPayload?.products || []),
+      recent: mergeRuntimeProductsIntoRail(fallbackRecent, recentPayload?.products || []),
+    };
+  } catch {
+    return { popular: fallbackPopular, recent: fallbackRecent };
+  }
+}
 
 function formatPrice(value, symbol, currency) {
   const amount = Number(value || 0);
@@ -152,6 +208,7 @@ export default function Home() {
   const [previewState, setPreviewState] = useState(null);
   const [shareMenuCardKey, setShareMenuCardKey] = useState("");
   const [shareStatus, setShareStatus] = useState({ cardKey: "", message: "" });
+  const [currencyRefreshKey, setCurrencyRefreshKey] = useState(0);
 
   useEffect(() => {
     if (!router.isReady) return;
@@ -172,13 +229,26 @@ export default function Home() {
   }, [router, router.isReady, router.query]);
 
   useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+    const syncCurrency = () => setCurrencyRefreshKey((value) => value + 1);
+    window.addEventListener("ds-currency-updated", syncCurrency);
+    return () => {
+      window.removeEventListener("ds-currency-updated", syncCurrency);
+    };
+  }, []);
+
+  useEffect(() => {
     let cancelled = false;
     const loadRails = async () => {
       try {
-        const response = await fetch("/api/home-rails");
+        const preferredCurrency = readCurrencyPreference();
+        const response = await fetch(
+          `/api/home-rails${preferredCurrency ? `?currency=${encodeURIComponent(preferredCurrency)}` : ""}`
+        );
         if (!response.ok) {
           if (!cancelled) {
-            setRails({ popular: FALLBACK_POPULAR, recent: FALLBACK_RECENT });
+            const fallbackRails = await buildCurrencyAwareFallbackRails(preferredCurrency);
+            setRails(fallbackRails);
             setRailsLoaded(true);
           }
           return;
@@ -195,7 +265,9 @@ export default function Home() {
         setRailsLoaded(true);
       } catch {
         if (!cancelled) {
-          setRails({ popular: FALLBACK_POPULAR, recent: FALLBACK_RECENT });
+          const preferredCurrency = readCurrencyPreference();
+          const fallbackRails = await buildCurrencyAwareFallbackRails(preferredCurrency);
+          setRails(fallbackRails);
           setRailsLoaded(true);
         }
       }
@@ -205,7 +277,7 @@ export default function Home() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [currencyRefreshKey]);
 
   useEffect(() => {
     let cancelled = false;
@@ -316,6 +388,7 @@ export default function Home() {
         title: item.title,
         price: Number(item.price || 0),
         quantity: 1,
+        subject: item.subject || "",
         storageKey: item.storageKey || "",
         imageUrl: item.imageUrl || "",
         class: item.class || "all",
@@ -342,6 +415,7 @@ export default function Home() {
         title: item.title,
         price: Number(item.price || 0),
         quantity: 1,
+        subject: item.subject || "",
         storageKey: item.storageKey || "",
         imageUrl: item.imageUrl || "",
         class: item.class || "all",

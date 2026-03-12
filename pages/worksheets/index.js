@@ -16,6 +16,8 @@ export default function Worksheets() {
     typeof router.query.subtopic === "string" ? router.query.subtopic : "all";
   const sortFromQuery =
     typeof router.query.sort === "string" ? router.query.sort : "default";
+  const searchFromQuery =
+    typeof router.query.q === "string" ? router.query.q : "";
   const mobileViewFromQuery =
     typeof router.query.view === "string" ? router.query.view : "library";
   const openCartFromQuery =
@@ -25,12 +27,14 @@ export default function Worksheets() {
     <>
       <Navbar />
       <WorksheetShop
+        key={`${classFromQuery}-${typeFromQuery}-${subjectFromQuery}-${topicFromQuery}-${subtopicFromQuery}-${sortFromQuery}-${searchFromQuery}-${mobileViewFromQuery}-${openCartFromQuery ? "cart" : "list"}`}
         initialClass={classFromQuery}
         initialType={typeFromQuery}
         initialSubject={subjectFromQuery}
         initialTopic={topicFromQuery}
         initialSubtopic={subtopicFromQuery}
         initialSort={sortFromQuery}
+        initialSearch={searchFromQuery}
         initialOpenCart={openCartFromQuery}
         initialMobileView={mobileViewFromQuery}
       />
