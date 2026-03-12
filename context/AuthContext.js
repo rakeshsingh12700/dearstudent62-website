@@ -11,16 +11,19 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     if (!auth) return undefined;
 
-    const unsub = onAuthStateChanged(auth, async (currentUser) => {
+    const unsub = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
 
-      if (currentUser?.email) {
-        try {
-          await linkGuestPurchases(currentUser);
-        } catch (error) {
-          console.error("Failed to link guest purchases:", error);
-        }
+      if (!currentUser?.email || !currentUser?.uid) {
+        return;
       }
+
+      // Fire-and-forget so auth/login flow never hard-fails on purchase-link issues.
+      Promise.resolve()
+        .then(() => linkGuestPurchases(currentUser))
+        .catch((error) => {
+          console.warn("Guest purchase sync skipped:", String(error?.message || error));
+        });
     });
     return () => unsub();
   }, []);

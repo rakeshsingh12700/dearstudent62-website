@@ -1,6 +1,8 @@
 import crypto from "crypto";
 import { doc, setDoc } from "firebase/firestore";
 import { db } from "../../../firebase/config";
+import { getAdminDb } from "../../../lib/firebaseAdmin";
+import { fulfillPurchaseOrder } from "../../../lib/purchaseFulfillment";
 
 export const config = {
   api: {
@@ -18,6 +20,44 @@ async function readRawBody(req) {
 
 function getSafeObject(value) {
   return value && typeof value === "object" ? value : {};
+}
+
+function parseItemsFromNote(rawItems) {
+  return String(rawItems || "")
+    .split("|")
+    .map((part) => String(part || "").trim())
+    .filter(Boolean)
+    .map((part) => {
+      const [productId, quantity] = part.split(":");
+      const normalizedProductId = String(productId || "").trim();
+      const normalizedQuantity = Number(quantity || 0);
+      if (!normalizedProductId || !Number.isFinite(normalizedQuantity) || normalizedQuantity <= 0) {
+        return null;
+      }
+      return { productId: normalizedProductId, quantity: normalizedQuantity };
+    })
+    .filter(Boolean)
+    .slice(0, 25);
+}
+
+function normalizeAmountFromWebhook(entity = {}, orderEntity = {}) {
+  const noteAmount = Number(entity?.notes?.displayAmount || orderEntity?.notes?.displayAmount || 0);
+  if (Number.isFinite(noteAmount) && noteAmount > 0) {
+    return noteAmount;
+  }
+  const smallestUnitAmount = Number(entity?.amount || orderEntity?.amount || 0);
+  if (!Number.isFinite(smallestUnitAmount) || smallestUnitAmount <= 0) return 0;
+  return smallestUnitAmount / 100;
+}
+
+async function upsertWithBestDb(path, data, options = { merge: true }) {
+  const [collectionName, documentId] = path;
+  const adminDb = getAdminDb();
+  if (adminDb) {
+    await adminDb.collection(collectionName).doc(documentId).set(data, options);
+    return;
+  }
+  await setDoc(doc(db, collectionName, documentId), data, options);
 }
 
 export default async function handler(req, res) {
@@ -54,8 +94,8 @@ export default async function handler(req, res) {
     const paymentId = String(entity.id || "").trim();
     const orderId = String(entity.order_id || orderEntity.id || "").trim();
 
-    await setDoc(
-      doc(db, "razorpay_webhook_events", eventId),
+    await upsertWithBestDb(
+      ["razorpay_webhook_events", eventId],
       {
         id: eventId,
         event: eventType,
@@ -72,8 +112,45 @@ export default async function handler(req, res) {
 
     if (paymentId || orderId) {
       const reconciliationId = paymentId || orderId;
-      await setDoc(
-        doc(db, "razorpay_reconciliation", reconciliationId),
+      const normalizedStatus = String(entity.status || orderEntity.status || "").trim().toLowerCase();
+      const eventIndicatesSuccess = eventType === "payment.captured" || eventType === "order.paid";
+      const statusIndicatesSuccess = normalizedStatus === "captured" || normalizedStatus === "paid";
+      const shouldAttemptFulfillment = Boolean(paymentId) && (eventIndicatesSuccess || statusIndicatesSuccess);
+
+      let fulfillment = null;
+      if (shouldAttemptFulfillment) {
+        const notes = {
+          ...getSafeObject(orderEntity.notes),
+          ...getSafeObject(entity.notes),
+        };
+        const email = String(notes.buyerEmail || "").trim().toLowerCase();
+        const items = parseItemsFromNote(notes.items);
+        const orderCurrency = String(entity.currency || orderEntity.currency || "INR")
+          .trim()
+          .toUpperCase();
+        const orderAmount = normalizeAmountFromWebhook(entity, orderEntity);
+
+        if (email && items.length > 0) {
+          fulfillment = await fulfillPurchaseOrder({
+            email,
+            userId: String(notes.buyerUserId || "").trim() || null,
+            items,
+            orderCurrency,
+            orderAmount,
+            appliedCoupon: {
+              code: String(notes.couponCode || "").trim().toUpperCase() || null,
+              id: String(notes.couponId || "").trim() || null,
+              discountAmount: 0,
+            },
+            paymentId,
+            orderId: orderId || paymentId,
+            paymentMethod: "razorpay_webhook",
+          });
+        }
+      }
+
+      await upsertWithBestDb(
+        ["razorpay_reconciliation", reconciliationId],
         {
           paymentId,
           orderId,
@@ -81,10 +158,16 @@ export default async function handler(req, res) {
           lastStatus: String(entity.status || orderEntity.status || "").trim(),
           amount: Number(entity.amount || orderEntity.amount || 0),
           currency: String(entity.currency || orderEntity.currency || "").trim(),
+          fulfillmentStatus: fulfillment?.ok ? "fulfilled" : "pending",
+          fulfillmentError: fulfillment?.ok ? null : String(fulfillment?.error || ""),
           lastUpdatedAt: new Date().toISOString(),
         },
         { merge: true }
       );
+
+      if (shouldAttemptFulfillment && fulfillment && !fulfillment.ok) {
+        return res.status(500).json({ error: "Webhook purchase fulfillment failed" });
+      }
     }
 
     return res.status(200).json({ ok: true });

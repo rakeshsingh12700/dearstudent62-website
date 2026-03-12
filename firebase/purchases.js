@@ -9,6 +9,22 @@ import {
   doc
 } from "firebase/firestore";
 
+function isPermissionDenied(error) {
+  const code = String(error?.code || "").toLowerCase();
+  const message = String(error?.message || "").toLowerCase();
+  return code.includes("permission-denied") || message.includes("insufficient permissions");
+}
+
+function dedupePurchases(items = []) {
+  const byId = new Map();
+  (Array.isArray(items) ? items : []).forEach((item) => {
+    const id = String(item?.id || "").trim();
+    if (!id) return;
+    byId.set(id, item);
+  });
+  return Array.from(byId.values());
+}
+
 // Save purchase (used later after payment)
 export async function savePurchase({ email, userId, productId }) {
   const normalizedEmail = String(email || "").trim().toLowerCase();
@@ -30,7 +46,9 @@ export async function savePurchase({ email, userId, productId }) {
 export async function getUserPurchases(user) {
   if (!user) return [];
 
-  return getPurchasesByEmail(user.email);
+  const byUserId = await getPurchasesByUserId(user?.uid);
+  const byEmail = await getPurchasesByEmail(user?.email);
+  return dedupePurchases([...byUserId, ...byEmail]);
 }
 
 export async function getPurchasesByEmail(email) {
@@ -46,7 +64,29 @@ export async function getPurchasesByEmail(email) {
     const snapshot = await getDocs(q);
     return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
   } catch (error) {
-    console.error("Failed to read purchases from Firestore:", error);
+    if (!isPermissionDenied(error)) {
+      console.warn("Failed to read purchases by email:", String(error?.message || error));
+    }
+    return [];
+  }
+}
+
+export async function getPurchasesByUserId(userId) {
+  const normalizedUserId = String(userId || "").trim();
+  if (!normalizedUserId) return [];
+
+  const q = query(
+    collection(db, "purchases"),
+    where("userId", "==", normalizedUserId)
+  );
+
+  try {
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+  } catch (error) {
+    if (!isPermissionDenied(error)) {
+      console.warn("Failed to read purchases by userId:", String(error?.message || error));
+    }
     return [];
   }
 }
@@ -58,22 +98,27 @@ export async function linkGuestPurchases(user) {
 
   const q = query(
     collection(db, "purchases"),
-    where("email", "==", normalizedEmail),
-    where("userId", "==", null)
+    where("email", "==", normalizedEmail)
   );
 
   try {
     const snapshot = await getDocs(q);
+    const guestDocs = snapshot.docs.filter((d) => {
+      const rawUserId = d.data()?.userId;
+      return rawUserId === null || rawUserId === undefined || rawUserId === "";
+    });
 
     await Promise.all(
-      snapshot.docs.map((d) =>
+      guestDocs.map((d) =>
         updateDoc(doc(db, "purchases", d.id), {
           userId: user.uid
         })
       )
     );
   } catch (error) {
-    console.error("Failed to link guest purchases:", error);
+    if (!isPermissionDenied(error)) {
+      console.warn("Guest purchase linking skipped:", String(error?.message || error));
+    }
   }
 }
 
