@@ -1,11 +1,9 @@
 import { S3Client, GetObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { collection, doc, getDoc, getDocs, limit, query, where } from "firebase/firestore";
 import { db } from "../../firebase/config";
+import { getAdminDb } from "../../lib/firebaseAdmin";
 import { PRODUCT_CATALOG } from "../../lib/productCatalog";
 import { getToken as getCheckoutToken } from "../../lib/tokenStore";
-
-const SIGNED_URL_TTL_SECONDS = 60;
 
 function getR2Client() {
   const accountId = String(process.env.R2_ACCOUNT_ID || "").trim();
@@ -61,6 +59,29 @@ async function verifyFirebaseIdToken(idToken) {
 async function hasUserPurchasedProduct({ email, uid, productId }) {
   const normalizedProductId = String(productId || "").trim();
   if (!normalizedProductId) return false;
+
+  const adminDb = getAdminDb();
+  if (adminDb) {
+    if (uid) {
+      const byUserIdSnapshot = await adminDb
+        .collection("purchases")
+        .where("userId", "==", uid)
+        .where("productId", "==", normalizedProductId)
+        .limit(1)
+        .get();
+      if (!byUserIdSnapshot.empty) return true;
+    }
+
+    if (!email) return false;
+
+    const byEmailSnapshot = await adminDb
+      .collection("purchases")
+      .where("email", "==", email)
+      .where("productId", "==", normalizedProductId)
+      .limit(1)
+      .get();
+    return !byEmailSnapshot.empty;
+  }
 
   if (uid) {
     const byUserIdQuery = query(
@@ -123,6 +144,45 @@ async function objectExists(r2Client, bucket, key) {
 async function getProductByStorageKey(key) {
   const normalizedKey = String(key || "").trim();
   if (!normalizedKey) return null;
+
+  const adminDb = getAdminDb();
+  if (adminDb) {
+    try {
+      const snapshot = await adminDb
+        .collection("products")
+        .where("storageKey", "==", normalizedKey)
+        .limit(1)
+        .get();
+      if (!snapshot.empty) {
+        const product = snapshot.docs[0];
+        return {
+          id: product.id,
+          archiveStorageKey: String(product.data()?.archiveStorageKey || "").trim(),
+        };
+      }
+    } catch {
+      // Continue with client SDK fallback.
+    }
+
+    try {
+      const archivedSnapshot = await adminDb
+        .collection("archived_products")
+        .where("storageKey", "==", normalizedKey)
+        .limit(1)
+        .get();
+      if (!archivedSnapshot.empty) {
+        const archivedProduct = archivedSnapshot.docs[0];
+        return {
+          id: archivedProduct.id,
+          archiveStorageKey:
+            String(archivedProduct.data()?.archiveStorageKey || "").trim() ||
+            toArchiveKey(normalizedKey),
+        };
+      }
+    } catch {
+      // Continue with client SDK fallback.
+    }
+  }
 
   try {
     const productsQuery = query(
@@ -239,14 +299,47 @@ export default async function handler(req, res) {
       ResponseContentType: "application/pdf",
       ResponseContentDisposition: `attachment; filename="${fileName}"`,
     });
-    const signedUrl = await getSignedUrl(r2Client, command, {
-      expiresIn: SIGNED_URL_TTL_SECONDS,
-    });
-
+    const object = await r2Client.send(command);
     res.setHeader("Cache-Control", "no-store");
-    return res.redirect(302, signedUrl);
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
+
+    const body = object?.Body;
+    if (body && typeof body.pipe === "function") {
+      body.pipe(res);
+      return;
+    }
+    if (body && typeof body.transformToByteArray === "function") {
+      const bytes = await body.transformToByteArray();
+      return res.status(200).send(Buffer.from(bytes));
+    }
+    return res.status(500).json({ error: "Download stream unavailable" });
   } catch (error) {
-    console.error("R2 signed URL generation failed:", error);
-    return res.status(500).json({ error: "Failed to create signed download URL" });
+    const code = String(error?.name || error?.Code || error?.code || "").trim();
+    const rawMessage = String(error?.message || "").trim();
+    const lower = `${code} ${rawMessage}`.toLowerCase();
+
+    let message = "Download failed";
+    if (lower.includes("invalidaccesskeyid") || lower.includes("signaturedoesnotmatch")) {
+      message = "Download storage credentials are invalid";
+    } else if (lower.includes("accessdenied")) {
+      message = "Download access denied by storage provider";
+    } else if (lower.includes("nosuchkey") || lower.includes("notfound")) {
+      message = "File not found in storage";
+    } else if (lower.includes("fetch failed") || lower.includes("enotfound") || lower.includes("econn")) {
+      message = "Storage network connection failed";
+    } else if (rawMessage) {
+      message = rawMessage;
+    }
+
+    console.error("Download API failed:", {
+      code: code || "unknown",
+      message: rawMessage || "unknown",
+      key,
+    });
+    return res.status(500).json({
+      error: message,
+      code: code || "unknown",
+    });
   }
 }
