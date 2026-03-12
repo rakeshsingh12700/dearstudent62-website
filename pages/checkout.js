@@ -1,15 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/router";
 
 import Navbar from "../components/Navbar";
 import { useAuth } from "../context/AuthContext";
 import products from "../data/products";
 import { formatMoney, getCurrencySymbol, getPriceCurrency, readCurrencyPreference } from "../lib/pricing/client";
-import { readCartStorage } from "../lib/cartStorage";
+import { CART_STORAGE_KEY, readCartStorage } from "../lib/cartStorage";
 import { getDiscountedUnitPrice } from "../lib/pricing/launchOffer";
 import { getSubjectBadgeClass, getSubjectLabel } from "../lib/subjectBadge";
 
 const RAZORPAY_SDK_SRC = "https://checkout.razorpay.com/v1/checkout.js";
+const PAYPAL_PENDING_SESSION_KEY = "ds-paypal-pending-order-v1";
 const LIVE_HOSTS = new Set(["dearstudent.in", "www.dearstudent.in"]);
 const PRODUCTS_BY_ID = products.reduce((acc, product) => {
   acc[product.id] = product;
@@ -130,12 +132,15 @@ const getCartPreviewItems = () => {
 };
 
 export default function Checkout() {
+  const router = useRouter();
   const { user } = useAuth();
   const loggedInEmail = user?.email || "";
   const [loading, setLoading] = useState(false);
+  const [paypalLoading, setPaypalLoading] = useState(false);
+  const [paypalReturnHandled, setPaypalReturnHandled] = useState(false);
   const [couponLoading, setCouponLoading] = useState(false);
-  const [cartSummary, setCartSummary] = useState(() => getCartSummary());
-  const [cartPreviewItems, setCartPreviewItems] = useState(() => getCartPreviewItems());
+  const [cartSummary, setCartSummary] = useState({ count: 0, total: 0 });
+  const [cartPreviewItems, setCartPreviewItems] = useState([]);
   const [runtimeProducts, setRuntimeProducts] = useState([]);
   const [email, setEmail] = useState("");
   const [inAppBrowserName, setInAppBrowserName] = useState("");
@@ -162,6 +167,7 @@ export default function Checkout() {
       setCartPreviewItems(getCartPreviewItems());
     };
 
+    syncSummary();
     window.addEventListener("storage", syncSummary);
     window.addEventListener("ds-cart-updated", syncSummary);
 
@@ -302,6 +308,11 @@ export default function Checkout() {
         ? "Complete Free Order"
         : `Pay ${formatMoney(effectiveFinalAmount, displayCurrency)}`
       : "Updating prices...";
+  const paypalActionLabel = paypalLoading
+    ? "Redirecting to PayPal..."
+    : pricesReady
+      ? `Pay ${formatMoney(effectiveFinalAmount, displayCurrency)} with PayPal`
+      : "Updating prices...";
 
   useEffect(() => {
     setAppliedCoupon(null);
@@ -387,6 +398,28 @@ export default function Checkout() {
     }
   };
 
+  const handleCheckoutSuccess = ({
+    token,
+    paymentId,
+    currentBuyerEmail,
+    primaryProductId = "",
+    productIds = [],
+  }) => {
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem(CART_STORAGE_KEY);
+      window.dispatchEvent(new CustomEvent("ds-cart-updated"));
+      window.sessionStorage.setItem("ds-last-checkout-email", currentBuyerEmail);
+      window.sessionStorage.removeItem(PAYPAL_PENDING_SESSION_KEY);
+    }
+    setCartSummary({ count: 0, total: 0 });
+    setCartPreviewItems([]);
+    const encodedPrimaryProductId = encodeURIComponent(primaryProductId || "");
+    const productIdsParam = encodeURIComponent(
+      Array.isArray(productIds) ? productIds.join(",") : ""
+    );
+    window.location.href = `/success?token=${token}&paymentId=${paymentId}&email=${encodeURIComponent(currentBuyerEmail)}&productId=${encodedPrimaryProductId}&productIds=${productIdsParam}`;
+  };
+
   const payNow = async () => {
     try {
       setLoading(true);
@@ -439,22 +472,13 @@ export default function Checkout() {
         }
 
         if (freeOrderRes.ok && freeOrderPayload?.success) {
-          if (typeof window !== "undefined") {
-            window.localStorage.removeItem(CART_STORAGE_KEY);
-            window.dispatchEvent(new CustomEvent("ds-cart-updated"));
-            window.sessionStorage.setItem("ds-last-checkout-email", currentBuyerEmail);
-          }
-          setCartSummary({ count: 0, total: 0 });
-          setCartPreviewItems([]);
-          const primaryProductId = encodeURIComponent(
-            freeOrderPayload.primaryProductId || ""
-          );
-          const productIdsParam = encodeURIComponent(
-            Array.isArray(freeOrderPayload.productIds)
-              ? freeOrderPayload.productIds.join(",")
-              : ""
-          );
-          window.location.href = `/success?token=${freeOrderPayload.token}&paymentId=${freeOrderPayload.paymentId}&email=${encodeURIComponent(currentBuyerEmail)}&productId=${primaryProductId}&productIds=${productIdsParam}`;
+          handleCheckoutSuccess({
+            token: freeOrderPayload.token,
+            paymentId: freeOrderPayload.paymentId,
+            currentBuyerEmail,
+            primaryProductId: freeOrderPayload.primaryProductId || "",
+            productIds: freeOrderPayload.productIds || [],
+          });
           return;
         }
       }
@@ -533,20 +557,13 @@ export default function Checkout() {
             const result = await verifyRes.json();
 
             if (result.success) {
-              if (typeof window !== "undefined") {
-                window.localStorage.removeItem(CART_STORAGE_KEY);
-                window.dispatchEvent(new CustomEvent("ds-cart-updated"));
-                window.sessionStorage.setItem("ds-last-checkout-email", currentBuyerEmail);
-              }
-              setCartSummary({ count: 0, total: 0 });
-              setCartPreviewItems([]);
-              const primaryProductId = encodeURIComponent(
-                result.primaryProductId || ""
-              );
-              const productIdsParam = encodeURIComponent(
-                Array.isArray(result.productIds) ? result.productIds.join(",") : ""
-              );
-              window.location.href = `/success?token=${result.token}&paymentId=${result.paymentId}&email=${encodeURIComponent(currentBuyerEmail)}&productId=${primaryProductId}&productIds=${productIdsParam}`;
+              handleCheckoutSuccess({
+                token: result.token,
+                paymentId: result.paymentId,
+                currentBuyerEmail,
+                primaryProductId: result.primaryProductId || "",
+                productIds: result.productIds || [],
+              });
             } else {
               alert(result.error || "Payment verification failed.");
             }
@@ -571,6 +588,131 @@ export default function Checkout() {
       setLoading(false);
     }
   };
+
+  const payWithPayPal = async () => {
+    try {
+      setPaypalLoading(true);
+
+      const latestCart = getCartSummary();
+      const latestItems = getCartItems();
+      const currentBuyerEmail = (loggedInEmail || email).trim().toLowerCase();
+
+      if (latestCart.count <= 0 || latestItems.length === 0) {
+        alert("Your cart is empty. Please add items before checkout.");
+        return;
+      }
+      if (!currentBuyerEmail) {
+        alert("Please enter email to receive your download.");
+        return;
+      }
+      if (effectiveFinalAmount <= 0) {
+        alert("This order is free. Please use Complete Free Order.");
+        return;
+      }
+
+      const response = await fetch("/api/payments/create-paypal-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          items: latestItems,
+          currencyOverride: "USD",
+          couponCode: appliedCoupon?.code || "",
+          email: currentBuyerEmail,
+          userId: user?.uid || null,
+        }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok || !payload?.id || !payload?.approvalUrl) {
+        alert(payload?.error || "PayPal order creation failed.");
+        return;
+      }
+
+      if (typeof window !== "undefined") {
+        window.sessionStorage.setItem(
+          PAYPAL_PENDING_SESSION_KEY,
+          JSON.stringify({
+            email: currentBuyerEmail,
+            userId: user?.uid || null,
+            items: latestItems,
+            orderCurrency: payload.currency || displayCurrency,
+            orderAmount: Number(payload.displayAmount || 0),
+            appliedCoupon: payload.appliedCoupon || null,
+          })
+        );
+      }
+
+      window.location.href = payload.approvalUrl;
+    } catch (error) {
+      console.error("PayPal checkout error:", error);
+      alert("Unable to start PayPal checkout. Please try again.");
+    } finally {
+      setPaypalLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!router.isReady || paypalReturnHandled) return;
+    if (typeof window === "undefined") return;
+
+    const paypalStatus = String(router.query.paypal || "").trim().toLowerCase();
+    if (paypalStatus === "cancel") {
+      setPaypalReturnHandled(true);
+      alert("PayPal checkout was cancelled.");
+      router.replace("/checkout", undefined, { shallow: true });
+      return;
+    }
+
+    const orderId = String(router.query.token || "").trim();
+    const payerId = String(router.query.PayerID || "").trim();
+    if (!orderId || !payerId) return;
+
+    const runCapture = async () => {
+      try {
+        setPaypalLoading(true);
+        setPaypalReturnHandled(true);
+
+        const pendingRaw = window.sessionStorage.getItem(PAYPAL_PENDING_SESSION_KEY);
+        const pending = pendingRaw ? JSON.parse(pendingRaw) : null;
+        if (!pending || !Array.isArray(pending.items) || pending.items.length === 0) {
+          throw new Error("Missing local checkout context. Please try PayPal checkout again.");
+        }
+
+        const captureResponse = await fetch("/api/payments/capture-paypal-order", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            orderId,
+            payerId,
+            email: pending.email,
+            userId: pending.userId || null,
+            items: pending.items,
+            orderCurrency: pending.orderCurrency,
+            orderAmount: Number(pending.orderAmount || 0),
+            appliedCoupon: pending.appliedCoupon || null,
+          }),
+        });
+        const capturePayload = await captureResponse.json().catch(() => ({}));
+        if (!captureResponse.ok || !capturePayload?.success) {
+          throw new Error(String(capturePayload?.error || "PayPal payment verification failed."));
+        }
+
+        handleCheckoutSuccess({
+          token: capturePayload.token,
+          paymentId: capturePayload.paymentId,
+          currentBuyerEmail: String(pending.email || "").trim().toLowerCase(),
+          primaryProductId: capturePayload.primaryProductId || "",
+          productIds: capturePayload.productIds || [],
+        });
+      } catch (error) {
+        alert(String(error?.message || "PayPal checkout failed. Please try again."));
+        router.replace("/checkout", undefined, { shallow: true });
+      } finally {
+        setPaypalLoading(false);
+      }
+    };
+
+    runCapture();
+  }, [router, router.isReady, router.query, paypalReturnHandled]);
 
   return (
     <>
@@ -787,10 +929,20 @@ export default function Checkout() {
                 type="button"
                 className="btn btn-primary checkout-pay-btn"
                 onClick={payNow}
-                disabled={loading || couponLoading || !hasItems || !pricesReady}
+                disabled={loading || paypalLoading || couponLoading || !hasItems || !pricesReady}
               >
                 {actionLabel}
               </button>
+              {effectiveFinalAmount > 0 ? (
+                <button
+                  type="button"
+                  className="btn btn-secondary checkout-pay-btn"
+                  onClick={payWithPayPal}
+                  disabled={loading || paypalLoading || couponLoading || !hasItems || !pricesReady}
+                >
+                  {paypalActionLabel}
+                </button>
+              ) : null}
 
               {!hasItems && (
                 <p className="checkout-note">
@@ -801,7 +953,7 @@ export default function Checkout() {
               <ul className="checkout-trust-list">
                 <li>Instant PDF delivery after successful payment.</li>
                 <li>Order stays available in My Purchases.</li>
-                <li>Secured by Razorpay.</li>
+                <li>Secured by Razorpay and PayPal.</li>
               </ul>
 
               <div className="checkout-support-card">

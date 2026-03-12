@@ -3,6 +3,22 @@ import { computeCheckoutPricing } from "../../../lib/checkoutPricing";
 import { normalizeCouponCode } from "../../../lib/coupons/common";
 import { validateCouponForCheckout } from "../../../lib/coupons/server";
 
+function compactItemsForNote(items = []) {
+  return (Array.isArray(items) ? items : [])
+    .map((item) => `${String(item?.productId || "").trim()}:${Number(item?.quantity || 0)}`)
+    .filter((entry) => {
+      const [productId, quantity] = entry.split(":");
+      return Boolean(productId) && Number.isFinite(Number(quantity)) && Number(quantity) > 0;
+    })
+    .slice(0, 12)
+    .join("|")
+    .slice(0, 240);
+}
+
+function safeNoteValue(value, max = 240) {
+  return String(value || "").trim().slice(0, max);
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
@@ -84,8 +100,12 @@ export default async function handler(req, res) {
       notes: {
         countryCode: pricing.countryCode,
         pricingTier: pricing.countryCode === "IN" ? "india" : "international",
-        couponCode: couponSummary?.code || "",
-        couponId: couponSummary?.id || "",
+        couponCode: safeNoteValue(couponSummary?.code || ""),
+        couponId: safeNoteValue(couponSummary?.id || ""),
+        buyerEmail: safeNoteValue(buyerEmail, 120),
+        buyerUserId: safeNoteValue(buyerUserId || "", 120),
+        items: compactItemsForNote(pricing.validItems),
+        displayAmount: safeNoteValue(finalAmount, 24),
       },
     });
 
