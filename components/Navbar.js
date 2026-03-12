@@ -1,10 +1,12 @@
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { signOut } from "firebase/auth";
 import { auth } from "../firebase/config";
 import { useRouter } from "next/router";
-import { clearCartStorage, readCartStorage } from "../lib/cartStorage";
+import productsCatalog from "../data/products";
+import { clearCartStorage, readCartStorage, writeCartStorage } from "../lib/cartStorage";
+import { calculatePrice } from "../lib/pricing";
 import { PRICING_CONFIG } from "../lib/pricing/config";
 import {
   getCurrencySymbol,
@@ -27,6 +29,12 @@ const MOBILE_MENU_LINKS = [
   { label: "Exams", href: "/worksheets?view=library&type=exams" }
 ];
 
+const BASE_PRICE_INR_BY_ID = new Map(
+  (Array.isArray(productsCatalog) ? productsCatalog : [])
+    .map((item) => [String(item?.id || "").trim(), Number(item?.price || 0)])
+    .filter(([id, price]) => id && Number.isFinite(price) && price > 0)
+);
+
 function BrandLogo() {
   return (
     <>
@@ -44,6 +52,8 @@ export default function Navbar() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [mobileProfileOpen, setMobileProfileOpen] = useState(false);
   const [currency, setCurrency] = useState(() => readCurrencyPreference() || "INR");
+  const searchDebounceRef = useRef(null);
+  const currencySyncPromiseRef = useRef(Promise.resolve());
 
   const handleLogout = async () => {
     if (typeof window !== "undefined") {
@@ -127,7 +137,113 @@ export default function Navbar() {
     return label.charAt(0).toUpperCase();
   }, [userLabel]);
 
-  const handleCartClick = () => {
+  const waitForCurrencySync = async () => {
+    try {
+      await Promise.race([
+        currencySyncPromiseRef.current,
+        new Promise((resolve) => {
+          if (typeof window === "undefined") return resolve();
+          window.setTimeout(resolve, 700);
+        }),
+      ]);
+    } catch {
+      // If sync fails, still continue to cart.
+    }
+  };
+
+  const syncCartPricingForCurrency = async (nextCurrency) => {
+    if (typeof window === "undefined") return;
+    const currentCart = readCartStorage();
+    if (!Array.isArray(currentCart) || currentCart.length === 0) return;
+
+    const localCurrency = String(nextCurrency || "").trim().toUpperCase() || "INR";
+    const localCountry = localCurrency === "INR" ? "IN" : "US";
+    const localRepriced = currentCart.map((item) => {
+      const id = String(item?.id || "").trim();
+      const basePriceINR = Number(item?.basePriceINR || BASE_PRICE_INR_BY_ID.get(id) || 0);
+      if (!id || !Number.isFinite(basePriceINR) || basePriceINR <= 0) {
+        return {
+          ...item,
+          currency: localCurrency,
+          displayCurrency: localCurrency,
+        };
+      }
+      const pricing = calculatePrice({
+        basePriceINR,
+        countryCode: localCountry,
+        currencyOverride: localCurrency,
+      });
+
+      return {
+        ...item,
+        price: pricing.amount,
+        currency: pricing.currency,
+        displayPrice: pricing.amount,
+        displayCurrency: pricing.currency,
+        displaySymbol: pricing.symbol,
+        basePriceINR: pricing.basePriceINR,
+        tieredPriceINR: pricing.tieredPriceINR,
+      };
+    });
+    writeCartStorage(localRepriced);
+    window.dispatchEvent(new CustomEvent("ds-cart-updated"));
+
+    const ids = Array.from(
+      new Set(
+        localRepriced
+          .map((item) => String(item?.id || "").trim())
+          .filter(Boolean)
+      )
+    );
+    if (ids.length === 0) return;
+
+    const chunks = [];
+    for (let index = 0; index < ids.length; index += 10) {
+      chunks.push(ids.slice(index, index + 10));
+    }
+
+    void (async () => {
+      const responses = await Promise.all(
+        chunks.map(async (chunkIds) => {
+          const response = await fetch(
+            `/api/products?ids=${encodeURIComponent(chunkIds.join(","))}&currency=${encodeURIComponent(nextCurrency)}`
+          );
+          if (!response.ok) return [];
+          const payload = await response.json().catch(() => ({}));
+          return Array.isArray(payload?.products) ? payload.products : [];
+        })
+      );
+
+      const runtimeById = new Map(responses.flat().map((item) => [item.id, item]));
+      const mergedCart = readCartStorage().map((item) => {
+        const runtime = runtimeById.get(item.id);
+        if (!runtime) return item;
+        const nextPrice = Number(runtime?.displayPrice ?? runtime?.price ?? item?.price ?? 0);
+        const nextDisplayCurrency = String(
+          runtime?.displayCurrency || runtime?.currency || nextCurrency || item?.displayCurrency || item?.currency || "INR"
+        )
+          .trim()
+          .toUpperCase();
+        const nextSymbol = String(runtime?.displaySymbol || item?.displaySymbol || "").trim();
+        const nextSubject = String(runtime?.subject || item?.subject || "").trim();
+
+        return {
+          ...item,
+          price: nextPrice,
+          currency: nextDisplayCurrency,
+          displayPrice: nextPrice,
+          displayCurrency: nextDisplayCurrency,
+          displaySymbol: nextSymbol,
+          subject: nextSubject,
+        };
+      });
+      writeCartStorage(mergedCart);
+      window.dispatchEvent(new CustomEvent("ds-cart-updated"));
+    })().catch(() => {});
+  };
+
+  const handleCartClick = async () => {
+    await waitForCurrencySync();
     const isWorksheetRoute =
       router.pathname === "/worksheets" || router.pathname === "/worksheets/[class]";
 
@@ -144,9 +260,13 @@ export default function Navbar() {
     if (!PRICING_CONFIG.supportedCurrencies.includes(normalized)) return;
     setCurrencyPreference(normalized);
     setCurrency(normalized);
-    if (typeof window !== "undefined") {
-      window.dispatchEvent(new CustomEvent("ds-currency-updated", { detail: { currency: normalized } }));
-    }
+    currencySyncPromiseRef.current = syncCartPricingForCurrency(normalized)
+      .catch(() => {})
+      .finally(() => {
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("ds-currency-updated", { detail: { currency: normalized } }));
+        }
+      });
   };
 
   const formatCurrencyOptionLabel = (code) => {
@@ -180,6 +300,66 @@ export default function Navbar() {
       document.body.style.overflow = "";
     };
   }, [mobileMenuOpen, mobileProfileOpen]);
+
+  const handleDesktopSearchSubmit = (event) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const trimmed = String(formData.get("q") || "").trim();
+    const isWorksheetRoute =
+      router.pathname === "/worksheets" || router.pathname === "/worksheets/[class]";
+    const nextQuery = isWorksheetRoute ? { ...router.query } : { view: "library" };
+
+    if (trimmed) {
+      nextQuery.q = trimmed;
+    } else {
+      delete nextQuery.q;
+    }
+
+    if (!isWorksheetRoute) {
+      router.push({ pathname: "/worksheets", query: nextQuery });
+      return;
+    }
+
+    router.replace(
+      { pathname: "/worksheets", query: nextQuery },
+      undefined,
+      { shallow: true, scroll: false }
+    );
+  };
+
+  const routeSearchQuery = typeof router.query.q === "string" ? router.query.q : "";
+  const isWorksheetRoute =
+    router.pathname === "/worksheets" || router.pathname === "/worksheets/[class]";
+
+  const handleDesktopSearchInput = (event) => {
+    if (!isWorksheetRoute || typeof window === "undefined") return;
+    const nextValue = String(event.currentTarget.value || "");
+
+    if (searchDebounceRef.current) {
+      window.clearTimeout(searchDebounceRef.current);
+    }
+
+    searchDebounceRef.current = window.setTimeout(() => {
+      const nextQuery = { ...router.query };
+      const trimmed = nextValue.trim();
+      if (trimmed) nextQuery.q = trimmed;
+      else delete nextQuery.q;
+
+      router.replace(
+        { pathname: "/worksheets", query: nextQuery },
+        undefined,
+        { shallow: true, scroll: false }
+      );
+    }, 220);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (typeof window !== "undefined" && searchDebounceRef.current) {
+        window.clearTimeout(searchDebounceRef.current);
+      }
+    };
+  }, []);
 
   return (
     <nav className="navbar">
@@ -254,6 +434,24 @@ export default function Navbar() {
             </div>
           )}
         </div>
+        <form className="navbar__mobile-search" onSubmit={handleDesktopSearchSubmit}>
+          <span className="navbar__search-icon" aria-hidden="true">
+            🔎
+          </span>
+          <input
+            type="search"
+            name="q"
+            key={`mobile-search-${router.pathname}-${routeSearchQuery}`}
+            placeholder="Search worksheets"
+            defaultValue={routeSearchQuery}
+            aria-label="Search worksheets"
+            autoComplete="off"
+            onInput={handleDesktopSearchInput}
+          />
+          <button type="submit" className="navbar__search-submit">
+            Search
+          </button>
+        </form>
 
         <div className="navbar__desktop-row">
           <div className="navbar__links">
@@ -269,14 +467,24 @@ export default function Navbar() {
             ))}
           </div>
 
-          <div className="navbar__search-slot">
+          <form className="navbar__search-slot" onSubmit={handleDesktopSearchSubmit}>
+            <span className="navbar__search-icon" aria-hidden="true">
+              🔎
+            </span>
             <input
               type="search"
-              placeholder="Search worksheets (coming soon)"
-              readOnly
-              aria-label="Search coming soon"
+              name="q"
+              key={`desktop-search-${router.pathname}-${routeSearchQuery}`}
+              placeholder="Search worksheets"
+              defaultValue={routeSearchQuery}
+              aria-label="Search worksheets"
+              autoComplete="off"
+              onInput={handleDesktopSearchInput}
             />
-          </div>
+            <button type="submit" className="navbar__search-submit">
+              Search
+            </button>
+          </form>
 
           <div className="navbar__actions">
             <select

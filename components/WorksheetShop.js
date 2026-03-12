@@ -517,6 +517,7 @@ export default function WorksheetShop({
   initialTopic = "all",
   initialSubtopic = "all",
   initialSort = "default",
+  initialSearch = "",
   initialOpenCart = false,
   initialMobileView = "library"
 }) {
@@ -542,6 +543,7 @@ export default function WorksheetShop({
     return "classes";
   });
   const [sortBy, setSortBy] = useState(toSlug(initialSort) || "default");
+  const searchQuery = String(initialSearch || "").trim();
   const [isCartOpen, setIsCartOpen] = useState(initialOpenCart);
   const [desktopOpen, setDesktopOpen] = useState({
     class: true,
@@ -555,6 +557,7 @@ export default function WorksheetShop({
   const [shareStatus, setShareStatus] = useState({ productId: "", message: "" });
   const [cart, setCart] = useState([]);
   const [cartHydrated, setCartHydrated] = useState(false);
+  const [pricesRefreshing, setPricesRefreshing] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -594,7 +597,10 @@ export default function WorksheetShop({
 
   useEffect(() => {
     if (typeof window === "undefined") return undefined;
-    const syncCurrency = () => setCurrencyRefreshKey((value) => value + 1);
+    const syncCurrency = () => {
+      setPricesRefreshing(true);
+      setCurrencyRefreshKey((value) => value + 1);
+    };
     window.addEventListener("ds-currency-updated", syncCurrency);
     return () => {
       window.removeEventListener("ds-currency-updated", syncCurrency);
@@ -613,6 +619,7 @@ export default function WorksheetShop({
           if (!cancelled) {
             setProducts(staticProducts);
             setProductsLoaded(true);
+            setPricesRefreshing(false);
           }
           return;
         }
@@ -621,11 +628,13 @@ export default function WorksheetShop({
         if (!cancelled) {
           setProducts(runtimeProducts);
           setProductsLoaded(true);
+          setPricesRefreshing(false);
         }
       } catch {
         if (!cancelled) {
           setProducts(staticProducts);
           setProductsLoaded(true);
+          setPricesRefreshing(false);
         }
       }
     };
@@ -673,6 +682,8 @@ export default function WorksheetShop({
         const nextCurrency = getPriceCurrency(runtimeProduct);
         const nextSymbol = String(runtimeProduct.displaySymbol || "").trim()
           || String(item.displaySymbol || "").trim();
+        const nextSubject = String(runtimeProduct.subject || "").trim()
+          || String(item.subject || "").trim();
         const currentCurrency = String(item.currency || "INR").toUpperCase();
         const currentPrice = Number(item.price || 0);
 
@@ -680,6 +691,7 @@ export default function WorksheetShop({
           currentCurrency === nextCurrency
           && currentPrice === nextPrice
           && String(item.displaySymbol || "").trim() === nextSymbol
+          && String(item.subject || "").trim() === nextSubject
         ) {
           return item;
         }
@@ -692,6 +704,7 @@ export default function WorksheetShop({
           displayPrice: nextPrice,
           displayCurrency: nextCurrency,
           displaySymbol: nextSymbol,
+          subject: nextSubject,
         };
       });
 
@@ -782,6 +795,7 @@ export default function WorksheetShop({
     if (sanitized.subtopic !== "all") nextQuery.subtopic = sanitized.subtopic;
     if (sanitized.view !== "library") nextQuery.view = sanitized.view;
     if (sanitized.sort !== "default") nextQuery.sort = sanitized.sort;
+    if (String(searchQuery || "").trim()) nextQuery.q = String(searchQuery || "").trim();
 
     router.replace(
       {
@@ -852,6 +866,7 @@ export default function WorksheetShop({
   }, [normalizedTypeById, products, selectedClass, selectedSubject, selectedType, taxonomyById]);
 
   const visibleProducts = useMemo(() => {
+    const normalizedSearch = String(searchQuery || "").trim().toLowerCase();
     const filtered = products.filter((product) => {
       const taxonomy = taxonomyById.get(product.id);
       const normalizedType = normalizedTypeById.get(product.id);
@@ -863,8 +878,20 @@ export default function WorksheetShop({
         !isGrammarTopic ||
         selectedSubtopic === "all" ||
         (Array.isArray(taxonomy?.subtopics) && taxonomy.subtopics.includes(selectedSubtopic));
+      const searchText = [
+        product?.title,
+        product?.class,
+        product?.type,
+        taxonomy?.subject,
+        taxonomy?.topic,
+        Array.isArray(taxonomy?.subtopics) ? taxonomy.subtopics.join(" ") : "",
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      const searchMatch = !normalizedSearch || searchText.includes(normalizedSearch);
 
-      return classMatch && typeMatch && subjectMatch && topicMatch && subtopicMatch;
+      return classMatch && typeMatch && subjectMatch && topicMatch && subtopicMatch && searchMatch;
     });
 
     const sorted = [...filtered];
@@ -881,6 +908,7 @@ export default function WorksheetShop({
     isGrammarTopic,
     normalizedTypeById,
     selectedClass,
+    searchQuery,
     selectedSubtopic,
     selectedSubject,
     selectedTopic,
@@ -1715,27 +1743,37 @@ export default function WorksheetShop({
                 const currency = item.currency || "INR";
                 const discountedUnit = getDiscountedUnitPrice(item.price, currency, cartItemCount);
                 const showUnitDiscount = hasDisplayPriceChange(item.price, discountedUnit, currency);
+                const badgeSubject =
+                  String(item.subject || "").trim()
+                  || String(productById.get(item.id)?.subject || "").trim()
+                  || String(taxonomyById.get(item.id)?.subject || "").trim();
                 return (
                   <div className="worksheet-cart__item" key={item.id}>
                     <div className="worksheet-cart__thumb-wrap">
-                      <span className={getSubjectBadgeClass(item.subject)}>
-                        {getSubjectLabel(item.subject)}
+                      <span className={getSubjectBadgeClass(badgeSubject)}>
+                        {getSubjectLabel(badgeSubject)}
                       </span>
                     </div>
-                    <div>
+                    <div className="worksheet-cart__meta">
                       <p className="worksheet-cart__item-title">{item.title}</p>
-                      <p className="worksheet-cart__item-price">
-                        {showUnitDiscount ? (
-                          <>
-                            <span className="worksheet-cart__item-price-old">
-                              {formatMoney(item.price, currency)}
-                            </span>
-                            <strong>{formatMoney(discountedUnit, currency)}</strong>
-                          </>
-                        ) : (
-                          <strong>{formatMoney(item.price, currency)}</strong>
-                        )}
-                      </p>
+                      {pricesRefreshing ? (
+                        <p className="worksheet-cart__item-price worksheet-cart__item-price--pending">
+                          Updating...
+                        </p>
+                      ) : (
+                        <p className="worksheet-cart__item-price">
+                          {showUnitDiscount ? (
+                            <>
+                              <span className="worksheet-cart__item-price-old">
+                                {formatMoney(item.price, currency)}
+                              </span>
+                              <strong>{formatMoney(discountedUnit, currency)}</strong>
+                            </>
+                          ) : (
+                            <strong>{formatMoney(item.price, currency)}</strong>
+                          )}
+                        </p>
+                      )}
                     </div>
                     <div className="worksheet-cart__qty">
                       <button
@@ -1760,7 +1798,10 @@ export default function WorksheetShop({
             </div>
 
             <div className="worksheet-cart__footer">
-              {cartDiscountRate > 0 && cartDiscountAmount > 0 ? (
+              {pricesRefreshing ? (
+                <p className="worksheet-cart__pending-copy">Updating prices for selected currency...</p>
+              ) : null}
+              {!pricesRefreshing && cartDiscountRate > 0 && cartDiscountAmount > 0 ? (
                 <p className="worksheet-cart__discount-line">
                   <span className="worksheet-cart__discount-copy">
                     <span>Discount</span>
@@ -1770,9 +1811,17 @@ export default function WorksheetShop({
                 </p>
               ) : null}
               <p>
-                Total <strong>{formatMoney(cartTotal, cartCurrency)}</strong>
+                Total <strong>{pricesRefreshing ? "..." : formatMoney(cartTotal, cartCurrency)}</strong>
               </p>
-              <Link href="/checkout" className="btn btn-primary">
+              <Link
+                href="/checkout"
+                className={`btn btn-primary${pricesRefreshing ? " btn-disabled" : ""}`}
+                aria-disabled={pricesRefreshing}
+                onClick={(event) => {
+                  if (!pricesRefreshing) return;
+                  event.preventDefault();
+                }}
+              >
                 Proceed to Checkout
               </Link>
             </div>
