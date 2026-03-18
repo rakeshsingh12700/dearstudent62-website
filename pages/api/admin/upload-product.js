@@ -4,6 +4,7 @@ import { doc, setDoc } from "firebase/firestore";
 import formidable from "formidable";
 import { PDFDocument } from "pdf-lib";
 import { db } from "../../../firebase/config";
+import { getAdminDb } from "../../../lib/firebaseAdmin";
 
 export const config = {
   api: {
@@ -299,6 +300,20 @@ async function putObject(r2Client, bucket, key, body, contentType) {
       CacheControl: "public, max-age=31536000, immutable",
     })
   );
+}
+
+async function saveProductListing(productId, payload) {
+  const adminDb = getAdminDb();
+  if (adminDb) {
+    await adminDb.collection("products").doc(productId).set(payload, { merge: true });
+    return;
+  }
+
+  if (!db) {
+    throw new Error("Firestore is not configured for product uploads");
+  }
+
+  await setDoc(doc(db, "products", productId), payload, { merge: true });
 }
 
 async function generateThumbnailVariant(buffer, { maxWidth = 640 } = {}) {
@@ -703,37 +718,33 @@ export default async function handler(req, res) {
       })
     );
 
-    await setDoc(
-      doc(db, "products", productId),
-      {
-        id: productId,
-        class: classValue,
-        type: typeValue,
-        subject,
-        topic,
-        subtopic,
-        title,
-        category: TYPE_TO_CATEGORY_LABEL[typeValue] || "Worksheet",
-        subcategory: title,
-        price: normalizedPrice,
-        pages,
-        ageLabel,
-        hideAgeLabel,
-        storageKey: pdfKey,
-        imageUrl: `/api/thumbnail?key=${encodeURIComponent(coverThumbKey || coverKey)}`,
-        imageOriginalUrl: `/api/thumbnail?key=${encodeURIComponent(coverKey)}`,
-        previewImageUrl: showPreviewPage && previewPageKey
-          ? `/api/thumbnail?key=${encodeURIComponent(previewThumbKey || previewPageKey)}`
-          : "",
-        previewImageOriginalUrl: showPreviewPage && previewPageKey
-          ? `/api/thumbnail?key=${encodeURIComponent(previewPageKey)}`
-          : "",
-        showPreviewPage: Boolean(showPreviewPage),
-        updatedBy: adminUser.email,
-        updatedAt: new Date().toISOString(),
-      },
-      { merge: true }
-    );
+    await saveProductListing(productId, {
+      id: productId,
+      class: classValue,
+      type: typeValue,
+      subject,
+      topic,
+      subtopic,
+      title,
+      category: TYPE_TO_CATEGORY_LABEL[typeValue] || "Worksheet",
+      subcategory: title,
+      price: normalizedPrice,
+      pages,
+      ageLabel,
+      hideAgeLabel,
+      storageKey: pdfKey,
+      imageUrl: `/api/thumbnail?key=${encodeURIComponent(coverThumbKey || coverKey)}`,
+      imageOriginalUrl: `/api/thumbnail?key=${encodeURIComponent(coverKey)}`,
+      previewImageUrl: showPreviewPage && previewPageKey
+        ? `/api/thumbnail?key=${encodeURIComponent(previewThumbKey || previewPageKey)}`
+        : "",
+      previewImageOriginalUrl: showPreviewPage && previewPageKey
+        ? `/api/thumbnail?key=${encodeURIComponent(previewPageKey)}`
+        : "",
+      showPreviewPage: Boolean(showPreviewPage),
+      updatedBy: adminUser.email,
+      updatedAt: new Date().toISOString(),
+    });
 
       return res.status(200).json({
         ok: true,
