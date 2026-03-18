@@ -106,8 +106,8 @@ async function hasUserPurchasedProduct({ email, uid, productId }) {
   return !byEmailSnapshot.empty;
 }
 
-function hasValidCheckoutToken(token, key) {
-  const tokenData = getCheckoutToken(token);
+async function hasValidCheckoutToken(token, key) {
+  const tokenData = await getCheckoutToken(token);
   if (!tokenData) return false;
 
   const normalizedKey = String(key || "").trim();
@@ -274,7 +274,7 @@ export default async function handler(req, res) {
           productId: productEntry.id,
         })
       : false;
-    const purchasedWithCheckoutToken = hasValidCheckoutToken(token, key);
+    const purchasedWithCheckoutToken = await hasValidCheckoutToken(token, key);
 
     if (!purchasedWithLogin && !purchasedWithCheckoutToken) {
       return res.status(403).json({ error: "Not authorized" });
