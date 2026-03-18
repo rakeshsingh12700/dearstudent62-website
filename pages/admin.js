@@ -108,10 +108,15 @@ async function readApiError(response) {
 
   const serverMessage = String(data?.error || "").trim();
   const textMessage = String(rawErrorText || "").trim();
+  const htmlTitleMatch = textMessage.match(/<title>([^<]+)<\/title>/i);
+  const htmlHeadingMatch = textMessage.match(/<h1[^>]*>([^<]+)<\/h1>/i);
+  const sanitizedTextMessage = /<html|<!doctype/i.test(textMessage)
+    ? String(htmlHeadingMatch?.[1] || htmlTitleMatch?.[1] || "").trim()
+    : textMessage;
   const looksLikePayloadTooLarge =
     response.status === 413 ||
     /payload too large|request entity too large|FUNCTION_PAYLOAD_TOO_LARGE/i.test(
-      textMessage
+      sanitizedTextMessage || textMessage
     );
   const fallback = looksLikePayloadTooLarge
     ? "Upload failed: file size is too large for production API limits."
@@ -119,7 +124,7 @@ async function readApiError(response) {
 
   return {
     ok: false,
-    error: serverMessage || textMessage || fallback,
+    error: serverMessage || sanitizedTextMessage || fallback,
   };
 }
 

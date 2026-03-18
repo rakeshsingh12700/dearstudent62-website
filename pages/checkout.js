@@ -124,6 +124,7 @@ const getCartPreviewItems = () => {
         pages: Number(product?.pages || 0) || null,
         quantity,
         price,
+        currency: getPriceCurrency(product || { displayCurrency: item?.currency || readCurrencyPreference() || "INR" }),
         lineTotal: quantity * price,
         href: `/product/${productId}`,
       };
@@ -227,8 +228,13 @@ export default function Checkout() {
     () =>
       cartPreviewItems.map((item) => {
         const runtimeProduct = runtimeProductById.get(item.productId);
-        const unitPrice = Number(runtimeProduct?.displayPrice ?? runtimeProduct?.price ?? 0);
-        const currency = getPriceCurrency(runtimeProduct || { displayCurrency: readCurrencyPreference() || "INR" });
+        const fallbackPrice = Number(item?.price || 0);
+        const unitPrice = Number(
+          runtimeProduct?.displayPrice ?? runtimeProduct?.price ?? fallbackPrice
+        );
+        const currency = getPriceCurrency(
+          runtimeProduct || { displayCurrency: item?.currency || readCurrencyPreference() || "INR" }
+        );
         return {
           ...item,
           title: runtimeProduct?.title || item.title,
@@ -245,7 +251,7 @@ export default function Checkout() {
               : item.pages,
           price: unitPrice,
           currency,
-          lineTotal: runtimeProduct ? unitPrice * Number(item.quantity || 0) : 0,
+          lineTotal: unitPrice * Number(item.quantity || 0),
         };
       }),
     [cartPreviewItems, runtimeProductById]
@@ -253,7 +259,10 @@ export default function Checkout() {
   const pricesReady = useMemo(
     () =>
       displayCartPreviewItems.length === 0 ||
-      displayCartPreviewItems.every((item) => runtimeProductById.has(item.productId)),
+      displayCartPreviewItems.every((item) => {
+        if (runtimeProductById.has(item.productId)) return true;
+        return Number(item.price || 0) > 0;
+      }),
     [displayCartPreviewItems, runtimeProductById]
   );
 
