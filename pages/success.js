@@ -11,8 +11,11 @@ export default function Success() {
   const router = useRouter();
   const { user } = useAuth();
   const [runtimeProducts, setRuntimeProducts] = useState([]);
+  const [fallbackProducts, setFallbackProducts] = useState([]);
   const checkoutToken =
     typeof router.query.token === "string" ? router.query.token : "";
+  const paymentId =
+    typeof router.query.paymentId === "string" ? router.query.paymentId : "";
   const productId =
     typeof router.query.productId === "string" ? router.query.productId : "";
   const productIdsParam =
@@ -24,11 +27,14 @@ export default function Success() {
       .map((id) => id.trim())
       .filter(Boolean);
     const ids = idsFromParam.length > 0 ? idsFromParam : [productId].filter(Boolean);
+    if (ids.length === 0 && fallbackProducts.length > 0) {
+      return fallbackProducts;
+    }
     const runtimeById = new Map(runtimeProducts.map((item) => [item.id, item]));
     return ids
       .map((id) => runtimeById.get(id) || products.find((item) => item.id === id))
       .filter(Boolean);
-  }, [productId, productIdsParam, runtimeProducts]);
+  }, [fallbackProducts, productId, productIdsParam, runtimeProducts]);
 
   useEffect(() => {
     const ids = String(productIdsParam || productId || "")
@@ -55,6 +61,32 @@ export default function Success() {
       cancelled = true;
     };
   }, [productId, productIdsParam]);
+
+  useEffect(() => {
+    if (!paymentId || !queryEmail) return;
+    const hasProductIds = String(productIdsParam || productId || "").trim().length > 0;
+    if (hasProductIds) return;
+
+    let cancelled = false;
+    const loadFallbackProducts = async () => {
+      try {
+        const response = await fetch(
+          `/api/order-summary?paymentId=${encodeURIComponent(paymentId)}&email=${encodeURIComponent(queryEmail)}`
+        );
+        if (!response.ok) return;
+        const payload = await response.json().catch(() => ({}));
+        const list = Array.isArray(payload?.items) ? payload.items : [];
+        if (!cancelled) setFallbackProducts(list);
+      } catch {
+        // Keep empty fallback.
+      }
+    };
+
+    loadFallbackProducts();
+    return () => {
+      cancelled = true;
+    };
+  }, [paymentId, productId, productIdsParam, queryEmail]);
   const checkoutEmail = queryEmail;
 
   const handleDownload = (product) => {
