@@ -5,6 +5,7 @@ import { useRouter } from "next/router";
 import Navbar from "../components/Navbar";
 import { useAuth } from "../context/AuthContext";
 import products from "../data/products";
+import { calculatePrice } from "../lib/pricing";
 import { formatMoney, getCurrencySymbol, getPriceCurrency, readCurrencyPreference } from "../lib/pricing/client";
 import { CART_STORAGE_KEY, readCartStorage } from "../lib/cartStorage";
 import { getDiscountedUnitPrice } from "../lib/pricing/launchOffer";
@@ -13,6 +14,7 @@ import { getSubjectBadgeClass, getSubjectLabel } from "../lib/subjectBadge";
 const RAZORPAY_SDK_SRC = "https://checkout.razorpay.com/v1/checkout.js";
 const PAYPAL_PENDING_SESSION_KEY = "ds-paypal-pending-order-v1";
 const LIVE_HOSTS = new Set(["dearstudent.in", "www.dearstudent.in"]);
+const PAYPAL_SUPPORTED_CURRENCIES = new Set(["USD", "EUR", "GBP", "AUD", "CAD", "SGD"]);
 const PRODUCTS_BY_ID = products.reduce((acc, product) => {
   acc[product.id] = product;
   return acc;
@@ -106,6 +108,8 @@ const getCartItems = () => {
 
 const getCartPreviewItems = () => {
   const cart = readCartFromStorage();
+  const preferredCurrency = readCurrencyPreference() || "INR";
+  const fallbackCountry = preferredCurrency === "INR" ? "IN" : "US";
   return cart
     .map((item) => {
       const productId = String(item?.id || "").trim();
@@ -113,7 +117,20 @@ const getCartPreviewItems = () => {
       if (!productId || quantity <= 0) return null;
 
       const product = PRODUCTS_BY_ID[productId];
-      const price = Number(item?.price || product?.price || 0);
+      const basePriceINR = Number(item?.basePriceINR || product?.basePriceINR || product?.price || 0);
+      const storedPrice = Number(item?.price || 0);
+      const fallbackPricing =
+        Number.isFinite(basePriceINR) && basePriceINR > 0
+          ? calculatePrice({
+              basePriceINR,
+              countryCode: fallbackCountry,
+              currencyOverride: preferredCurrency,
+            })
+          : null;
+      const price = Number(fallbackPricing?.amount || storedPrice || product?.price || 0);
+      const currency = getPriceCurrency(
+        fallbackPricing || product || { displayCurrency: item?.currency || preferredCurrency || "INR" }
+      );
 
       return {
         productId,
@@ -124,7 +141,8 @@ const getCartPreviewItems = () => {
         pages: Number(product?.pages || 0) || null,
         quantity,
         price,
-        currency: getPriceCurrency(product || { displayCurrency: item?.currency || readCurrencyPreference() || "INR" }),
+        currency,
+        basePriceINR,
         lineTotal: quantity * price,
         href: `/product/${productId}`,
       };
@@ -136,6 +154,7 @@ export default function Checkout() {
   const router = useRouter();
   const { user } = useAuth();
   const loggedInEmail = user?.email || "";
+  const [preferredCurrency, setPreferredCurrency] = useState("INR");
   const [loading, setLoading] = useState(false);
   const [paypalLoading, setPaypalLoading] = useState(false);
   const [paypalReturnHandled, setPaypalReturnHandled] = useState(false);
@@ -164,6 +183,7 @@ export default function Checkout() {
     if (typeof window === "undefined") return undefined;
 
     const syncSummary = () => {
+      setPreferredCurrency(readCurrencyPreference() || "INR");
       setCartSummary(getCartSummary());
       setCartPreviewItems(getCartPreviewItems());
     };
@@ -171,10 +191,12 @@ export default function Checkout() {
     syncSummary();
     window.addEventListener("storage", syncSummary);
     window.addEventListener("ds-cart-updated", syncSummary);
+    window.addEventListener("ds-currency-updated", syncSummary);
 
     return () => {
       window.removeEventListener("storage", syncSummary);
       window.removeEventListener("ds-cart-updated", syncSummary);
+      window.removeEventListener("ds-currency-updated", syncSummary);
     };
   }, []);
 
@@ -233,7 +255,7 @@ export default function Checkout() {
           runtimeProduct?.displayPrice ?? runtimeProduct?.price ?? fallbackPrice
         );
         const currency = getPriceCurrency(
-          runtimeProduct || { displayCurrency: item?.currency || readCurrencyPreference() || "INR" }
+          runtimeProduct || { displayCurrency: item?.currency || preferredCurrency || "INR" }
         );
         return {
           ...item,
@@ -254,7 +276,7 @@ export default function Checkout() {
           lineTotal: unitPrice * Number(item.quantity || 0),
         };
       }),
-    [cartPreviewItems, runtimeProductById]
+    [cartPreviewItems, preferredCurrency, runtimeProductById]
   );
   const pricesReady = useMemo(
     () =>
@@ -267,8 +289,8 @@ export default function Checkout() {
   );
 
   const displayCurrency = useMemo(
-    () => getPriceCurrency(displayCartPreviewItems[0] || { displayCurrency: readCurrencyPreference() || "INR" }),
-    [displayCartPreviewItems]
+    () => getPriceCurrency(displayCartPreviewItems[0] || { displayCurrency: preferredCurrency || "INR" }),
+    [displayCartPreviewItems, preferredCurrency]
   );
   const launchItemCount = useMemo(
     () => displayCartPreviewItems.reduce((sum, item) => sum + Number(item.quantity || 0), 0),
@@ -310,6 +332,8 @@ export default function Checkout() {
     Number.isFinite(couponFinalAmount) && couponFinalAmount >= 0
       ? couponFinalAmount
       : payableAmount;
+  const showRazorpayOption = displayCurrency === "INR" || !PAYPAL_SUPPORTED_CURRENCIES.has(displayCurrency);
+  const showPayPalOption = effectiveFinalAmount > 0 && PAYPAL_SUPPORTED_CURRENCIES.has(displayCurrency);
   const actionLabel = loading
     ? "Processing..."
     : pricesReady
@@ -624,7 +648,7 @@ export default function Checkout() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           items: latestItems,
-          currencyOverride: "USD",
+          currencyOverride: displayCurrency,
           couponCode: appliedCoupon?.code || "",
           email: currentBuyerEmail,
           userId: user?.uid || null,
@@ -938,29 +962,37 @@ export default function Checkout() {
 
               <div className="checkout-payment-methods">
                 <div className="checkout-payment-methods__header">
-                  <p>Choose payment method</p>
-                  <span>Razorpay for India, PayPal for international buyers</span>
+                  <p>{showRazorpayOption && showPayPalOption ? "Choose payment method" : "Payment method"}</p>
+                  <span>
+                    {showRazorpayOption && showPayPalOption
+                      ? "Razorpay for India, PayPal for international buyers"
+                      : showRazorpayOption
+                        ? "Razorpay is available for this currency"
+                        : "PayPal is available for this currency"}
+                  </span>
                 </div>
 
-                <div className="checkout-payment-option checkout-payment-option--india">
-                  <div className="checkout-payment-option__label-row">
-                    <span className="checkout-payment-option__badge">India</span>
-                    <strong>Pay with Razorpay</strong>
+                {showRazorpayOption ? (
+                  <div className="checkout-payment-option checkout-payment-option--india">
+                    <div className="checkout-payment-option__label-row">
+                      <span className="checkout-payment-option__badge">India</span>
+                      <strong>Pay with Razorpay</strong>
+                    </div>
+                    <p className="checkout-payment-option__copy">
+                      Best for UPI, debit cards, credit cards, net banking, and wallets.
+                    </p>
+                    <button
+                      type="button"
+                      className="btn btn-primary checkout-pay-btn"
+                      onClick={payNow}
+                      disabled={loading || paypalLoading || couponLoading || !hasItems || !pricesReady}
+                    >
+                      {actionLabel}
+                    </button>
                   </div>
-                  <p className="checkout-payment-option__copy">
-                    Best for UPI, debit cards, credit cards, net banking, and wallets.
-                  </p>
-                  <button
-                    type="button"
-                    className="btn btn-primary checkout-pay-btn"
-                    onClick={payNow}
-                    disabled={loading || paypalLoading || couponLoading || !hasItems || !pricesReady}
-                  >
-                    {actionLabel}
-                  </button>
-                </div>
+                ) : null}
               </div>
-              {effectiveFinalAmount > 0 ? (
+              {showPayPalOption ? (
                 <div className="checkout-payment-option checkout-payment-option--paypal">
                   <div className="checkout-payment-option__label-row">
                     <span className="checkout-payment-option__badge checkout-payment-option__badge--paypal">
