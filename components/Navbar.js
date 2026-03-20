@@ -52,8 +52,9 @@ export default function Navbar() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [mobileProfileOpen, setMobileProfileOpen] = useState(false);
   const [currency, setCurrency] = useState(() => readCurrencyPreference() || "INR");
-  const searchDebounceRef = useRef(null);
   const currencySyncPromiseRef = useRef(Promise.resolve());
+  const routeSearchQuery = typeof router.query.q === "string" ? router.query.q : "";
+  const [searchInput, setSearchInput] = useState(routeSearchQuery);
 
   const handleLogout = async () => {
     if (typeof window !== "undefined") {
@@ -303,8 +304,7 @@ export default function Navbar() {
 
   const handleDesktopSearchSubmit = (event) => {
     event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    const trimmed = String(formData.get("q") || "").trim();
+    const trimmed = String(searchInput || "").trim();
     const isWorksheetRoute =
       router.pathname === "/worksheets" || router.pathname === "/worksheets/[class]";
     const nextQuery = isWorksheetRoute ? { ...router.query } : { view: "library" };
@@ -327,39 +327,9 @@ export default function Navbar() {
     );
   };
 
-  const routeSearchQuery = typeof router.query.q === "string" ? router.query.q : "";
-  const isWorksheetRoute =
-    router.pathname === "/worksheets" || router.pathname === "/worksheets/[class]";
-
-  const handleDesktopSearchInput = (event) => {
-    if (!isWorksheetRoute || typeof window === "undefined") return;
-    const nextValue = String(event.currentTarget.value || "");
-
-    if (searchDebounceRef.current) {
-      window.clearTimeout(searchDebounceRef.current);
-    }
-
-    searchDebounceRef.current = window.setTimeout(() => {
-      const nextQuery = { ...router.query };
-      const trimmed = nextValue.trim();
-      if (trimmed) nextQuery.q = trimmed;
-      else delete nextQuery.q;
-
-      router.replace(
-        { pathname: "/worksheets", query: nextQuery },
-        undefined,
-        { shallow: true, scroll: false }
-      );
-    }, 220);
-  };
-
   useEffect(() => {
-    return () => {
-      if (typeof window !== "undefined" && searchDebounceRef.current) {
-        window.clearTimeout(searchDebounceRef.current);
-      }
-    };
-  }, []);
+    setSearchInput(routeSearchQuery);
+  }, [routeSearchQuery]);
 
   return (
     <nav className="navbar">
@@ -441,12 +411,11 @@ export default function Navbar() {
           <input
             type="search"
             name="q"
-            key={`mobile-search-${router.pathname}-${routeSearchQuery}`}
             placeholder="Search worksheets"
-            defaultValue={routeSearchQuery}
+            value={searchInput}
             aria-label="Search worksheets"
             autoComplete="off"
-            onInput={handleDesktopSearchInput}
+            onChange={(event) => setSearchInput(event.target.value)}
           />
           <button type="submit" className="navbar__search-submit">
             Search
@@ -474,12 +443,11 @@ export default function Navbar() {
             <input
               type="search"
               name="q"
-              key={`desktop-search-${router.pathname}-${routeSearchQuery}`}
               placeholder="Search worksheets"
-              defaultValue={routeSearchQuery}
+              value={searchInput}
               aria-label="Search worksheets"
               autoComplete="off"
-              onInput={handleDesktopSearchInput}
+              onChange={(event) => setSearchInput(event.target.value)}
             />
             <button type="submit" className="navbar__search-submit">
               Search

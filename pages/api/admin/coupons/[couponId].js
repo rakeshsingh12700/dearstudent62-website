@@ -1,6 +1,7 @@
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "../../../../firebase/config";
 import { requireAdminUser } from "../../../../lib/adminAuth";
+import { getAdminDb } from "../../../../lib/firebaseAdmin";
 import { getCouponById, listCouponUsages } from "../../../../lib/coupons/server";
 
 export default async function handler(req, res) {
@@ -45,9 +46,10 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Invalid action" });
     }
     const now = new Date().toISOString();
+    const adminDb = getAdminDb();
 
     if (action === "enable_new_campaign") {
-      await updateDoc(doc(db, "coupons", couponId), {
+      const nextData = {
         isActive: true,
         usedCount: 0,
         updatedAt: now,
@@ -56,15 +58,25 @@ export default async function handler(req, res) {
         usageResetAt: now,
         usageResetBy: auth.adminUser.email,
         usageResetReason: "enable_new_campaign",
-      });
+      };
+      if (adminDb) {
+        await adminDb.collection("coupons").doc(couponId).update(nextData);
+      } else {
+        await updateDoc(doc(db, "coupons", couponId), nextData);
+      }
     } else {
       const isActive = action === "enable";
-      await updateDoc(doc(db, "coupons", couponId), {
+      const nextData = {
         isActive,
         updatedAt: now,
         disabledAt: isActive ? null : now,
         disabledBy: isActive ? null : auth.adminUser.email,
-      });
+      };
+      if (adminDb) {
+        await adminDb.collection("coupons").doc(couponId).update(nextData);
+      } else {
+        await updateDoc(doc(db, "coupons", couponId), nextData);
+      }
     }
 
     return res.status(200).json({ ok: true });

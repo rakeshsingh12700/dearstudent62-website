@@ -1,6 +1,7 @@
 import { collection, getDocs, limit, query, updateDoc, doc } from "firebase/firestore";
 import { db } from "../../../firebase/config";
 import { requireAdminUser } from "../../../lib/adminAuth";
+import { getAdminDb } from "../../../lib/firebaseAdmin";
 import {
   createCouponFromAdminPayload,
   normalizeCouponDocument,
@@ -68,8 +69,10 @@ export default async function handler(req, res) {
       const status = normalizeStatusFilter(req.query.status);
       const scope = normalizeScopeFilter(req.query.scope);
       const search = String(req.query.search || "");
-
-      const snapshot = await getDocs(query(collection(db, "coupons"), limit(fetchLimit)));
+      const adminDb = getAdminDb();
+      const snapshot = adminDb
+        ? await adminDb.collection("coupons").limit(fetchLimit).get()
+        : await getDocs(query(collection(db, "coupons"), limit(fetchLimit)));
       const rows = snapshot.docs
         .map((item) => normalizeCouponDocument(item.data(), item.id))
         .sort((a, b) => toDateMs(b.createdAt) - toDateMs(a.createdAt))
@@ -135,8 +138,9 @@ export default async function handler(req, res) {
       }
 
       const now = new Date().toISOString();
+      const adminDb = getAdminDb();
       if (action === "enable_new_campaign") {
-        await updateDoc(doc(db, "coupons", couponId), {
+        const nextData = {
           isActive: true,
           usedCount: 0,
           updatedAt: now,
@@ -145,15 +149,25 @@ export default async function handler(req, res) {
           usageResetAt: now,
           usageResetBy: auth.adminUser.email,
           usageResetReason: "enable_new_campaign",
-        });
+        };
+        if (adminDb) {
+          await adminDb.collection("coupons").doc(couponId).update(nextData);
+        } else {
+          await updateDoc(doc(db, "coupons", couponId), nextData);
+        }
       } else {
         const isActive = action === "enable";
-        await updateDoc(doc(db, "coupons", couponId), {
+        const nextData = {
           isActive,
           updatedAt: now,
           disabledAt: isActive ? null : now,
           disabledBy: isActive ? null : auth.adminUser.email,
-        });
+        };
+        if (adminDb) {
+          await adminDb.collection("coupons").doc(couponId).update(nextData);
+        } else {
+          await updateDoc(doc(db, "coupons", couponId), nextData);
+        }
       }
 
       return res.status(200).json({ ok: true });
