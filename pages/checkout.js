@@ -728,17 +728,18 @@ export default function Checkout() {
       <Navbar />
       <main className="checkout-page">
         <section className="container checkout-wrap">
-          <header className="checkout-header">
-            <p className="checkout-eyebrow">Secure checkout</p>
-            <h1>Almost there</h1>
-            <p>
-              Confirm your details and complete payment to unlock your worksheet
-              downloads instantly.
-            </p>
-          </header>
-
           <div className="checkout-grid">
-            <section className="checkout-card checkout-card--items">
+            <section className="checkout-main-column">
+              <header className="checkout-header">
+                <p className="checkout-eyebrow">Secure checkout</p>
+                <h1>Almost there</h1>
+                <p>
+                  Confirm your details and complete payment to unlock your worksheet
+                  downloads instantly.
+                </p>
+              </header>
+
+              <section className="checkout-card checkout-card--items">
               <div className="checkout-card__title-row">
                 <h2>Your items</h2>
                 <span>
@@ -811,6 +812,7 @@ export default function Checkout() {
                   </p>
                 </div>
               )}
+              </section>
             </section>
 
             <aside className="checkout-card checkout-card--summary">
@@ -934,23 +936,50 @@ export default function Checkout() {
                 </div>
               ) : null}
 
-              <button
-                type="button"
-                className="btn btn-primary checkout-pay-btn"
-                onClick={payNow}
-                disabled={loading || paypalLoading || couponLoading || !hasItems || !pricesReady}
-              >
-                {actionLabel}
-              </button>
+              <div className="checkout-payment-methods">
+                <div className="checkout-payment-methods__header">
+                  <p>Choose payment method</p>
+                  <span>Razorpay for India, PayPal for international buyers</span>
+                </div>
+
+                <div className="checkout-payment-option checkout-payment-option--india">
+                  <div className="checkout-payment-option__label-row">
+                    <span className="checkout-payment-option__badge">India</span>
+                    <strong>Pay with Razorpay</strong>
+                  </div>
+                  <p className="checkout-payment-option__copy">
+                    Best for UPI, debit cards, credit cards, net banking, and wallets.
+                  </p>
+                  <button
+                    type="button"
+                    className="btn btn-primary checkout-pay-btn"
+                    onClick={payNow}
+                    disabled={loading || paypalLoading || couponLoading || !hasItems || !pricesReady}
+                  >
+                    {actionLabel}
+                  </button>
+                </div>
+              </div>
               {effectiveFinalAmount > 0 ? (
-                <button
-                  type="button"
-                  className="btn btn-secondary checkout-pay-btn"
-                  onClick={payWithPayPal}
-                  disabled={loading || paypalLoading || couponLoading || !hasItems || !pricesReady}
-                >
-                  {paypalActionLabel}
-                </button>
+                <div className="checkout-payment-option checkout-payment-option--paypal">
+                  <div className="checkout-payment-option__label-row">
+                    <span className="checkout-payment-option__badge checkout-payment-option__badge--paypal">
+                      International
+                    </span>
+                    <strong>Pay with PayPal</strong>
+                  </div>
+                  <p className="checkout-payment-option__copy">
+                    Works best for buyers outside India using a PayPal account, credit card, or debit card.
+                  </p>
+                  <button
+                    type="button"
+                    className="btn btn-secondary checkout-pay-btn"
+                    onClick={payWithPayPal}
+                    disabled={loading || paypalLoading || couponLoading || !hasItems || !pricesReady}
+                  >
+                    {paypalActionLabel}
+                  </button>
+                </div>
               ) : null}
 
               {!hasItems && (
