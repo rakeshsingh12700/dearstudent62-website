@@ -130,6 +130,17 @@ function isFirestorePermissionError(error) {
   return code.includes("permission-denied");
 }
 
+async function getDocOrNull(docRef, { ignorePermissionError = false } = {}) {
+  try {
+    return await getDoc(docRef);
+  } catch (error) {
+    if (ignorePermissionError && isFirestorePermissionError(error)) {
+      return null;
+    }
+    throw error;
+  }
+}
+
 function getStaticProducts(pricingContext = {}) {
   if (!Array.isArray(staticProducts)) return [];
   return staticProducts
@@ -223,17 +234,21 @@ export default async function handler(req, res) {
         snapshots = await Promise.all(
           ids.map(async (productId) => {
             const [activeSnap, archivedSnap, ratingSnap] = await Promise.all([
-              getDoc(doc(db, "products", productId)),
-              getDoc(doc(db, "archived_products", productId)),
-              getDoc(doc(db, "product_rating_stats", productId)),
+              getDocOrNull(doc(db, "products", productId)),
+              getDocOrNull(doc(db, "archived_products", productId), {
+                ignorePermissionError: true,
+              }),
+              getDocOrNull(doc(db, "product_rating_stats", productId), {
+                ignorePermissionError: true,
+              }),
             ]);
 
             let raw = null;
             let effectiveId = productId;
-            if (activeSnap.exists()) {
+            if (activeSnap?.exists()) {
               raw = activeSnap.data();
               effectiveId = activeSnap.id;
-            } else if (archivedSnap.exists()) {
+            } else if (archivedSnap?.exists()) {
               raw = archivedSnap.data();
               effectiveId = archivedSnap.id;
             } else {
@@ -250,7 +265,7 @@ export default async function handler(req, res) {
             return normalizeProduct(
               raw,
               effectiveId,
-              ratingSnap.exists() ? ratingSnap.data() : null,
+              ratingSnap?.exists() ? ratingSnap.data() : null,
               pricingContext
             );
           })

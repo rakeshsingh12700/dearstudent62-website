@@ -7,7 +7,7 @@ import { useAuth } from "../context/AuthContext";
 import products from "../data/products";
 import { calculatePrice } from "../lib/pricing";
 import { formatMoney, getCurrencySymbol, getPriceCurrency, readCurrencyPreference } from "../lib/pricing/client";
-import { CART_STORAGE_KEY, readCartStorage } from "../lib/cartStorage";
+import { CART_STORAGE_KEY, readCartStorage, writeCartStorage } from "../lib/cartStorage";
 import { getDiscountedUnitPrice } from "../lib/pricing/launchOffer";
 import { getSubjectBadgeClass, getSubjectLabel } from "../lib/subjectBadge";
 
@@ -169,6 +169,12 @@ export default function Checkout() {
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [availableCoupons, setAvailableCoupons] = useState([]);
 
+  const syncCheckoutCartState = () => {
+    setPreferredCurrency(readCurrencyPreference() || "INR");
+    setCartSummary(getCartSummary());
+    setCartPreviewItems(getCartPreviewItems());
+  };
+
   const hasItems = cartSummary.count > 0;
   const cartItemsSignature = useMemo(
     () =>
@@ -182,21 +188,15 @@ export default function Checkout() {
   useEffect(() => {
     if (typeof window === "undefined") return undefined;
 
-    const syncSummary = () => {
-      setPreferredCurrency(readCurrencyPreference() || "INR");
-      setCartSummary(getCartSummary());
-      setCartPreviewItems(getCartPreviewItems());
-    };
-
-    syncSummary();
-    window.addEventListener("storage", syncSummary);
-    window.addEventListener("ds-cart-updated", syncSummary);
-    window.addEventListener("ds-currency-updated", syncSummary);
+    syncCheckoutCartState();
+    window.addEventListener("storage", syncCheckoutCartState);
+    window.addEventListener("ds-cart-updated", syncCheckoutCartState);
+    window.addEventListener("ds-currency-updated", syncCheckoutCartState);
 
     return () => {
-      window.removeEventListener("storage", syncSummary);
-      window.removeEventListener("ds-cart-updated", syncSummary);
-      window.removeEventListener("ds-currency-updated", syncSummary);
+      window.removeEventListener("storage", syncCheckoutCartState);
+      window.removeEventListener("ds-cart-updated", syncCheckoutCartState);
+      window.removeEventListener("ds-currency-updated", syncCheckoutCartState);
     };
   }, []);
 
@@ -429,6 +429,50 @@ export default function Checkout() {
     } finally {
       setCouponLoading(false);
     }
+  };
+
+  const updateItemQuantity = (productId, nextQuantity, { confirmRemoval = false } = {}) => {
+    const normalizedId = String(productId || "").trim();
+    if (!normalizedId || typeof window === "undefined") return;
+
+    const safeQuantity = Math.max(0, Math.min(20, Math.floor(Number(nextQuantity) || 0)));
+    const currentCart = readCartStorage();
+    const currentItem = currentCart.find((item) => String(item?.id || "").trim() === normalizedId);
+    if (!currentItem) return;
+
+    if (safeQuantity <= 0) {
+      if (confirmRemoval) {
+        const shouldRemove = window.confirm("Remove this worksheet from checkout?");
+        if (!shouldRemove) return;
+      }
+
+      writeCartStorage(currentCart.filter((item) => String(item?.id || "").trim() !== normalizedId));
+    } else {
+      writeCartStorage(
+        currentCart.map((item) =>
+          String(item?.id || "").trim() === normalizedId
+            ? { ...item, quantity: safeQuantity }
+            : item
+        )
+      );
+    }
+
+    window.dispatchEvent(new CustomEvent("ds-cart-updated"));
+    syncCheckoutCartState();
+  };
+
+  const incrementItemQuantity = (productId, currentQuantity) => {
+    const nextQuantity = Math.min(20, Number(currentQuantity || 0) + 1);
+    updateItemQuantity(productId, nextQuantity);
+  };
+
+  const decrementItemQuantity = (productId, currentQuantity) => {
+    const numericCurrent = Math.max(0, Number(currentQuantity || 0));
+    if (numericCurrent <= 1) {
+      updateItemQuantity(productId, 0, { confirmRemoval: true });
+      return;
+    }
+    updateItemQuantity(productId, numericCurrent - 1);
   };
 
   const handleCheckoutSuccess = ({
@@ -800,7 +844,30 @@ export default function Checkout() {
                           {item.pages ? ` • ${item.pages} pages` : ""}
                         </p>
                         <div className="checkout-item__meta">
-                          <span>Qty {item.quantity}</span>
+                          <div className="checkout-item__quantity-controls">
+                            <button
+                              type="button"
+                              className="checkout-item__qty-btn"
+                              onClick={() => decrementItemQuantity(item.productId, item.quantity)}
+                              aria-label={
+                                Number(item.quantity || 0) <= 1
+                                  ? `Remove ${item.title} from checkout`
+                                  : `Decrease quantity for ${item.title}`
+                              }
+                            >
+                              -
+                            </button>
+                            <span>Qty {item.quantity}</span>
+                            <button
+                              type="button"
+                              className="checkout-item__qty-btn"
+                              onClick={() => incrementItemQuantity(item.productId, item.quantity)}
+                              disabled={Number(item.quantity || 0) >= 20}
+                              aria-label={`Increase quantity for ${item.title}`}
+                            >
+                              +
+                            </button>
+                          </div>
                           <strong>
                             {formatMoney(
                               getDiscountedUnitPrice(item.price, item.currency, launchItemCount)
