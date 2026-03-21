@@ -409,24 +409,7 @@ export default function ProductPage({ initialProduct = null }) {
 
     try {
       const idToken = await user.getIdToken();
-      const response = await fetch(getDownloadUrl(key, idToken));
-      if (!response.ok) {
-        const payload = await response.json().catch(() => ({}));
-        const errorText = String(payload?.error || "Download failed. Please try again.");
-        const errorCode = String(payload?.code || "").trim();
-        alert(errorCode ? `${errorText} (${errorCode})` : errorText);
-        return;
-      }
-
-      const blob = await response.blob();
-      const blobUrl = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = blobUrl;
-      link.download = key;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+      window.location.assign(getDownloadUrl(key, idToken));
     } catch {
       alert("Download failed. Please try again.");
     }
