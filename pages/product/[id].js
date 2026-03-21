@@ -6,9 +6,9 @@ import { useEffect, useMemo, useState } from "react";
 import Navbar from "../../components/Navbar";
 import products from "../../data/products";
 import { useAuth } from "../../context/AuthContext";
-import { hasPurchased } from "../../firebase/purchases";
+import { getUserPurchases } from "../../firebase/purchases";
 import { db } from "../../firebase/config";
-import { getPreviewUrl } from "../../lib/productAssetUrls";
+import { getDownloadUrl, getPreviewUrl } from "../../lib/productAssetUrls";
 import { readCartStorage, writeCartStorage } from "../../lib/cartStorage";
 import { formatMoney, getPriceAmount, getPriceCurrency, readCurrencyPreference } from "../../lib/pricing/client";
 import { buildRatingStars, formatRatingAverage, normalizeRatingStats } from "../../lib/productRatings";
@@ -207,18 +207,17 @@ export default function ProductPage({ initialProduct = null }) {
 
   useEffect(() => {
     const checkPurchase = async () => {
-      const email = String(user?.email || "").trim().toLowerCase();
-      if (!email || !product) {
+      if (!user?.email || !product?.id) {
         setPurchased(false);
         setChecking(false);
         return;
       }
       try {
-        const result = await hasPurchased({
-          email,
-          productId: product.id,
-        });
-        setPurchased(result);
+        const purchases = await getUserPurchases(user);
+        const result = purchases.some(
+          (purchase) => String(purchase?.productId || "").trim() === String(product.id || "").trim()
+        );
+        setPurchased(Boolean(result));
       } catch (error) {
         console.error("Failed to check purchase:", error);
         setPurchased(false);
@@ -398,6 +397,39 @@ export default function ProductPage({ initialProduct = null }) {
   const handleBuyAgain = () => {
     addProductToCart();
     router.push("/checkout");
+  };
+
+  const handleDownload = async () => {
+    const key = String(product?.storageKey || "").trim();
+    if (!key) return;
+    if (!user) {
+      alert("Please login to download.");
+      return;
+    }
+
+    try {
+      const idToken = await user.getIdToken();
+      const response = await fetch(getDownloadUrl(key, idToken));
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        const errorText = String(payload?.error || "Download failed. Please try again.");
+        const errorCode = String(payload?.code || "").trim();
+        alert(errorCode ? `${errorText} (${errorCode})` : errorText);
+        return;
+      }
+
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = key;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+    } catch {
+      alert("Download failed. Please try again.");
+    }
   };
 
   const getShareUrl = () => {
@@ -707,7 +739,10 @@ export default function ProductPage({ initialProduct = null }) {
                 <div className="product-info-card__owned">
                   <p>This worksheet is already in your library.</p>
                   <div className="product-info-card__cta-row">
-                    <Link href="/my-purchases" className="btn btn-primary">
+                    <button type="button" className="btn btn-primary" onClick={handleDownload}>
+                      Download
+                    </button>
+                    <Link href="/my-purchases" className="btn btn-secondary">
                       Open My Purchases
                     </Link>
                     <button type="button" className="btn btn-secondary" onClick={handleBuyAgain}>
