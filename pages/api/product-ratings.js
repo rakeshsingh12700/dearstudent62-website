@@ -94,6 +94,30 @@ function normalizeUserRating(raw, fallbackId = "") {
   };
 }
 
+function mergeAggregateStats(primary, secondary) {
+  const first = normalizeRatingStats(primary || {});
+  const second = normalizeRatingStats(secondary || {});
+
+  if (first.ratingCount <= 0) return second;
+  if (second.ratingCount <= 0) return first;
+
+  const totalCount = first.ratingCount + second.ratingCount;
+  const averageRating = totalCount > 0
+    ? Number(
+        (
+          (first.averageRating * first.ratingCount
+            + second.averageRating * second.ratingCount)
+          / totalCount
+        ).toFixed(2)
+      )
+    : 0;
+
+  return normalizeRatingStats({
+    averageRating,
+    ratingCount: totalCount,
+  });
+}
+
 async function getUserFeedback({ uid, productId }) {
   if (!uid || !productId) return null;
 
@@ -141,15 +165,24 @@ async function getStatsForProduct(productId) {
 
   const adminDb = getAdminDb();
   if (adminDb) {
-    const snapshot = await adminDb.collection("product_rating_stats").doc(productId).get();
-    if (!snapshot.exists) return normalizeRatingStats({});
-    return normalizeRatingStats(snapshot.data());
+    const [productSnapshot, statsSnapshot] = await Promise.all([
+      adminDb.collection("products").doc(productId).get(),
+      adminDb.collection("product_rating_stats").doc(productId).get(),
+    ]);
+    return mergeAggregateStats(
+      productSnapshot.exists ? productSnapshot.data() : {},
+      statsSnapshot.exists ? statsSnapshot.data() : {}
+    );
   }
 
-  const statsRef = doc(db, "product_rating_stats", productId);
-  const snapshot = await getDoc(statsRef);
-  if (!snapshot.exists()) return normalizeRatingStats({});
-  return normalizeRatingStats(snapshot.data());
+  const [productSnapshot, statsSnapshot] = await Promise.all([
+    getDoc(doc(db, "products", productId)),
+    getDoc(doc(db, "product_rating_stats", productId)),
+  ]);
+  return mergeAggregateStats(
+    productSnapshot.exists() ? productSnapshot.data() : {},
+    statsSnapshot.exists() ? statsSnapshot.data() : {}
+  );
 }
 
 async function getStatsForProducts(productIds = []) {
@@ -159,10 +192,16 @@ async function getStatsForProducts(productIds = []) {
   if (adminDb) {
     const entries = await Promise.all(
       productIds.map(async (productId) => {
-        const snapshot = await adminDb.collection("product_rating_stats").doc(productId).get();
+        const [productSnapshot, statsSnapshot] = await Promise.all([
+          adminDb.collection("products").doc(productId).get(),
+          adminDb.collection("product_rating_stats").doc(productId).get(),
+        ]);
         return [
           productId,
-          snapshot.exists ? normalizeRatingStats(snapshot.data()) : normalizeRatingStats({}),
+          mergeAggregateStats(
+            productSnapshot.exists ? productSnapshot.data() : {},
+            statsSnapshot.exists ? statsSnapshot.data() : {}
+          ),
         ];
       })
     );
@@ -172,11 +211,16 @@ async function getStatsForProducts(productIds = []) {
 
   const entries = await Promise.all(
     productIds.map(async (productId) => {
-      const statsRef = doc(db, "product_rating_stats", productId);
-      const snapshot = await getDoc(statsRef);
+      const [productSnapshot, statsSnapshot] = await Promise.all([
+        getDoc(doc(db, "products", productId)),
+        getDoc(doc(db, "product_rating_stats", productId)),
+      ]);
       return [
         productId,
-        snapshot.exists() ? normalizeRatingStats(snapshot.data()) : normalizeRatingStats({}),
+        mergeAggregateStats(
+          productSnapshot.exists() ? productSnapshot.data() : {},
+          statsSnapshot.exists() ? statsSnapshot.data() : {}
+        ),
       ];
     })
   );

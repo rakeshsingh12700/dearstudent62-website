@@ -42,6 +42,8 @@ const TYPE_OPTIONS = [
 
 const SORT_OPTIONS = [
   { value: "default", label: "Sort by" },
+  { value: "popularity", label: "Popularity" },
+  { value: "ratings", label: "Ratings" },
   { value: "date-added", label: "Date Added" },
   { value: "price-low", label: "Price: Low to High" },
   { value: "price-high", label: "Price: High to Low" },
@@ -163,6 +165,14 @@ function normalizeMobileView(value) {
   if (slug === "maths") return "maths";
   if (slug === "exam" || slug === "exams") return "exams";
   return "library";
+}
+
+function getProductDateValue(product) {
+  return Number(product?.createdAt || product?.updatedAt || 0);
+}
+
+function compareNewestFirst(first, second) {
+  return getProductDateValue(second) - getProductDateValue(first);
 }
 
 const TOPIC_VALUES_BY_SUBJECT = Object.fromEntries(
@@ -896,16 +906,24 @@ export default function WorksheetShop({
     });
 
     const sorted = [...filtered];
-    if (sortBy === "price-low") {
+    if (sortBy === "popularity") {
+      sorted.sort((a, b) => {
+        const purchaseDelta = Number(b.purchaseCount || 0) - Number(a.purchaseCount || 0);
+        if (purchaseDelta !== 0) return purchaseDelta;
+        return compareNewestFirst(a, b);
+      });
+    } else if (sortBy === "ratings") {
+      sorted.sort((a, b) => {
+        const ratingDelta = Number(b.averageRating || 0) - Number(a.averageRating || 0);
+        if (ratingDelta !== 0) return ratingDelta;
+        return compareNewestFirst(a, b);
+      });
+    } else if (sortBy === "price-low") {
       sorted.sort((a, b) => a.price - b.price);
     } else if (sortBy === "price-high") {
       sorted.sort((a, b) => b.price - a.price);
     } else if (sortBy === "date-added") {
-      sorted.sort((a, b) => {
-        const firstDate = Number(a.createdAt || a.updatedAt || 0);
-        const secondDate = Number(b.createdAt || b.updatedAt || 0);
-        return secondDate - firstDate;
-      });
+      sorted.sort(compareNewestFirst);
     } else if (sortBy === "title") {
       sorted.sort((a, b) => a.title.localeCompare(b.title));
     }

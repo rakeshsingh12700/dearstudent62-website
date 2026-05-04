@@ -20,7 +20,11 @@ function fail(message) {
 function hasThumbAndVersion(url) {
   const value = String(url || "").trim();
   if (!value) return false;
-  return value.includes("__thumb640") && /[?&]v=\d+/.test(value);
+  const hasThumb = value.includes("__thumb640");
+  const hasVersion = /[?&]v=\d+/.test(value);
+  const isLegacyThumb = value.startsWith("/api/thumbnail?");
+  const isDirectUrl = /^https?:\/\//i.test(value);
+  return hasThumb && hasVersion && (isLegacyThumb || isDirectUrl);
 }
 
 async function fetchJson(url) {

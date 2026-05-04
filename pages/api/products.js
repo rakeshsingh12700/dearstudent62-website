@@ -2,7 +2,9 @@ import { HeadObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { collection, deleteDoc, doc, getDoc, getDocs, limit, query, where } from "firebase/firestore";
 import staticProducts from "../../data/products";
 import { db } from "../../firebase/config";
+import { getAdminDb } from "../../lib/firebaseAdmin";
 import { normalizeRatingStats } from "../../lib/productRatings";
+import { resolveAssetUrl } from "../../lib/publicAssetUrls";
 import {
   calculatePrice,
   detectCountryFromRequest,
@@ -53,8 +55,62 @@ function appendVersion(urlValue, version) {
 
 function mergeRatingStats(rawProduct, rawStats) {
   const fromStats = normalizeRatingStats(rawStats || {});
-  if (fromStats.ratingCount > 0) return fromStats;
-  return normalizeRatingStats(rawProduct || {});
+  const fromProduct = normalizeRatingStats(rawProduct || {});
+
+  if (fromStats.ratingCount <= 0) return fromProduct;
+  if (fromProduct.ratingCount <= 0) return fromStats;
+
+  const totalCount = fromProduct.ratingCount + fromStats.ratingCount;
+  const weightedAverage = totalCount > 0
+    ? Number(
+        (
+          (fromProduct.averageRating * fromProduct.ratingCount
+            + fromStats.averageRating * fromStats.ratingCount)
+          / totalCount
+        ).toFixed(2)
+      )
+    : 0;
+
+  return normalizeRatingStats({
+    averageRating: weightedAverage,
+    ratingCount: totalCount,
+  });
+}
+
+function parsePositiveQuantity(rawValue, fallback = 1) {
+  const parsed = Number(rawValue);
+  if (Number.isFinite(parsed) && parsed > 0) return parsed;
+  return fallback;
+}
+
+function incrementPurchaseCount(map, productId, quantity = 1) {
+  const normalizedProductId = String(productId || "").trim();
+  if (!normalizedProductId) return;
+  map.set(
+    normalizedProductId,
+    Number(map.get(normalizedProductId) || 0) + parsePositiveQuantity(quantity, 1)
+  );
+}
+
+function accumulatePurchaseCounts(rawPurchase = {}, purchaseCountByProductId = new Map()) {
+  const primaryProductId = String(rawPurchase?.productId || rawPurchase?.id || "").trim();
+  if (primaryProductId) {
+    incrementPurchaseCount(purchaseCountByProductId, primaryProductId, rawPurchase?.quantity);
+  }
+
+  const orderItems = Array.isArray(rawPurchase?.items)
+    ? rawPurchase.items
+    : Array.isArray(rawPurchase?.products)
+      ? rawPurchase.products
+      : [];
+
+  orderItems.forEach((item) => {
+    incrementPurchaseCount(
+      purchaseCountByProductId,
+      item?.productId || item?.id,
+      item?.quantity
+    );
+  });
 }
 
 function computeRatingStatsFromFeedbackDocs(docs = []) {
@@ -98,17 +154,31 @@ async function getFeedbackRatingStatsMap() {
   );
 }
 
-function normalizeProduct(raw, fallbackId = "", rawStats = null, pricingContext = {}) {
+function normalizeProduct(
+  raw,
+  fallbackId = "",
+  rawStats = null,
+  pricingContext = {},
+  purchaseCountByProductId = new Map()
+) {
   const id = String(raw?.id || fallbackId || "").trim();
   const normalizedType = toSlug(raw?.type) || "worksheet";
   const normalizedSubject = toSlug(raw?.subject) || "";
   const storageKey = String(raw?.storageKey || "").trim();
-  const imageUrl = String(raw?.imageUrl || "").trim();
-  const imageOriginalUrl = String(raw?.imageOriginalUrl || "").trim();
-  const previewImageUrl = String(raw?.previewImageUrl || "").trim();
-  const previewImageOriginalUrl = String(raw?.previewImageOriginalUrl || "").trim();
   const imageVersion = Math.max(toDateMs(raw?.updatedAt), toDateMs(raw?.createdAt), 0);
+  const imageUrl = resolveAssetUrl(raw?.imageUrl, { version: imageVersion });
+  const imageOriginalUrl = resolveAssetUrl(raw?.imageOriginalUrl, { version: imageVersion });
+  const previewImageUrl = resolveAssetUrl(raw?.previewImageUrl, { version: imageVersion });
+  const previewImageOriginalUrl = resolveAssetUrl(raw?.previewImageOriginalUrl, { version: imageVersion });
   const ratingStats = mergeRatingStats(raw, rawStats);
+  const purchaseCount = Number(
+    purchaseCountByProductId.get(id)
+    ?? raw?.purchaseCount
+    ?? raw?.purchases
+    ?? raw?.soldCount
+    ?? raw?.totalSales
+    ?? 0
+  );
   const basePriceINR = Number(raw?.price || 0);
   const pricing = calculatePrice({
     basePriceINR,
@@ -147,6 +217,7 @@ function normalizeProduct(raw, fallbackId = "", rawStats = null, pricingContext 
     updatedAt: toDateMs(raw?.updatedAt),
     averageRating: ratingStats.averageRating,
     ratingCount: ratingStats.ratingCount,
+    purchaseCount: Number.isFinite(purchaseCount) && purchaseCount > 0 ? purchaseCount : 0,
   };
 }
 
@@ -225,6 +296,7 @@ export default async function handler(req, res) {
     const idsRaw = String(req.query.ids || "").trim();
     const staticList = getStaticProducts(pricingContext);
     const staticById = new Map(staticList.map((item) => [item.id, item]));
+    const purchaseCountByProductId = new Map();
 
     if (id) {
       let snapshot;
@@ -262,7 +334,8 @@ export default async function handler(req, res) {
           raw,
           snapshot.id,
           ratingStats.ratingCount > 0 ? ratingStats : feedbackStats,
-          pricingContext
+          pricingContext,
+          purchaseCountByProductId
         ),
       });
     }
@@ -321,7 +394,8 @@ export default async function handler(req, res) {
               raw,
               effectiveId,
               ratingStats.ratingCount > 0 ? ratingStats : feedbackStats,
-              pricingContext
+              pricingContext,
+              purchaseCountByProductId
             );
           })
         );
@@ -338,17 +412,55 @@ export default async function handler(req, res) {
 
     let snapshot;
     let ratingsSnapshot;
-    try {
-      [snapshot, ratingsSnapshot] = await Promise.all([
-        getDocs(query(collection(db, "products"), limit(1000))),
-        getDocs(query(collection(db, "product_rating_stats"), limit(2000))),
-      ]);
-    } catch (error) {
-      if (isFirestorePermissionError(error)) {
-        return res.status(200).json({ products: staticList });
+    const adminDb = getAdminDb();
+    if (adminDb) {
+      try {
+        [snapshot, ratingsSnapshot] = await Promise.all([
+          adminDb.collection("products").limit(1000).get(),
+          adminDb.collection("product_rating_stats").limit(2000).get(),
+        ]);
+      } catch {
+        snapshot = null;
+        ratingsSnapshot = null;
       }
-      throw error;
     }
+
+    if (!snapshot || !ratingsSnapshot) {
+      try {
+        [snapshot, ratingsSnapshot] = await Promise.all([
+          getDocs(query(collection(db, "products"), limit(1000))),
+          getDocs(query(collection(db, "product_rating_stats"), limit(2000))),
+        ]);
+      } catch (error) {
+        if (isFirestorePermissionError(error)) {
+          return res.status(200).json({ products: staticList });
+        }
+        throw error;
+      }
+    }
+
+    if (adminDb) {
+      try {
+        const purchasesSnapshot = await adminDb.collection("purchases").limit(5000).get();
+        purchasesSnapshot.docs.forEach((docSnapshot) => {
+          accumulatePurchaseCounts(docSnapshot.data() || {}, purchaseCountByProductId);
+        });
+      } catch {
+        // Keep product-level purchase counts as fallback.
+      }
+    }
+
+    if (purchaseCountByProductId.size === 0) {
+      try {
+        const purchasesSnapshot = await getDocs(query(collection(db, "purchases"), limit(5000)));
+        purchasesSnapshot.docs.forEach((docSnapshot) => {
+          accumulatePurchaseCounts(docSnapshot.data() || {}, purchaseCountByProductId);
+        });
+      } catch {
+        // Firestore rules may block public reads to purchases.
+      }
+    }
+
     const ratingStatsByProductId = new Map(
       ratingsSnapshot.docs.map((ratingDoc) => [ratingDoc.id, ratingDoc.data()])
     );
@@ -368,7 +480,8 @@ export default async function handler(req, res) {
           raw,
           item.id,
           ratingStats.ratingCount > 0 ? ratingStats : feedbackStats,
-          pricingContext
+          pricingContext,
+          purchaseCountByProductId
         );
       })
     );
