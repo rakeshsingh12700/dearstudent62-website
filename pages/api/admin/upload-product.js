@@ -5,6 +5,7 @@ import formidable from "formidable";
 import { PDFDocument } from "pdf-lib";
 import { db } from "../../../firebase/config";
 import { getAdminDb } from "../../../lib/firebaseAdmin";
+import { buildPublicAssetUrl } from "../../../lib/publicAssetUrls";
 
 export const config = {
   api: {
@@ -137,6 +138,12 @@ function getProductId({ classValue, subject, typeValue, title }) {
   }
 
   return `${classSlug || subjectSlug || "all"}-${titleSlug}`;
+}
+
+function buildStoredAssetUrl(key) {
+  const normalizedKey = String(key || "").trim();
+  if (!normalizedKey) return "";
+  return buildPublicAssetUrl(normalizedKey) || `/api/thumbnail?key=${encodeURIComponent(normalizedKey)}`;
 }
 
 function extensionForContentType(contentType, fallback = "") {
@@ -733,13 +740,13 @@ export default async function handler(req, res) {
       ageLabel,
       hideAgeLabel,
       storageKey: pdfKey,
-      imageUrl: `/api/thumbnail?key=${encodeURIComponent(coverThumbKey || coverKey)}`,
-      imageOriginalUrl: `/api/thumbnail?key=${encodeURIComponent(coverKey)}`,
+      imageUrl: buildStoredAssetUrl(coverThumbKey || coverKey),
+      imageOriginalUrl: buildStoredAssetUrl(coverKey),
       previewImageUrl: showPreviewPage && previewPageKey
-        ? `/api/thumbnail?key=${encodeURIComponent(previewThumbKey || previewPageKey)}`
+        ? buildStoredAssetUrl(previewThumbKey || previewPageKey)
         : "",
       previewImageOriginalUrl: showPreviewPage && previewPageKey
-        ? `/api/thumbnail?key=${encodeURIComponent(previewPageKey)}`
+        ? buildStoredAssetUrl(previewPageKey)
         : "",
       showPreviewPage: Boolean(showPreviewPage),
       updatedBy: adminUser.email,

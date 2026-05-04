@@ -232,8 +232,8 @@ export default function ProductPage({ initialProduct = null }) {
   useEffect(() => {
     const checkAssetAvailability = async () => {
       const key = String(product?.storageKey || "").trim();
-      if (!key) {
-        setAssetAvailable(false);
+      if (!key || !purchased) {
+        setAssetAvailable(!key ? false : true);
         setCheckingAsset(false);
         return;
       }
@@ -255,7 +255,7 @@ export default function ProductPage({ initialProduct = null }) {
     if (product) {
       checkAssetAvailability();
     }
-  }, [product]);
+  }, [product, purchased]);
 
   useEffect(() => {
     if (typeof window === "undefined") return undefined;

@@ -6,6 +6,7 @@ import {
 } from "@aws-sdk/client-s3";
 import { collection, deleteDoc, doc, getDoc, getDocs, limit, query, setDoc } from "firebase/firestore";
 import { db } from "../../../firebase/config";
+import { extractStorageKeyFromAssetUrl, resolveAssetUrl } from "../../../lib/publicAssetUrls";
 
 const DEFAULT_ADMIN_EMAILS = ["rakesh12700@gmail.com"];
 
@@ -80,6 +81,7 @@ function toIsoDate(value) {
 }
 
 function normalizeProduct(raw, id) {
+  const updatedAtMs = toDateMs(raw?.updatedAt);
   return {
     id: String(raw?.id || id || "").trim(),
     title: String(raw?.title || "").trim(),
@@ -91,14 +93,14 @@ function normalizeProduct(raw, id) {
     price: Number(raw?.price || 0),
     pages: Number(raw?.pages || 0),
     storageKey: String(raw?.storageKey || "").trim(),
-    imageUrl: String(raw?.imageUrl || "").trim(),
-    imageOriginalUrl: String(raw?.imageOriginalUrl || "").trim(),
-    previewImageUrl: String(raw?.previewImageUrl || "").trim(),
-    previewImageOriginalUrl: String(raw?.previewImageOriginalUrl || "").trim(),
+    imageUrl: resolveAssetUrl(raw?.imageUrl, { version: updatedAtMs }),
+    imageOriginalUrl: resolveAssetUrl(raw?.imageOriginalUrl, { version: updatedAtMs }),
+    previewImageUrl: resolveAssetUrl(raw?.previewImageUrl, { version: updatedAtMs }),
+    previewImageOriginalUrl: resolveAssetUrl(raw?.previewImageOriginalUrl, { version: updatedAtMs }),
     showPreviewPage: Boolean(raw?.showPreviewPage),
     updatedBy: String(raw?.updatedBy || "").trim(),
     updatedAt: toIsoDate(raw?.updatedAt),
-    updatedAtMs: toDateMs(raw?.updatedAt),
+    updatedAtMs,
   };
 }
 
@@ -117,14 +119,7 @@ function getR2Client() {
 }
 
 function extractKeyFromThumbUrl(urlValue) {
-  const raw = String(urlValue || "").trim();
-  if (!raw) return "";
-  const queryPart = raw.includes("?") ? raw.split("?")[1] : "";
-  if (!queryPart) return "";
-  const params = new URLSearchParams(queryPart);
-  const key = String(params.get("key") || "").trim();
-  if (key) return key;
-  return String(params.get("file") || "").trim();
+  return extractStorageKeyFromAssetUrl(urlValue);
 }
 
 function buildDerivedKeys(product) {

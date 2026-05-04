@@ -1,6 +1,7 @@
 import { collection, doc, getDoc, getDocs, limit, query, setDoc } from "firebase/firestore";
 import { db } from "../../firebase/config";
 import { getAdminDb } from "../../lib/firebaseAdmin";
+import { resolveAssetUrl } from "../../lib/publicAssetUrls";
 import {
   calculatePrice,
   detectCountryFromRequest,
@@ -56,6 +57,7 @@ function appendVersion(urlValue, version) {
 }
 
 function normalizeProduct(raw, fallbackId = "") {
+  const createdAtMs = Math.max(toDateMs(raw?.createdAt), toDateMs(raw?.updatedAt));
   const purchaseCount = Number(
     raw?.purchaseCount ?? raw?.purchases ?? raw?.soldCount ?? raw?.totalSales ?? 0
   );
@@ -66,11 +68,11 @@ function normalizeProduct(raw, fallbackId = "") {
     subject: toSlug(raw?.subject) || "",
     type: toSlug(raw?.type) || "worksheet",
     storageKey: String(raw?.storageKey || "").trim(),
-    imageUrl: String(raw?.imageUrl || "").trim(),
-    previewImageUrl: String(raw?.previewImageUrl || "").trim(),
+    imageUrl: resolveAssetUrl(raw?.imageUrl, { version: createdAtMs }),
+    previewImageUrl: resolveAssetUrl(raw?.previewImageUrl, { version: createdAtMs }),
     priceINR: Number(raw?.price || 0),
     purchaseCount: Number.isFinite(purchaseCount) && purchaseCount > 0 ? purchaseCount : 0,
-    createdAtMs: Math.max(toDateMs(raw?.createdAt), toDateMs(raw?.updatedAt)),
+    createdAtMs,
   };
 }
 
@@ -85,8 +87,8 @@ function normalizeCachedItem(raw) {
     subject: toSlug(raw?.subject) || "",
     type: toSlug(raw?.type) || "worksheet",
     storageKey: String(raw?.storageKey || "").trim(),
-    imageUrl: String(raw?.imageUrl || "").trim(),
-    previewImageUrl: String(raw?.previewImageUrl || "").trim(),
+    imageUrl: resolveAssetUrl(raw?.imageUrl, { version: raw?.createdAtMs }),
+    previewImageUrl: resolveAssetUrl(raw?.previewImageUrl, { version: raw?.createdAtMs }),
     priceINR: Number(raw?.priceINR || 0),
     purchaseCount: Number.isFinite(purchaseCount) && purchaseCount > 0 ? purchaseCount : 0,
     createdAtMs: Number(raw?.createdAtMs || 0),
