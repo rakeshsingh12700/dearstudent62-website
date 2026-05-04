@@ -28,6 +28,7 @@ function getR2Client() {
 async function verifyFirebaseIdToken(idToken) {
   const token = String(idToken || "").trim();
   if (!token) return null;
+  if (token.split(".").length !== 3) return null;
 
   const apiKey = String(
     process.env.FIREBASE_API_KEY || process.env.NEXT_PUBLIC_FIREBASE_API_KEY || ""
@@ -124,6 +125,46 @@ function toArchiveKey(key) {
   return normalized ? `archive/${normalized}` : "";
 }
 
+function normalizeLegacyStorageKey(key) {
+  return String(key || "")
+    .trim()
+    .replace(
+      /^(.+?)\s*[–—]\s+(Worksheets|Worksheet|Exams|UnitTest|Unit Test|HalfYear|Half Year|Final)\-/i,
+      "$1-$2-"
+    );
+}
+
+function uniqueValues(values) {
+  return [...new Set(values.map((value) => String(value || "").trim()).filter(Boolean))];
+}
+
+function getStorageKeyCandidates(key) {
+  const normalized = String(key || "").trim();
+  return uniqueValues([normalized, normalizeLegacyStorageKey(normalized)]);
+}
+
+function getDownloadKeyCandidates(key, archiveStorageKey = "") {
+  const storageCandidates = getStorageKeyCandidates(key);
+  return uniqueValues([
+    ...storageCandidates,
+    String(archiveStorageKey || "").trim(),
+    ...storageCandidates.map((item) => toArchiveKey(item)),
+  ]);
+}
+
+function getContentDisposition(fileName) {
+  const cleaned = String(fileName || "worksheet.pdf")
+    .replace(/^archive\//, "")
+    .replace(/[\r\n"]/g, "")
+    .trim() || "worksheet.pdf";
+  const asciiFallback = cleaned
+    .replace(/[^\x20-\x7E]/g, "-")
+    .replace(/[\\/:*?<>|]+/g, "-")
+    .replace(/\s+/g, " ")
+    .trim() || "worksheet.pdf";
+  return `attachment; filename="${asciiFallback}"; filename*=UTF-8''${encodeURIComponent(cleaned)}`;
+}
+
 async function objectExists(r2Client, bucket, key) {
   if (!r2Client || !bucket || !key) return false;
   try {
@@ -144,86 +185,99 @@ async function objectExists(r2Client, bucket, key) {
 async function getProductByStorageKey(key) {
   const normalizedKey = String(key || "").trim();
   if (!normalizedKey) return null;
+  const lookupKeys = getStorageKeyCandidates(normalizedKey);
 
   const adminDb = getAdminDb();
   if (adminDb) {
+    for (const lookupKey of lookupKeys) {
+      try {
+        const snapshot = await adminDb
+          .collection("products")
+          .where("storageKey", "==", lookupKey)
+          .limit(1)
+          .get();
+        if (!snapshot.empty) {
+          const product = snapshot.docs[0];
+          return {
+            id: product.id,
+            storageKey: String(product.data()?.storageKey || lookupKey).trim(),
+            archiveStorageKey: String(product.data()?.archiveStorageKey || "").trim(),
+          };
+        }
+      } catch {
+        // Continue with client SDK fallback.
+      }
+    }
+
+    for (const lookupKey of lookupKeys) {
+      try {
+        const archivedSnapshot = await adminDb
+          .collection("archived_products")
+          .where("storageKey", "==", lookupKey)
+          .limit(1)
+          .get();
+        if (!archivedSnapshot.empty) {
+          const archivedProduct = archivedSnapshot.docs[0];
+          return {
+            id: archivedProduct.id,
+            storageKey: String(archivedProduct.data()?.storageKey || lookupKey).trim(),
+            archiveStorageKey:
+              String(archivedProduct.data()?.archiveStorageKey || "").trim() ||
+              toArchiveKey(lookupKey),
+          };
+        }
+      } catch {
+        // Continue with client SDK fallback.
+      }
+    }
+  }
+
+  for (const lookupKey of lookupKeys) {
     try {
-      const snapshot = await adminDb
-        .collection("products")
-        .where("storageKey", "==", normalizedKey)
-        .limit(1)
-        .get();
+      const productsQuery = query(
+        collection(db, "products"),
+        where("storageKey", "==", lookupKey),
+        limit(1)
+      );
+      const snapshot = await getDocs(productsQuery);
       if (!snapshot.empty) {
         const product = snapshot.docs[0];
         return {
           id: product.id,
+          storageKey: String(product.data()?.storageKey || lookupKey).trim(),
           archiveStorageKey: String(product.data()?.archiveStorageKey || "").trim(),
         };
       }
     } catch {
-      // Continue with client SDK fallback.
+      // Continue with static fallback.
     }
+  }
 
+  for (const lookupKey of lookupKeys) {
     try {
-      const archivedSnapshot = await adminDb
-        .collection("archived_products")
-        .where("storageKey", "==", normalizedKey)
-        .limit(1)
-        .get();
+      const archivedQuery = query(
+        collection(db, "archived_products"),
+        where("storageKey", "==", lookupKey),
+        limit(1)
+      );
+      const archivedSnapshot = await getDocs(archivedQuery);
       if (!archivedSnapshot.empty) {
         const archivedProduct = archivedSnapshot.docs[0];
         return {
           id: archivedProduct.id,
+          storageKey: String(archivedProduct.data()?.storageKey || lookupKey).trim(),
           archiveStorageKey:
             String(archivedProduct.data()?.archiveStorageKey || "").trim() ||
-            toArchiveKey(normalizedKey),
+            toArchiveKey(lookupKey),
         };
       }
     } catch {
-      // Continue with client SDK fallback.
+      // Continue with static fallback.
     }
-  }
-
-  try {
-    const productsQuery = query(
-      collection(db, "products"),
-      where("storageKey", "==", normalizedKey),
-      limit(1)
-    );
-    const snapshot = await getDocs(productsQuery);
-    if (!snapshot.empty) {
-      const product = snapshot.docs[0];
-      return {
-        id: product.id,
-        archiveStorageKey: String(product.data()?.archiveStorageKey || "").trim(),
-      };
-    }
-  } catch {
-    // Continue with static fallback.
-  }
-
-  try {
-    const archivedQuery = query(
-      collection(db, "archived_products"),
-      where("storageKey", "==", normalizedKey),
-      limit(1)
-    );
-    const archivedSnapshot = await getDocs(archivedQuery);
-    if (!archivedSnapshot.empty) {
-      const archivedProduct = archivedSnapshot.docs[0];
-      return {
-        id: archivedProduct.id,
-        archiveStorageKey:
-          String(archivedProduct.data()?.archiveStorageKey || "").trim() ||
-          toArchiveKey(normalizedKey),
-      };
-    }
-  } catch {
-    // Continue with static fallback.
   }
 
   const staticEntry = Object.values(PRODUCT_CATALOG).find(
-    (product) => String(product?.storageKey || "").trim() === normalizedKey
+    (product) => lookupKeys.includes(String(product?.storageKey || "").trim())
   );
   if (!staticEntry?.id) return null;
 
@@ -234,7 +288,7 @@ async function getProductByStorageKey(key) {
       : "";
     return { id: staticEntry.id, archiveStorageKey };
   } catch {
-    return { id: staticEntry.id, archiveStorageKey: "" };
+    return { id: staticEntry.id, storageKey: staticEntry.storageKey, archiveStorageKey: "" };
   }
 }
 
@@ -261,20 +315,21 @@ export default async function handler(req, res) {
   }
 
   try {
+    const purchasedWithCheckoutToken = await hasValidCheckoutToken(token, key);
     const productEntry = await getProductByStorageKey(key);
-    if (!productEntry?.id) {
-      return res.status(404).json({ error: "Product not found for this key" });
-    }
 
-    const user = await verifyFirebaseIdToken(token);
-    const purchasedWithLogin = user?.email
+    const user = purchasedWithCheckoutToken ? null : await verifyFirebaseIdToken(token);
+    const purchasedWithLogin = user?.email && productEntry?.id
       ? await hasUserPurchasedProduct({
           email: user.email,
           uid: user.uid,
           productId: productEntry.id,
         })
       : false;
-    const purchasedWithCheckoutToken = await hasValidCheckoutToken(token, key);
+
+    if (!productEntry?.id && !purchasedWithCheckoutToken) {
+      return res.status(404).json({ error: "Product not found for this key" });
+    }
 
     if (!purchasedWithLogin && !purchasedWithCheckoutToken) {
       return res.status(403).json({ error: "Not authorized" });
@@ -284,25 +339,30 @@ export default async function handler(req, res) {
     const requestedKey = key;
     const fallbackArchiveKey =
       String(productEntry?.archiveStorageKey || "").trim() || toArchiveKey(requestedKey);
-    const downloadKey = (await objectExists(r2Client, bucket, requestedKey))
-      ? requestedKey
-      : fallbackArchiveKey;
+    let downloadKey = "";
+    for (const candidateKey of getDownloadKeyCandidates(requestedKey, fallbackArchiveKey)) {
+      if (await objectExists(r2Client, bucket, candidateKey)) {
+        downloadKey = candidateKey;
+        break;
+      }
+    }
 
-    if (!(await objectExists(r2Client, bucket, downloadKey))) {
+    if (!downloadKey) {
       return res.status(404).json({ error: "File not found" });
     }
 
-    const fileName = requestedKey.replace(/"/g, "");
+    const fileName = downloadKey.replace(/^archive\//, "");
+    const contentDisposition = getContentDisposition(fileName);
     const command = new GetObjectCommand({
       Bucket: bucket,
       Key: downloadKey,
       ResponseContentType: "application/pdf",
-      ResponseContentDisposition: `attachment; filename="${fileName}"`,
+      ResponseContentDisposition: contentDisposition,
     });
     const object = await r2Client.send(command);
     res.setHeader("Cache-Control", "no-store");
     res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
+    res.setHeader("Content-Disposition", contentDisposition);
 
     const body = object?.Body;
     if (body && typeof body.pipe === "function") {

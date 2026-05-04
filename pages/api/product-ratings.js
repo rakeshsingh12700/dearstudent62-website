@@ -1,5 +1,6 @@
 import { collection, doc, getDoc, getDocs, query, setDoc, where, limit } from "firebase/firestore";
 import { db } from "../../firebase/config";
+import { getAdminDb } from "../../lib/firebaseAdmin";
 import { normalizeRatingStats, normalizeRatingValue } from "../../lib/productRatings";
 
 function getBearerToken(req) {
@@ -96,6 +97,13 @@ function normalizeUserRating(raw, fallbackId = "") {
 async function getUserFeedback({ uid, productId }) {
   if (!uid || !productId) return null;
 
+  const adminDb = getAdminDb();
+  if (adminDb) {
+    const snapshot = await adminDb.collection("product_feedback").doc(`${uid}_${productId}`).get();
+    if (!snapshot.exists) return null;
+    return normalizeUserRating(snapshot.data(), snapshot.id);
+  }
+
   const feedbackRef = doc(db, "product_feedback", `${uid}_${productId}`);
   const snapshot = await getDoc(feedbackRef);
   if (!snapshot.exists()) return null;
@@ -104,6 +112,18 @@ async function getUserFeedback({ uid, productId }) {
 
 async function getUserFeedbackForProducts({ uid, productIds }) {
   if (!uid || !Array.isArray(productIds) || productIds.length === 0) return {};
+
+  const adminDb = getAdminDb();
+  if (adminDb) {
+    const entries = await Promise.all(
+      productIds.map(async (productId) => {
+        const snapshot = await adminDb.collection("product_feedback").doc(`${uid}_${productId}`).get();
+        return [productId, snapshot.exists ? normalizeUserRating(snapshot.data(), snapshot.id) : null];
+      })
+    );
+
+    return Object.fromEntries(entries);
+  }
 
   const entries = await Promise.all(
     productIds.map(async (productId) => {
@@ -119,6 +139,13 @@ async function getUserFeedbackForProducts({ uid, productIds }) {
 async function getStatsForProduct(productId) {
   if (!productId) return normalizeRatingStats({});
 
+  const adminDb = getAdminDb();
+  if (adminDb) {
+    const snapshot = await adminDb.collection("product_rating_stats").doc(productId).get();
+    if (!snapshot.exists) return normalizeRatingStats({});
+    return normalizeRatingStats(snapshot.data());
+  }
+
   const statsRef = doc(db, "product_rating_stats", productId);
   const snapshot = await getDoc(statsRef);
   if (!snapshot.exists()) return normalizeRatingStats({});
@@ -127,6 +154,21 @@ async function getStatsForProduct(productId) {
 
 async function getStatsForProducts(productIds = []) {
   if (!Array.isArray(productIds) || productIds.length === 0) return {};
+
+  const adminDb = getAdminDb();
+  if (adminDb) {
+    const entries = await Promise.all(
+      productIds.map(async (productId) => {
+        const snapshot = await adminDb.collection("product_rating_stats").doc(productId).get();
+        return [
+          productId,
+          snapshot.exists ? normalizeRatingStats(snapshot.data()) : normalizeRatingStats({}),
+        ];
+      })
+    );
+
+    return Object.fromEntries(entries);
+  }
 
   const entries = await Promise.all(
     productIds.map(async (productId) => {
@@ -144,6 +186,29 @@ async function getStatsForProducts(productIds = []) {
 
 async function hasPurchasedProduct({ uid, email, productId }) {
   if (!productId) return false;
+
+  const adminDb = getAdminDb();
+  if (adminDb) {
+    if (uid) {
+      const userSnapshot = await adminDb
+        .collection("purchases")
+        .where("userId", "==", uid)
+        .where("productId", "==", productId)
+        .limit(1)
+        .get();
+      if (!userSnapshot.empty) return true;
+    }
+
+    if (!email) return false;
+
+    const emailSnapshot = await adminDb
+      .collection("purchases")
+      .where("email", "==", email)
+      .where("productId", "==", productId)
+      .limit(1)
+      .get();
+    return !emailSnapshot.empty;
+  }
 
   if (uid) {
     const userQuery = query(
@@ -169,11 +234,10 @@ async function hasPurchasedProduct({ uid, email, productId }) {
 }
 
 async function recomputeAndSaveProductStats(productId) {
-  const feedbackQuery = query(
-    collection(db, "product_feedback"),
-    where("productId", "==", productId)
-  );
-  const snapshot = await getDocs(feedbackQuery);
+  const adminDb = getAdminDb();
+  const snapshot = adminDb
+    ? await adminDb.collection("product_feedback").where("productId", "==", productId).get()
+    : await getDocs(query(collection(db, "product_feedback"), where("productId", "==", productId)));
 
   const ratings = snapshot.docs
     .map((item) => sanitizeRating(item.data()?.rating))
@@ -188,14 +252,42 @@ async function recomputeAndSaveProductStats(productId) {
       : 0;
 
   const stats = normalizeRatingStats({ averageRating, ratingCount });
-  await setDoc(doc(db, "product_rating_stats", productId), {
+  const statsData = {
     productId,
     averageRating: stats.averageRating,
     ratingCount: stats.ratingCount,
     updatedAt: new Date(),
-  });
+  };
+
+  if (adminDb) {
+    await adminDb.collection("product_rating_stats").doc(productId).set(statsData, { merge: true });
+  } else {
+    await setDoc(doc(db, "product_rating_stats", productId), statsData, { merge: true });
+  }
 
   return stats;
+}
+
+async function getProductSnapshot(productId) {
+  const adminDb = getAdminDb();
+  if (adminDb) {
+    const snapshot = await adminDb.collection("products").doc(productId).get();
+    return { exists: snapshot.exists, data: () => snapshot.data(), id: snapshot.id };
+  }
+
+  const snapshot = await getDoc(doc(db, "products", productId));
+  return { exists: snapshot.exists(), data: () => snapshot.data(), id: snapshot.id };
+}
+
+async function saveUserFeedback({ uid, productId, data }) {
+  const docId = `${uid}_${productId}`;
+  const adminDb = getAdminDb();
+  if (adminDb) {
+    await adminDb.collection("product_feedback").doc(docId).set(data, { merge: true });
+    return;
+  }
+
+  await setDoc(doc(db, "product_feedback", docId), data, { merge: true });
 }
 
 export default async function handler(req, res) {
@@ -231,8 +323,8 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: "productId or ids is required" });
       }
 
-      const productSnapshot = await getDoc(doc(db, "products", productId));
-      if (!productSnapshot.exists()) {
+      const productSnapshot = await getProductSnapshot(productId);
+      if (!productSnapshot.exists) {
         return res.status(404).json({ error: "Product not found" });
       }
 
@@ -257,8 +349,8 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "productId is required" });
     }
 
-    const productSnapshot = await getDoc(doc(db, "products", productId));
-    if (!productSnapshot.exists()) {
+    const productSnapshot = await getProductSnapshot(productId);
+    if (!productSnapshot.exists) {
       return res.status(404).json({ error: "Product not found" });
     }
 
@@ -282,15 +374,20 @@ export default async function handler(req, res) {
       return res.status(403).json({ error: "You can rate only purchased worksheets." });
     }
 
-    const feedbackRef = doc(db, "product_feedback", `${authUser.uid}_${productId}`);
-    const existingSnapshot = await getDoc(feedbackRef);
-    const existingCreatedAt = existingSnapshot.exists()
-      ? existingSnapshot.data()?.createdAt || new Date()
+    const existingRating = await getUserFeedback({
+      uid: authUser.uid,
+      productId,
+    });
+    const existingCreatedAt = existingRating?.updatedAt
+      ? new Date(existingRating.updatedAt)
       : new Date();
 
     const displayName = sanitizeDisplayName(req.body?.displayName);
 
-    await setDoc(feedbackRef, {
+    await saveUserFeedback({
+      uid: authUser.uid,
+      productId,
+      data: {
       productId,
       userId: authUser.uid,
       email: authUser.email,
@@ -299,6 +396,7 @@ export default async function handler(req, res) {
       review,
       createdAt: existingCreatedAt,
       updatedAt: new Date(),
+      },
     });
 
     const stats = await recomputeAndSaveProductStats(productId);
