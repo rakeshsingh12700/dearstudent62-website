@@ -1,5 +1,5 @@
 import { HeadObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { collection, deleteDoc, doc, getDoc, getDocs, limit, query } from "firebase/firestore";
+import { collection, deleteDoc, doc, getDoc, getDocs, limit, query, where } from "firebase/firestore";
 import staticProducts from "../../data/products";
 import { db } from "../../firebase/config";
 import { normalizeRatingStats } from "../../lib/productRatings";
@@ -57,6 +57,47 @@ function mergeRatingStats(rawProduct, rawStats) {
   return normalizeRatingStats(rawProduct || {});
 }
 
+function computeRatingStatsFromFeedbackDocs(docs = []) {
+  const ratings = docs
+    .map((item) => Number(item.data()?.rating || 0))
+    .filter((value) => Number.isFinite(value) && value >= 1 && value <= 5);
+  const ratingCount = ratings.length;
+  if (ratingCount === 0) return normalizeRatingStats({});
+  const averageRating = Number(
+    (ratings.reduce((sum, value) => sum + value, 0) / ratingCount).toFixed(2)
+  );
+  return normalizeRatingStats({ averageRating, ratingCount });
+}
+
+async function getFeedbackRatingStats(productId) {
+  const normalizedProductId = String(productId || "").trim();
+  if (!normalizedProductId) return normalizeRatingStats({});
+
+  const feedbackSnapshot = await getDocs(
+    query(collection(db, "product_feedback"), where("productId", "==", normalizedProductId), limit(500))
+  );
+  return computeRatingStatsFromFeedbackDocs(feedbackSnapshot.docs);
+}
+
+async function getFeedbackRatingStatsMap() {
+  const feedbackSnapshot = await getDocs(query(collection(db, "product_feedback"), limit(5000)));
+  const docsByProductId = new Map();
+  feedbackSnapshot.docs.forEach((feedbackDoc) => {
+    const productId = String(feedbackDoc.data()?.productId || "").trim();
+    if (!productId) return;
+    const docs = docsByProductId.get(productId) || [];
+    docs.push(feedbackDoc);
+    docsByProductId.set(productId, docs);
+  });
+
+  return new Map(
+    Array.from(docsByProductId.entries()).map(([productId, docs]) => [
+      productId,
+      computeRatingStatsFromFeedbackDocs(docs),
+    ])
+  );
+}
+
 function normalizeProduct(raw, fallbackId = "", rawStats = null, pricingContext = {}) {
   const id = String(raw?.id || fallbackId || "").trim();
   const normalizedType = toSlug(raw?.type) || "worksheet";
@@ -102,6 +143,8 @@ function normalizeProduct(raw, fallbackId = "", rawStats = null, pricingContext 
     previewImageOriginalUrl: appendVersion(previewImageOriginalUrl, imageVersion),
     showPreviewPage: Boolean(raw?.showPreviewPage),
     pages: Number.isFinite(Number(raw?.pages)) ? Number(raw.pages) : 1,
+    createdAt: toDateMs(raw?.createdAt),
+    updatedAt: toDateMs(raw?.updatedAt),
     averageRating: ratingStats.averageRating,
     ratingCount: ratingStats.ratingCount,
   };
@@ -208,11 +251,17 @@ export default async function handler(req, res) {
         await deleteDoc(doc(db, "products", snapshot.id)).catch(() => {});
         return res.status(404).json({ error: "Product not found" });
       }
+      const ratingStats = ratingSnapshot.exists()
+        ? normalizeRatingStats(ratingSnapshot.data())
+        : normalizeRatingStats({});
+      const feedbackStats = ratingStats.ratingCount > 0
+        ? null
+        : await getFeedbackRatingStats(snapshot.id).catch(() => normalizeRatingStats({}));
       return res.status(200).json({
         product: normalizeProduct(
           raw,
           snapshot.id,
-          ratingSnapshot.exists() ? ratingSnapshot.data() : null,
+          ratingStats.ratingCount > 0 ? ratingStats : feedbackStats,
           pricingContext
         ),
       });
@@ -262,10 +311,16 @@ export default async function handler(req, res) {
               }
               return staticById.get(productId) || null;
             }
+            const ratingStats = ratingSnap?.exists()
+              ? normalizeRatingStats(ratingSnap.data())
+              : normalizeRatingStats({});
+            const feedbackStats = ratingStats.ratingCount > 0
+              ? null
+              : await getFeedbackRatingStats(effectiveId).catch(() => normalizeRatingStats({}));
             return normalizeProduct(
               raw,
               effectiveId,
-              ratingSnap?.exists() ? ratingSnap.data() : null,
+              ratingStats.ratingCount > 0 ? ratingStats : feedbackStats,
               pricingContext
             );
           })
@@ -297,6 +352,7 @@ export default async function handler(req, res) {
     const ratingStatsByProductId = new Map(
       ratingsSnapshot.docs.map((ratingDoc) => [ratingDoc.id, ratingDoc.data()])
     );
+    const feedbackStatsByProductId = await getFeedbackRatingStatsMap().catch(() => new Map());
     const checkedProducts = await Promise.all(
       snapshot.docs.map(async (item) => {
         const raw = item.data();
@@ -306,7 +362,14 @@ export default async function handler(req, res) {
           await deleteDoc(doc(db, "products", item.id)).catch(() => {});
           return null;
         }
-        return normalizeProduct(raw, item.id, ratingStatsByProductId.get(item.id), pricingContext);
+        const ratingStats = normalizeRatingStats(ratingStatsByProductId.get(item.id));
+        const feedbackStats = feedbackStatsByProductId.get(item.id) || normalizeRatingStats({});
+        return normalizeProduct(
+          raw,
+          item.id,
+          ratingStats.ratingCount > 0 ? ratingStats : feedbackStats,
+          pricingContext
+        );
       })
     );
     const products = checkedProducts.filter((item) => item && item.id && item.storageKey);

@@ -42,6 +42,7 @@ const TYPE_OPTIONS = [
 
 const SORT_OPTIONS = [
   { value: "default", label: "Sort by" },
+  { value: "date-added", label: "Date Added" },
   { value: "price-low", label: "Price: Low to High" },
   { value: "price-high", label: "Price: High to Low" },
   { value: "title", label: "Title: A-Z" }
@@ -899,6 +900,12 @@ export default function WorksheetShop({
       sorted.sort((a, b) => a.price - b.price);
     } else if (sortBy === "price-high") {
       sorted.sort((a, b) => b.price - a.price);
+    } else if (sortBy === "date-added") {
+      sorted.sort((a, b) => {
+        const firstDate = Number(a.createdAt || a.updatedAt || 0);
+        const secondDate = Number(b.createdAt || b.updatedAt || 0);
+        return secondDate - firstDate;
+      });
     } else if (sortBy === "title") {
       sorted.sort((a, b) => a.title.localeCompare(b.title));
     }
