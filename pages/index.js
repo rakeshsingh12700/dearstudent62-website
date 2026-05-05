@@ -650,7 +650,7 @@ export default function Home() {
               </Link>
             </div>
             <div className="home-rail__track" role="list" aria-label="Popular worksheets">
-              {(railsLoaded ? popularRail : []).map((item) => {
+              {(railsLoaded ? popularRail : []).map((item, index) => {
                 const singleItemPrice = getDiscountedUnitPrice(item.price, item.displayCurrency, 1);
                 const twoPlusItemPrice = getDiscountedUnitPrice(item.price, item.displayCurrency, 2);
                 const hasSingleDiscount = hasDisplayPriceChange(
@@ -680,6 +680,11 @@ export default function Home() {
                             width={520}
                             height={340}
                             className="home-rail-card__thumb"
+                            priority={index < 4}
+                            loading={index < 4 ? "eager" : "lazy"}
+                            fetchPriority={index < 4 ? "high" : "auto"}
+                            sizes="(max-width: 767px) 72vw, (max-width: 1099px) 38vw, 26vw"
+                            quality={72}
                             unoptimized
                           />
                         ) : (
@@ -821,7 +826,7 @@ export default function Home() {
               </Link>
             </div>
             <div className="home-rail__track" role="list" aria-label="Recently added worksheets">
-              {(railsLoaded ? recentRail : []).map((item) => {
+              {(railsLoaded ? recentRail : []).map((item, index) => {
                 const singleItemPrice = getDiscountedUnitPrice(item.price, item.displayCurrency, 1);
                 const twoPlusItemPrice = getDiscountedUnitPrice(item.price, item.displayCurrency, 2);
                 const hasSingleDiscount = hasDisplayPriceChange(
@@ -851,6 +856,11 @@ export default function Home() {
                             width={520}
                             height={340}
                             className="home-rail-card__thumb"
+                            priority={index < 4}
+                            loading={index < 4 ? "eager" : "lazy"}
+                            fetchPriority={index < 4 ? "high" : "auto"}
+                            sizes="(max-width: 767px) 72vw, (max-width: 1099px) 38vw, 26vw"
+                            quality={72}
                             unoptimized
                           />
                         ) : (

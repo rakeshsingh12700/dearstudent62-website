@@ -1502,12 +1502,17 @@ export default function WorksheetShop({
                         aria-label={`Open ${product.title}`}
                       >
                         {thumbnailUrl ? (
-                          <img
+                          <Image
                             src={thumbnailUrl}
                             alt={`${product.title} thumbnail`}
+                            width={640}
+                            height={640}
+                            sizes="(max-width: 767px) 45vw, (max-width: 1099px) 31vw, 22vw"
+                            priority={prioritizeThumbnail}
                             loading={prioritizeThumbnail ? "eager" : "lazy"}
                             fetchPriority={prioritizeThumbnail ? "high" : "auto"}
-                            decoding="async"
+                            quality={72}
+                            unoptimized
                           />
                         ) : (
                           <div className="worksheet-card__thumb-fallback">
