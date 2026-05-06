@@ -13,6 +13,8 @@ import { getDiscountedUnitPrice, getLaunchDiscountRate, hasDisplayPriceChange } 
 import { buildRatingStars, formatRatingAverage, normalizeRatingStats } from "../lib/productRatings";
 import { getSubjectBadgeClass, getSubjectLabel } from "../lib/subjectBadge";
 
+const USE_STATIC_PRODUCTS_IN_DEV = process.env.NODE_ENV !== "production";
+
 const CLASS_OPTIONS = [
   { value: "all", label: "All" },
   { value: "pre-nursery", label: "Pre-Nursery" },
@@ -608,6 +610,14 @@ export default function WorksheetShop({
   }, []);
 
   useEffect(() => {
+    if (USE_STATIC_PRODUCTS_IN_DEV) {
+      if (typeof window === "undefined") return undefined;
+      const timer = window.setTimeout(() => {
+        setPricesRefreshing(false);
+      }, 0);
+      return () => window.clearTimeout(timer);
+    }
+
     let cancelled = false;
     const loadProducts = async () => {
       try {

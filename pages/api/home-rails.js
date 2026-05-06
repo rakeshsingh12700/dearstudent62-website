@@ -1,4 +1,5 @@
 import { collection, doc, getDoc, getDocs, limit, query, setDoc } from "firebase/firestore";
+import staticProducts from "../../data/products";
 import { db } from "../../firebase/config";
 import { getAdminDb } from "../../lib/firebaseAdmin";
 import {
@@ -10,6 +11,7 @@ import {
 const CACHE_COLLECTION = "site_cache";
 const CACHE_DOC_ID = "home-rails-v1";
 const CACHE_TTL_MS = 5 * 60 * 1000;
+const FIRESTORE_TIMEOUT_MS = 2500;
 const RAIL_SIZE = 12;
 const CACHE_SIZE = 24;
 
@@ -91,6 +93,19 @@ function normalizeCachedItem(raw) {
     purchaseCount: Number.isFinite(purchaseCount) && purchaseCount > 0 ? purchaseCount : 0,
     createdAtMs: Number(raw?.createdAtMs || 0),
   };
+}
+
+function withTimeout(promise, timeoutMs, label) {
+  let timeoutId;
+  const timeoutPromise = new Promise((_, reject) => {
+    timeoutId = setTimeout(() => {
+      reject(new Error(`${label} timed out after ${timeoutMs}ms`));
+    }, timeoutMs);
+  });
+
+  return Promise.race([promise, timeoutPromise]).finally(() => {
+    clearTimeout(timeoutId);
+  });
 }
 
 function parsePositiveQuantity(rawValue, fallback = 1) {
@@ -189,6 +204,18 @@ function buildRails(products = [], purchaseCountByProductId = new Map()) {
     }));
 
   return { popular, recent };
+}
+
+function buildStaticFallbackRails() {
+  const products = (Array.isArray(staticProducts) ? staticProducts : [])
+    .map((item) => normalizeProduct(item, item?.id))
+    .filter((item) => item.id);
+
+  if (products.length === 0) {
+    return { popular: [], recent: [] };
+  }
+
+  return buildRails(products);
 }
 
 async function computeRailsFromFirestore() {
@@ -308,11 +335,21 @@ export default async function handler(req, res) {
     const countryCode = detectCountryFromRequest(req);
     const currencyOverride = getCurrencyOverrideFromRequest(req);
     const pricingContext = { countryCode, currencyOverride };
+    const staticFallbackRails = buildStaticFallbackRails();
+    if (process.env.NODE_ENV !== "production") {
+      const popular = applyPricing(staticFallbackRails.popular, pricingContext).slice(0, RAIL_SIZE);
+      const recent = applyPricing(staticFallbackRails.recent, pricingContext).slice(0, RAIL_SIZE);
+      return res.status(200).json({ popular, recent });
+    }
 
-    const cachedRails = await readCachedRails();
+    const cachedRails = await withTimeout(
+      readCachedRails(),
+      FIRESTORE_TIMEOUT_MS,
+      "Reading home rails cache"
+    ).catch(() => null);
     let rails = cachedRails
       ? { popular: cachedRails.popular, recent: cachedRails.recent }
-      : null;
+      : staticFallbackRails;
 
     const cacheAgeMs = Number.isFinite(Number(cachedRails?.generatedAtMs))
       ? Math.max(0, Date.now() - Number(cachedRails.generatedAtMs || 0))
@@ -321,11 +358,15 @@ export default async function handler(req, res) {
 
     if (shouldRefresh) {
       try {
-        const freshRails = await computeRailsFromFirestore();
+        const freshRails = await withTimeout(
+          computeRailsFromFirestore(),
+          FIRESTORE_TIMEOUT_MS,
+          "Computing home rails"
+        );
         rails = freshRails;
         await writeCachedRails(freshRails).catch(() => {});
       } catch (error) {
-        if (!rails) throw error;
+        console.warn("Home rails refresh skipped:", error);
       }
     }
 

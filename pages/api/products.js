@@ -183,6 +183,27 @@ export default async function handler(req, res) {
     const staticList = getStaticProducts(pricingContext);
     const staticById = new Map(staticList.map((item) => [item.id, item]));
 
+    if (process.env.NODE_ENV !== "production") {
+      if (id) {
+        const fallback = staticById.get(id);
+        if (!fallback) return res.status(404).json({ error: "Product not found" });
+        return res.status(200).json({ product: fallback });
+      }
+
+      if (idsRaw) {
+        const ids = idsRaw
+          .split(",")
+          .map((item) => String(item || "").trim())
+          .filter(Boolean)
+          .slice(0, 10);
+        return res.status(200).json({
+          products: ids.map((productId) => staticById.get(productId)).filter(Boolean),
+        });
+      }
+
+      return res.status(200).json({ products: staticList });
+    }
+
     if (id) {
       let snapshot;
       let ratingSnapshot;
