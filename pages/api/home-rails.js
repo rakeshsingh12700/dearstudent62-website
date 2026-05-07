@@ -55,6 +55,28 @@ function appendVersion(urlValue, version) {
   return nextQuery ? `${path}?${nextQuery}` : path;
 }
 
+function resolveAssetBaseUrl() {
+  const raw = String(process.env.NEXT_PUBLIC_R2_PUBLIC_BASE_URL || "").trim();
+  if (raw) return raw.replace(/\/+$/, "");
+  return "https://cdn.dearstudent.in";
+}
+
+function toCdnAssetUrl(urlValue) {
+  const raw = String(urlValue || "").trim();
+  if (!raw) return "";
+  if (/^https?:\/\//i.test(raw)) return raw;
+  if (raw.startsWith("/api/thumbnail")) {
+    const query = raw.includes("?") ? raw.slice(raw.indexOf("?") + 1) : "";
+    const params = new URLSearchParams(query);
+    const key = String(params.get("key") || params.get("file") || "").trim();
+    if (key) {
+      return `${resolveAssetBaseUrl()}/${encodeURIComponent(key).replace(/%2F/gi, "/")}`;
+    }
+  }
+  if (raw.startsWith("/")) return `${resolveAssetBaseUrl()}${raw}`;
+  return `${resolveAssetBaseUrl()}/${raw}`;
+}
+
 function normalizeProduct(raw, fallbackId = "") {
   const purchaseCount = Number(
     raw?.purchaseCount ?? raw?.purchases ?? raw?.soldCount ?? raw?.totalSales ?? 0
@@ -66,8 +88,8 @@ function normalizeProduct(raw, fallbackId = "") {
     subject: toSlug(raw?.subject) || "",
     type: toSlug(raw?.type) || "worksheet",
     storageKey: String(raw?.storageKey || "").trim(),
-    imageUrl: String(raw?.imageUrl || "").trim(),
-    previewImageUrl: String(raw?.previewImageUrl || "").trim(),
+    imageUrl: toCdnAssetUrl(raw?.imageUrl),
+    previewImageUrl: toCdnAssetUrl(raw?.previewImageUrl),
     priceINR: Number(raw?.price || 0),
     purchaseCount: Number.isFinite(purchaseCount) && purchaseCount > 0 ? purchaseCount : 0,
     createdAtMs: Math.max(toDateMs(raw?.createdAt), toDateMs(raw?.updatedAt)),
@@ -85,8 +107,8 @@ function normalizeCachedItem(raw) {
     subject: toSlug(raw?.subject) || "",
     type: toSlug(raw?.type) || "worksheet",
     storageKey: String(raw?.storageKey || "").trim(),
-    imageUrl: String(raw?.imageUrl || "").trim(),
-    previewImageUrl: String(raw?.previewImageUrl || "").trim(),
+    imageUrl: toCdnAssetUrl(raw?.imageUrl),
+    previewImageUrl: toCdnAssetUrl(raw?.previewImageUrl),
     priceINR: Number(raw?.priceINR || 0),
     purchaseCount: Number.isFinite(purchaseCount) && purchaseCount > 0 ? purchaseCount : 0,
     createdAtMs: Number(raw?.createdAtMs || 0),
