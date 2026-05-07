@@ -1,5 +1,4 @@
-import { HeadObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { collection, deleteDoc, doc, getDoc, getDocs, limit, query } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, limit, query } from "firebase/firestore";
 import staticProducts from "../../data/products";
 import { db } from "../../firebase/config";
 import { normalizeRatingStats } from "../../lib/productRatings";
@@ -8,6 +7,10 @@ import {
   detectCountryFromRequest,
   getCurrencyOverrideFromRequest,
 } from "../../lib/pricing";
+
+const CACHE_TTL_MS = 60 * 1000;
+const listCache = new Map();
+const idsCache = new Map();
 
 function toSlug(value) {
   return String(value || "")
@@ -131,24 +134,6 @@ function normalizeProduct(raw, fallbackId = "", rawStats = null, pricingContext 
   };
 }
 
-function getR2Client() {
-  const accountId = String(process.env.R2_ACCOUNT_ID || "").trim();
-  const accessKeyId = String(process.env.R2_ACCESS_KEY_ID || "").trim();
-  const secretAccessKey = String(process.env.R2_SECRET_ACCESS_KEY || "").trim();
-
-  if (!accountId || !accessKeyId || !secretAccessKey) return null;
-
-  return new S3Client({
-    region: "auto",
-    endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
-    forcePathStyle: true,
-    credentials: {
-      accessKeyId,
-      secretAccessKey,
-    },
-  });
-}
-
 function isFirestorePermissionError(error) {
   const code = String(error?.code || error?.name || "").toLowerCase();
   return code.includes("permission-denied");
@@ -172,23 +157,6 @@ function getStaticProducts(pricingContext = {}) {
     .filter((item) => item && item.id);
 }
 
-async function r2ObjectExists(r2Client, bucket, key) {
-  if (!r2Client || !bucket || !key) return true;
-  try {
-    await r2Client.send(
-      new HeadObjectCommand({
-        Bucket: bucket,
-        Key: key,
-      })
-    );
-    return true;
-  } catch (error) {
-    const code = String(error?.name || error?.Code || "");
-    if (code === "NotFound" || code === "NoSuchKey") return false;
-    throw error;
-  }
-}
-
 export default async function handler(req, res) {
   if (req.method !== "GET") {
     return res.status(405).json({ error: "Method not allowed" });
@@ -200,10 +168,9 @@ export default async function handler(req, res) {
     const countryCode = detectCountryFromRequest(req);
     const currencyOverride = getCurrencyOverrideFromRequest(req);
     const pricingContext = { countryCode, currencyOverride };
-    const r2Client = getR2Client();
-    const bucket = String(process.env.R2_BUCKET_NAME || "").trim();
     const id = String(req.query.id || "").trim();
     const idsRaw = String(req.query.ids || "").trim();
+    const cacheKeyBase = `${pricingContext.countryCode || "XX"}|${pricingContext.currencyOverride || "auto"}`;
     const staticList = getStaticProducts(pricingContext);
     const staticById = new Map(staticList.map((item) => [item.id, item]));
 
@@ -227,11 +194,6 @@ export default async function handler(req, res) {
         return res.status(404).json({ error: "Product not found" });
       }
       const raw = snapshot.data();
-      const exists = await r2ObjectExists(r2Client, bucket, String(raw?.storageKey || "").trim());
-      if (!exists) {
-        await deleteDoc(doc(db, "products", snapshot.id)).catch(() => {});
-        return res.status(404).json({ error: "Product not found" });
-      }
       return res.status(200).json({
         product: normalizeProduct(
           raw,
@@ -251,6 +213,12 @@ export default async function handler(req, res) {
 
       if (ids.length === 0) {
         return res.status(200).json({ products: [] });
+      }
+
+      const idsCacheKey = `${cacheKeyBase}|${ids.join(",")}`;
+      const cachedIdsEntry = idsCache.get(idsCacheKey);
+      if (cachedIdsEntry && cachedIdsEntry.expiresAt > Date.now()) {
+        return res.status(200).json({ products: cachedIdsEntry.products });
       }
 
       let snapshots;
@@ -279,13 +247,6 @@ export default async function handler(req, res) {
               return staticById.get(productId) || null;
             }
 
-            const exists = await r2ObjectExists(r2Client, bucket, String(raw?.storageKey || "").trim());
-            if (!exists) {
-              if (activeSnap.exists()) {
-                await deleteDoc(doc(db, "products", activeSnap.id)).catch(() => {});
-              }
-              return staticById.get(productId) || null;
-            }
             return normalizeProduct(
               raw,
               effectiveId,
@@ -302,7 +263,18 @@ export default async function handler(req, res) {
         throw error;
       }
 
-      return res.status(200).json({ products: snapshots.filter(Boolean) });
+      const filteredProducts = snapshots.filter(Boolean);
+      idsCache.set(idsCacheKey, {
+        expiresAt: Date.now() + CACHE_TTL_MS,
+        products: filteredProducts,
+      });
+      return res.status(200).json({ products: filteredProducts });
+    }
+
+    const listCacheKey = `${cacheKeyBase}|all`;
+    const cachedListEntry = listCache.get(listCacheKey);
+    if (cachedListEntry && cachedListEntry.expiresAt > Date.now()) {
+      return res.status(200).json({ products: cachedListEntry.products });
     }
 
     let snapshot;
@@ -321,19 +293,14 @@ export default async function handler(req, res) {
     const ratingStatsByProductId = new Map(
       ratingsSnapshot.docs.map((ratingDoc) => [ratingDoc.id, ratingDoc.data()])
     );
-    const checkedProducts = await Promise.all(
-      snapshot.docs.map(async (item) => {
-        const raw = item.data();
-        const storageKey = String(raw?.storageKey || "").trim();
-        const exists = await r2ObjectExists(r2Client, bucket, storageKey);
-        if (!exists) {
-          await deleteDoc(doc(db, "products", item.id)).catch(() => {});
-          return null;
-        }
-        return normalizeProduct(raw, item.id, ratingStatsByProductId.get(item.id), pricingContext);
-      })
-    );
-    const products = checkedProducts.filter((item) => item && item.id && item.storageKey);
+    const products = snapshot.docs
+      .map((item) => normalizeProduct(item.data(), item.id, ratingStatsByProductId.get(item.id), pricingContext))
+      .filter((item) => item && item.id && item.storageKey);
+
+    listCache.set(listCacheKey, {
+      expiresAt: Date.now() + CACHE_TTL_MS,
+      products,
+    });
 
     return res.status(200).json({ products });
   } catch (error) {
