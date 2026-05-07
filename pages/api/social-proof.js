@@ -18,7 +18,7 @@ export default async function handler(req, res) {
   }
 
   const fallback =
-    String(process.env.NEXT_PUBLIC_INSTAGRAM_FOLLOWERS_LABEL || "").trim() || "122k+";
+    String(process.env.NEXT_PUBLIC_INSTAGRAM_FOLLOWERS_LABEL || "").trim() || "174k+";
   const igUserId = String(process.env.INSTAGRAM_USER_ID || "").trim();
   const igToken = String(process.env.INSTAGRAM_GRAPH_ACCESS_TOKEN || "").trim();
   const graphVersion = String(process.env.INSTAGRAM_GRAPH_VERSION || "").trim() || "v21.0";
