@@ -51,6 +51,30 @@ function appendVersion(urlValue, version) {
   return nextQuery ? `${path}?${nextQuery}` : path;
 }
 
+function resolveAssetBaseUrl() {
+  const raw = String(process.env.NEXT_PUBLIC_R2_PUBLIC_BASE_URL || "").trim();
+  if (raw) return raw.replace(/\/+$/, "");
+  return "https://cdn.dearstudent.in";
+}
+
+function toCdnAssetUrl(urlValue) {
+  const raw = String(urlValue || "").trim();
+  if (!raw) return "";
+  if (/^https?:\/\//i.test(raw)) return raw;
+
+  if (raw.startsWith("/api/thumbnail")) {
+    const query = raw.includes("?") ? raw.slice(raw.indexOf("?") + 1) : "";
+    const params = new URLSearchParams(query);
+    const key = String(params.get("key") || params.get("file") || "").trim();
+    if (key) {
+      return `${resolveAssetBaseUrl()}/${encodeURIComponent(key).replace(/%2F/gi, "/")}`;
+    }
+  }
+
+  if (raw.startsWith("/")) return `${resolveAssetBaseUrl()}${raw}`;
+  return `${resolveAssetBaseUrl()}/${raw}`;
+}
+
 function mergeRatingStats(rawProduct, rawStats) {
   const fromStats = normalizeRatingStats(rawStats || {});
   if (fromStats.ratingCount > 0) return fromStats;
@@ -62,10 +86,10 @@ function normalizeProduct(raw, fallbackId = "", rawStats = null, pricingContext 
   const normalizedType = toSlug(raw?.type) || "worksheet";
   const normalizedSubject = toSlug(raw?.subject) || "";
   const storageKey = String(raw?.storageKey || "").trim();
-  const imageUrl = String(raw?.imageUrl || "").trim();
-  const imageOriginalUrl = String(raw?.imageOriginalUrl || "").trim();
-  const previewImageUrl = String(raw?.previewImageUrl || "").trim();
-  const previewImageOriginalUrl = String(raw?.previewImageOriginalUrl || "").trim();
+  const imageUrl = toCdnAssetUrl(raw?.imageUrl);
+  const imageOriginalUrl = toCdnAssetUrl(raw?.imageOriginalUrl);
+  const previewImageUrl = toCdnAssetUrl(raw?.previewImageUrl);
+  const previewImageOriginalUrl = toCdnAssetUrl(raw?.previewImageOriginalUrl);
   const imageVersion = Math.max(toDateMs(raw?.updatedAt), toDateMs(raw?.createdAt), 0);
   const ratingStats = mergeRatingStats(raw, rawStats);
   const basePriceINR = Number(raw?.price || 0);

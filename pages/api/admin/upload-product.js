@@ -152,6 +152,18 @@ function extensionForContentType(contentType, fallback = "") {
   return ".bin";
 }
 
+function resolveAssetBaseUrl() {
+  const raw = String(process.env.NEXT_PUBLIC_R2_PUBLIC_BASE_URL || "").trim();
+  if (raw) return raw.replace(/\/+$/, "");
+  return "https://cdn.dearstudent.in";
+}
+
+function toCdnAssetUrl(key) {
+  const normalizedKey = String(key || "").trim();
+  if (!normalizedKey) return "";
+  return `${resolveAssetBaseUrl()}/${encodeURIComponent(normalizedKey).replace(/%2F/gi, "/")}`;
+}
+
 function isJsonRequest(req) {
   const contentType = String(req.headers?.["content-type"] || "").toLowerCase();
   return contentType.includes("application/json");
@@ -733,13 +745,13 @@ export default async function handler(req, res) {
       ageLabel,
       hideAgeLabel,
       storageKey: pdfKey,
-      imageUrl: `/api/thumbnail?key=${encodeURIComponent(coverThumbKey || coverKey)}`,
-      imageOriginalUrl: `/api/thumbnail?key=${encodeURIComponent(coverKey)}`,
+      imageUrl: toCdnAssetUrl(coverThumbKey || coverKey),
+      imageOriginalUrl: toCdnAssetUrl(coverKey),
       previewImageUrl: showPreviewPage && previewPageKey
-        ? `/api/thumbnail?key=${encodeURIComponent(previewThumbKey || previewPageKey)}`
+        ? toCdnAssetUrl(previewThumbKey || previewPageKey)
         : "",
       previewImageOriginalUrl: showPreviewPage && previewPageKey
-        ? `/api/thumbnail?key=${encodeURIComponent(previewPageKey)}`
+        ? toCdnAssetUrl(previewPageKey)
         : "",
       showPreviewPage: Boolean(showPreviewPage),
       updatedBy: adminUser.email,
