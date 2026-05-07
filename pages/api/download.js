@@ -238,6 +238,22 @@ async function getProductByStorageKey(key) {
   }
 }
 
+function sanitizeAsciiFilename(fileName) {
+  const cleaned = String(fileName || "")
+    .replace(/[\r\n"]/g, "")
+    .replace(/[^\x20-\x7E]/g, "-")
+    .replace(/\s+/g, " ")
+    .trim();
+  return cleaned || "download.pdf";
+}
+
+function buildContentDisposition(fileName) {
+  const raw = String(fileName || "").trim() || "download.pdf";
+  const ascii = sanitizeAsciiFilename(raw);
+  const encoded = encodeURIComponent(raw);
+  return `attachment; filename="${ascii}"; filename*=UTF-8''${encoded}`;
+}
+
 export default async function handler(req, res) {
   if (req.method !== "GET") {
     return res.status(405).json({ error: "Method not allowed" });
@@ -293,16 +309,17 @@ export default async function handler(req, res) {
     }
 
     const fileName = requestedKey.replace(/"/g, "");
+    const disposition = buildContentDisposition(fileName);
     const command = new GetObjectCommand({
       Bucket: bucket,
       Key: downloadKey,
       ResponseContentType: "application/pdf",
-      ResponseContentDisposition: `attachment; filename="${fileName}"`,
+      ResponseContentDisposition: disposition,
     });
     const object = await r2Client.send(command);
     res.setHeader("Cache-Control", "no-store");
     res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
+    res.setHeader("Content-Disposition", disposition);
 
     const body = object?.Body;
     if (body && typeof body.pipe === "function") {
