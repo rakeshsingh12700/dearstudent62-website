@@ -522,10 +522,8 @@ export default function WorksheetShop({
   initialMobileView = "library"
 }) {
   const router = useRouter();
-  const [products, setProducts] = useState(() => (Array.isArray(staticProducts) ? staticProducts : []));
-  const [productsLoaded, setProductsLoaded] = useState(
-    () => Array.isArray(staticProducts) && staticProducts.length > 0
-  );
+  const [products, setProducts] = useState([]);
+  const [productsLoaded, setProductsLoaded] = useState(false);
   const [currencyRefreshKey, setCurrencyRefreshKey] = useState(0);
   const [selectedClass, setSelectedClass] = useState(toSlug(initialClass) || "all");
   const [selectedType, setSelectedType] = useState(normalizeType(initialType) || "all");

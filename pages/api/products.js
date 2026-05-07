@@ -157,6 +157,31 @@ function getStaticProducts(pricingContext = {}) {
     .filter((item) => item && item.id);
 }
 
+function toListProduct(item = {}) {
+  return {
+    id: item.id,
+    class: item.class,
+    type: item.type,
+    subject: item.subject,
+    topic: item.topic,
+    subtopic: item.subtopic,
+    title: item.title,
+    category: item.category,
+    subcategory: item.subcategory,
+    price: item.price,
+    displayPrice: item.displayPrice,
+    displayCurrency: item.displayCurrency,
+    displaySymbol: item.displaySymbol,
+    storageKey: item.storageKey,
+    imageUrl: item.imageUrl,
+    previewImageUrl: item.previewImageUrl,
+    showPreviewPage: item.showPreviewPage,
+    pages: item.pages,
+    averageRating: item.averageRating,
+    ratingCount: item.ratingCount,
+  };
+}
+
 export default async function handler(req, res) {
   if (req.method !== "GET") {
     return res.status(405).json({ error: "Method not allowed" });
@@ -296,13 +321,14 @@ export default async function handler(req, res) {
     const products = snapshot.docs
       .map((item) => normalizeProduct(item.data(), item.id, ratingStatsByProductId.get(item.id), pricingContext))
       .filter((item) => item && item.id && item.storageKey);
+    const listProducts = products.map(toListProduct);
 
     listCache.set(listCacheKey, {
       expiresAt: Date.now() + CACHE_TTL_MS,
-      products,
+      products: listProducts,
     });
 
-    return res.status(200).json({ products });
+    return res.status(200).json({ products: listProducts });
   } catch (error) {
     console.error("Products API failed:", error);
     return res.status(500).json({ error: "Failed to load products" });
