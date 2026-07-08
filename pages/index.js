@@ -204,7 +204,7 @@ export default function Home() {
   const [cardsPerRail, setCardsPerRail] = useState(4);
   const [cartNoticeById, setCartNoticeById] = useState({});
   const [cartQtyById, setCartQtyById] = useState({});
-  const [instagramFollowersLabel, setInstagramFollowersLabel] = useState("174k+");
+  const [instagramFollowersLabel, setInstagramFollowersLabel] = useState("240k+");
   const [previewState, setPreviewState] = useState(null);
   const [shareMenuCardKey, setShareMenuCardKey] = useState("");
   const [shareStatus, setShareStatus] = useState({ cardKey: "", message: "" });
