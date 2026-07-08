@@ -15,7 +15,7 @@ export default function Worksheets() {
   const subtopicFromQuery =
     typeof router.query.subtopic === "string" ? router.query.subtopic : "all";
   const sortFromQuery =
-    typeof router.query.sort === "string" ? router.query.sort : "default";
+    typeof router.query.sort === "string" ? router.query.sort : "recent";
   const searchFromQuery =
     typeof router.query.q === "string" ? router.query.q : "";
   const mobileViewFromQuery =
