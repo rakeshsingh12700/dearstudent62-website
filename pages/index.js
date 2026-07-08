@@ -113,6 +113,27 @@ function formatPrice(value, symbol, currency) {
   return `${normalizedSymbol} ${formatted}`;
 }
 
+function RailThumbnail({ item }) {
+  const [failed, setFailed] = useState(false);
+  const thumbnailUrl = String(item?.imageUrl || "").trim();
+
+  if (!thumbnailUrl || failed) {
+    return <div className="home-rail-card__thumb-fallback">Worksheet</div>;
+  }
+
+  return (
+    <Image
+      src={thumbnailUrl}
+      alt={`${item.title} thumbnail`}
+      width={520}
+      height={340}
+      className="home-rail-card__thumb"
+      unoptimized
+      onError={() => setFailed(true)}
+    />
+  );
+}
+
 function EyeIcon() {
   return (
     <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false">
@@ -330,7 +351,7 @@ export default function Home() {
     const syncCardsPerRail = () => {
       const width = window.innerWidth;
       if (width < 760) {
-        setCardsPerRail(2);
+        setCardsPerRail(4);
         return;
       }
       if (width < 1100) {
@@ -362,10 +383,15 @@ export default function Home() {
     () => rails.popular.slice(0, cardsPerRail),
     [rails.popular, cardsPerRail]
   );
-  const recentRail = useMemo(
-    () => rails.recent.slice(0, cardsPerRail),
-    [rails.recent, cardsPerRail]
-  );
+  const recentRail = useMemo(() => {
+    const popularIds = new Set(popularRail.map((item) => String(item?.id || "").trim()));
+    return rails.recent
+      .filter((item) => {
+        const id = String(item?.id || "").trim();
+        return id && !popularIds.has(id);
+      })
+      .slice(0, cardsPerRail);
+  }, [cardsPerRail, popularRail, rails.recent]);
 
   const addRailItemToCart = (item) => {
     if (typeof window === "undefined" || !item?.id) return;
@@ -664,7 +690,6 @@ export default function Home() {
                   item.displayCurrency
                 );
                 const cardKey = `popular-${item.id}`;
-                const thumbnailUrl = String(item.imageUrl || "").trim();
                 return (
                   <article className="home-rail-card" role="listitem" key={cardKey}>
                     <div className="home-rail-card__media">
@@ -673,18 +698,7 @@ export default function Home() {
                         className="home-rail-card__media-link"
                         aria-label={`Open ${item.title}`}
                       >
-                        {thumbnailUrl ? (
-                          <Image
-                            src={thumbnailUrl}
-                            alt={`${item.title} thumbnail`}
-                            width={520}
-                            height={340}
-                            className="home-rail-card__thumb"
-                            unoptimized
-                          />
-                        ) : (
-                          <div className="home-rail-card__thumb-fallback">Worksheet</div>
-                        )}
+                        <RailThumbnail item={item} />
                       </Link>
                       <button
                         type="button"
@@ -835,7 +849,6 @@ export default function Home() {
                   item.displayCurrency
                 );
                 const cardKey = `recent-${item.id}`;
-                const thumbnailUrl = String(item.imageUrl || "").trim();
                 return (
                   <article className="home-rail-card" role="listitem" key={cardKey}>
                     <div className="home-rail-card__media">
@@ -844,18 +857,7 @@ export default function Home() {
                         className="home-rail-card__media-link"
                         aria-label={`Open ${item.title}`}
                       >
-                        {thumbnailUrl ? (
-                          <Image
-                            src={thumbnailUrl}
-                            alt={`${item.title} thumbnail`}
-                            width={520}
-                            height={340}
-                            className="home-rail-card__thumb"
-                            unoptimized
-                          />
-                        ) : (
-                          <div className="home-rail-card__thumb-fallback">Worksheet</div>
-                        )}
+                        <RailThumbnail item={item} />
                       </Link>
                       <button
                         type="button"

@@ -1,7 +1,6 @@
 import nextEnv from "@next/env";
-import { initializeApp } from "firebase/app";
-import { collection, doc, getDocs, limit, query, setDoc } from "firebase/firestore";
-import { getFirestore } from "firebase/firestore";
+import { cert, getApp, getApps, initializeApp } from "firebase-admin/app";
+import { getFirestore } from "firebase-admin/firestore";
 
 const ROOT_DIR = process.cwd();
 const { loadEnvConfig } = nextEnv;
@@ -11,25 +10,47 @@ const CACHE_COLLECTION = "site_cache";
 const CACHE_DOC_ID = "home-rails-v1";
 const CACHE_SIZE = 24;
 
-function requireEnv(name) {
-  const value = String(process.env[name] || "").trim();
-  if (!value) {
-    throw new Error(`Missing required env var: ${name}`);
-  }
-  return value;
+function normalizePrivateKey(rawValue) {
+  return String(rawValue || "")
+    .trim()
+    .replace(/\\n/g, "\n");
 }
 
-const firebaseConfig = {
-  apiKey: requireEnv("NEXT_PUBLIC_FIREBASE_API_KEY"),
-  authDomain: requireEnv("NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN"),
-  projectId: requireEnv("NEXT_PUBLIC_FIREBASE_PROJECT_ID"),
-  storageBucket: requireEnv("NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET"),
-  messagingSenderId: requireEnv("NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID"),
-  appId: requireEnv("NEXT_PUBLIC_FIREBASE_APP_ID"),
-};
+function parseServiceAccountFromEnv() {
+  const raw = String(process.env.FIREBASE_SERVICE_ACCOUNT_JSON || "").trim();
+  if (raw) {
+    try {
+      const parsed = JSON.parse(raw);
+      const projectId = String(parsed?.project_id || parsed?.projectId || "").trim();
+      const clientEmail = String(parsed?.client_email || parsed?.clientEmail || "").trim();
+      const privateKey = normalizePrivateKey(parsed?.private_key || parsed?.privateKey);
+      if (projectId && clientEmail && privateKey) {
+        return { projectId, clientEmail, privateKey };
+      }
+    } catch {
+      // Continue with split vars.
+    }
+  }
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+  const projectId = String(
+    process.env.FIREBASE_ADMIN_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || ""
+  ).trim();
+  const clientEmail = String(process.env.FIREBASE_ADMIN_CLIENT_EMAIL || "").trim();
+  const privateKey = normalizePrivateKey(process.env.FIREBASE_ADMIN_PRIVATE_KEY || "");
+
+  if (!projectId || !clientEmail || !privateKey) return null;
+  return { projectId, clientEmail, privateKey };
+}
+
+function getAdminDb() {
+  const serviceAccount = parseServiceAccountFromEnv();
+  if (!serviceAccount) {
+    throw new Error("Missing Firebase admin credentials in environment");
+  }
+
+  const app = getApps().length > 0 ? getApp() : initializeApp({ credential: cert(serviceAccount) });
+  return getFirestore(app);
+}
 
 function toSlug(value) {
   return String(value || "")
@@ -79,99 +100,35 @@ function normalizeProduct(raw, fallbackId = "") {
   };
 }
 
-function parsePositiveQuantity(rawValue, fallback = 1) {
-  const parsed = Number(rawValue);
-  if (Number.isFinite(parsed) && parsed > 0) return parsed;
-  return fallback;
-}
-
-function incrementPurchaseCount(map, productId, quantity = 1) {
-  const normalizedProductId = String(productId || "").trim();
-  if (!normalizedProductId) return;
-  map.set(
-    normalizedProductId,
-    Number(map.get(normalizedProductId) || 0) + parsePositiveQuantity(quantity, 1)
-  );
-}
-
-function accumulatePurchaseCounts(rawPurchase = {}, purchaseCountByProductId = new Map()) {
-  const primaryProductId = String(rawPurchase?.productId || rawPurchase?.id || "").trim();
-  if (primaryProductId) {
-    incrementPurchaseCount(purchaseCountByProductId, primaryProductId, rawPurchase?.quantity);
-  }
-
-  const orderItems = Array.isArray(rawPurchase?.items)
-    ? rawPurchase.items
-    : Array.isArray(rawPurchase?.products)
-      ? rawPurchase.products
-      : [];
-
-  orderItems.forEach((item) => {
-    incrementPurchaseCount(
-      purchaseCountByProductId,
-      item?.productId || item?.id,
-      item?.quantity
-    );
-  });
-}
-
-function buildRails(products = [], purchaseCountByProductId = new Map()) {
+function buildRails(products = []) {
   const popular = [...products]
     .sort((first, second) => {
-      const firstCount = Number(
-        purchaseCountByProductId.get(first.id) ?? first.purchaseCount ?? 0
-      );
-      const secondCount = Number(
-        purchaseCountByProductId.get(second.id) ?? second.purchaseCount ?? 0
-      );
+      const firstCount = Number(first.purchaseCount || 0);
+      const secondCount = Number(second.purchaseCount || 0);
       if (secondCount !== firstCount) return secondCount - firstCount;
       return String(first.title).localeCompare(String(second.title));
     })
-    .slice(0, CACHE_SIZE)
-    .map((item) => ({
-      ...item,
-      purchaseCount: Number(
-        purchaseCountByProductId.get(item.id) ?? item.purchaseCount ?? 0
-      ),
-    }));
+    .slice(0, CACHE_SIZE);
 
   const recent = [...products]
     .sort((first, second) => {
       if (second.createdAtMs !== first.createdAtMs) return second.createdAtMs - first.createdAtMs;
       return String(first.title).localeCompare(String(second.title));
     })
-    .slice(0, CACHE_SIZE)
-    .map((item) => ({
-      ...item,
-      purchaseCount: Number(
-        purchaseCountByProductId.get(item.id) ?? item.purchaseCount ?? 0
-      ),
-    }));
+    .slice(0, CACHE_SIZE);
 
   return { popular, recent };
 }
 
 async function main() {
-  const productsSnapshot = await getDocs(query(collection(db, "products"), limit(1000)));
-
-  const purchaseCountByProductId = new Map();
-  try {
-    const purchasesSnapshot = await getDocs(query(collection(db, "purchases"), limit(5000)));
-    purchasesSnapshot.docs.forEach((docSnapshot) => {
-      const raw = docSnapshot.data() || {};
-      accumulatePurchaseCounts(raw, purchaseCountByProductId);
-    });
-  } catch {
-    // Firestore rules may block reads; keep product-level sale counts as fallback.
-  }
-
+  const db = getAdminDb();
+  const productsSnapshot = await db.collection("products").limit(1000).get();
   const products = productsSnapshot.docs
     .map((item) => normalizeProduct(item.data(), item.id))
     .filter((item) => item.id);
 
-  const rails = buildRails(products, purchaseCountByProductId);
-  await setDoc(
-    doc(db, CACHE_COLLECTION, CACHE_DOC_ID),
+  const rails = buildRails(products);
+  await db.collection(CACHE_COLLECTION).doc(CACHE_DOC_ID).set(
     {
       version: 1,
       generatedAt: new Date().toISOString(),

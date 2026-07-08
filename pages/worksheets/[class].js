@@ -16,7 +16,7 @@ export default function ClassPage() {
   const subtopicFromQuery =
     typeof query.subtopic === "string" ? query.subtopic.toLowerCase() : "all";
   const sortFromQuery =
-    typeof query.sort === "string" ? query.sort.toLowerCase() : "default";
+    typeof query.sort === "string" ? query.sort.toLowerCase() : "recent";
   const searchFromQuery =
     typeof query.q === "string" ? query.q : "";
   const mobileViewFromQuery =

@@ -5,6 +5,7 @@
   "scripts": {
     "generate:products": "node scripts/generate-products.mjs",
     "refresh:home-rails": "node scripts/refresh-home-rails.mjs",
+    "backfill:purchase-counts": "node scripts/backfill-product-purchase-counts.mjs",
     "backfill:thumbnails": "node scripts/backfill-product-thumbnails.mjs",
     "verify:pipeline": "node scripts/verify-performance-pipeline.mjs",
     "dev": "next dev -H 0.0.0.0",
