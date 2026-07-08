@@ -32,7 +32,18 @@ export default function SiteFooter() {
       <div className="container site-footer__inner">
         <div className="site-footer__top">
           <div className="site-footer__brand">
-            <strong>Dear Student</strong>
+            <div className="site-footer__brand-title">
+              <strong>Dear Student</strong>
+              <a
+                href={INSTAGRAM_PROFILE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="site-footer__brand-instagram"
+                aria-label="Dear Student on Instagram"
+              >
+                <InstagramIcon />
+              </a>
+            </div>
             <p>Playful printable worksheets for early learners.</p>
           </div>
 
