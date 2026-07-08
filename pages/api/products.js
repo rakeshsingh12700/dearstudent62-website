@@ -131,6 +131,7 @@ function normalizeProduct(raw, fallbackId = "", rawStats = null, pricingContext 
     pages: Number.isFinite(Number(raw?.pages)) ? Number(raw.pages) : 1,
     averageRating: ratingStats.averageRating,
     ratingCount: ratingStats.ratingCount,
+    createdAtMs: imageVersion,
   };
 }
 
@@ -179,6 +180,7 @@ function toListProduct(item = {}) {
     pages: item.pages,
     averageRating: item.averageRating,
     ratingCount: item.ratingCount,
+    createdAtMs: item.createdAtMs,
   };
 }
 

@@ -42,6 +42,7 @@ const TYPE_OPTIONS = [
 
 const SORT_OPTIONS = [
   { value: "default", label: "Sort by" },
+  { value: "recent", label: "Recent" },
   { value: "price-low", label: "Price: Low to High" },
   { value: "price-high", label: "Price: High to Low" },
   { value: "title", label: "Title: A-Z" }
@@ -342,6 +343,38 @@ function inferTaxonomy(product) {
 
 function getOptionLabel(options, value) {
   return options.find((item) => item.value === value)?.label || toLabel(value);
+}
+
+function toDateMs(rawValue) {
+  if (!rawValue) return 0;
+  if (typeof rawValue?.toDate === "function") {
+    const converted = rawValue.toDate();
+    return converted instanceof Date ? converted.getTime() : 0;
+  }
+  if (
+    typeof rawValue === "object" &&
+    rawValue !== null &&
+    Number.isFinite(Number(rawValue.seconds))
+  ) {
+    return Number(rawValue.seconds) * 1000;
+  }
+  if (rawValue instanceof Date) return rawValue.getTime();
+  if (typeof rawValue === "number") return Number.isFinite(rawValue) ? rawValue : 0;
+  if (typeof rawValue === "string") {
+    const parsed = Date.parse(rawValue);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+  return 0;
+}
+
+function getRecentSortValue(product, fallbackIndex = 0) {
+  return (
+    toDateMs(product?.createdAtMs) ||
+    toDateMs(product?.updatedAtMs) ||
+    toDateMs(product?.createdAt) ||
+    toDateMs(product?.updatedAt) ||
+    fallbackIndex
+  );
 }
 
 function isClassAgnosticWorksheet(product, taxonomy, normalizedType) {
@@ -892,6 +925,7 @@ export default function WorksheetShop({
       return classMatch && typeMatch && subjectMatch && topicMatch && subtopicMatch && searchMatch;
     });
 
+    const productOrder = new Map(products.map((product, index) => [product.id, index + 1]));
     const sorted = [...filtered];
     if (sortBy === "price-low") {
       sorted.sort((a, b) => a.price - b.price);
@@ -899,6 +933,12 @@ export default function WorksheetShop({
       sorted.sort((a, b) => b.price - a.price);
     } else if (sortBy === "title") {
       sorted.sort((a, b) => a.title.localeCompare(b.title));
+    } else if (sortBy === "recent") {
+      sorted.sort((a, b) => {
+        const firstFallback = productOrder.get(a.id) || 0;
+        const secondFallback = productOrder.get(b.id) || 0;
+        return getRecentSortValue(b, secondFallback) - getRecentSortValue(a, firstFallback);
+      });
     }
     return sorted;
   }, [
