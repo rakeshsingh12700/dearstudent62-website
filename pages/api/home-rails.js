@@ -9,7 +9,7 @@ import {
 
 const CACHE_COLLECTION = "site_cache";
 const CACHE_DOC_ID = "home-rails-v1";
-const CACHE_TTL_MS = 5 * 60 * 1000;
+const CACHE_TTL_MS = 30 * 60 * 1000;
 const RAIL_SIZE = 12;
 const CACHE_SIZE = 24;
 
@@ -115,42 +115,6 @@ function normalizeCachedItem(raw) {
   };
 }
 
-function parsePositiveQuantity(rawValue, fallback = 1) {
-  const parsed = Number(rawValue);
-  if (Number.isFinite(parsed) && parsed > 0) return parsed;
-  return fallback;
-}
-
-function incrementPurchaseCount(map, productId, quantity = 1) {
-  const normalizedProductId = String(productId || "").trim();
-  if (!normalizedProductId) return;
-  map.set(
-    normalizedProductId,
-    Number(map.get(normalizedProductId) || 0) + parsePositiveQuantity(quantity, 1)
-  );
-}
-
-function accumulatePurchaseCounts(rawPurchase = {}, purchaseCountByProductId = new Map()) {
-  const primaryProductId = String(rawPurchase?.productId || rawPurchase?.id || "").trim();
-  if (primaryProductId) {
-    incrementPurchaseCount(purchaseCountByProductId, primaryProductId, rawPurchase?.quantity);
-  }
-
-  const orderItems = Array.isArray(rawPurchase?.items)
-    ? rawPurchase.items
-    : Array.isArray(rawPurchase?.products)
-      ? rawPurchase.products
-      : [];
-
-  orderItems.forEach((item) => {
-    incrementPurchaseCount(
-      purchaseCountByProductId,
-      item?.productId || item?.id,
-      item?.quantity
-    );
-  });
-}
-
 function applyPricing(items, pricingContext = {}) {
   return (Array.isArray(items) ? items : []).map((item) => {
     const pricing = calculatePrice({
@@ -177,81 +141,43 @@ function applyPricing(items, pricingContext = {}) {
   });
 }
 
-function buildRails(products = [], purchaseCountByProductId = new Map()) {
+function buildRails(products = []) {
   const popular = [...products]
     .sort((first, second) => {
-      const firstCount = Number(
-        purchaseCountByProductId.get(first.id) ?? first.purchaseCount ?? 0
-      );
-      const secondCount = Number(
-        purchaseCountByProductId.get(second.id) ?? second.purchaseCount ?? 0
-      );
+      const firstCount = Number(first.purchaseCount || 0);
+      const secondCount = Number(second.purchaseCount || 0);
       if (secondCount !== firstCount) return secondCount - firstCount;
       return String(first.title).localeCompare(String(second.title));
     })
-    .slice(0, CACHE_SIZE)
-    .map((item) => ({
-      ...item,
-      purchaseCount: Number(
-        purchaseCountByProductId.get(item.id) ?? item.purchaseCount ?? 0
-      ),
-    }));
+    .slice(0, CACHE_SIZE);
 
   const recent = [...products]
     .sort((first, second) => {
       if (second.createdAtMs !== first.createdAtMs) return second.createdAtMs - first.createdAtMs;
       return String(first.title).localeCompare(String(second.title));
     })
-    .slice(0, CACHE_SIZE)
-    .map((item) => ({
-      ...item,
-      purchaseCount: Number(
-        purchaseCountByProductId.get(item.id) ?? item.purchaseCount ?? 0
-      ),
-    }));
+    .slice(0, CACHE_SIZE);
 
   return { popular, recent };
 }
 
 async function computeRailsFromFirestore() {
   const adminDb = getAdminDb();
-  const purchaseCountByProductId = new Map();
   if (adminDb) {
     const productsSnapshot = await adminDb.collection("products").limit(1000).get();
-    try {
-      const purchasesSnapshot = await adminDb.collection("purchases").limit(5000).get();
-      purchasesSnapshot.docs.forEach((docSnapshot) => {
-        const raw = docSnapshot.data() || {};
-        accumulatePurchaseCounts(raw, purchaseCountByProductId);
-      });
-    } catch {
-      // Keep product-level purchase counts as fallback.
-    }
-
     const products = productsSnapshot.docs
       .map((item) => normalizeProduct(item.data(), item.id))
       .filter((item) => item.id);
 
-    return buildRails(products, purchaseCountByProductId);
+    return buildRails(products);
   }
 
   const productsSnapshot = await getDocs(query(collection(db, "products"), limit(1000)));
-  try {
-    const purchasesSnapshot = await getDocs(query(collection(db, "purchases"), limit(5000)));
-    purchasesSnapshot.docs.forEach((docSnapshot) => {
-      const raw = docSnapshot.data() || {};
-      accumulatePurchaseCounts(raw, purchaseCountByProductId);
-    });
-  } catch {
-    // Firestore rules may block public server reads to purchases.
-    // In that case, we still build rails using product-level purchase fields.
-  }
-
   const products = productsSnapshot.docs
     .map((item) => normalizeProduct(item.data(), item.id))
     .filter((item) => item.id);
 
-  return buildRails(products, purchaseCountByProductId);
+  return buildRails(products);
 }
 
 async function readCachedRails() {
@@ -326,7 +252,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    res.setHeader("Cache-Control", "public, max-age=0, s-maxage=120, stale-while-revalidate=600, must-revalidate");
+    res.setHeader("Cache-Control", "public, max-age=0, s-maxage=900, stale-while-revalidate=3600, must-revalidate");
     const countryCode = detectCountryFromRequest(req);
     const currencyOverride = getCurrencyOverrideFromRequest(req);
     const pricingContext = { countryCode, currencyOverride };
