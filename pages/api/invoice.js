@@ -1,6 +1,7 @@
-import { collection, doc, getDoc, getDocs, query, where } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, limit, query, where } from "firebase/firestore";
 
 import { db } from "../../firebase/config";
+import { getAdminDb } from "../../lib/firebaseAdmin";
 import products from "../../data/products";
 
 function formatDateTime(value) {
@@ -69,7 +70,84 @@ function buildPdfBuffer(lines) {
   return Buffer.from(pdf, "utf8");
 }
 
+function normalizeOrderItems(orderItems = []) {
+  const hasDetailedRows = orderItems.some(
+    (item) => item.paymentId && item.id !== item.paymentId
+  );
+  return hasDetailedRows
+    ? orderItems.filter((item) => !item.paymentId || item.id !== item.paymentId)
+    : orderItems;
+}
+
+async function getOrderItems(paymentId) {
+  const adminDb = getAdminDb();
+  if (adminDb) {
+    const snapshot = await adminDb
+      .collection("purchases")
+      .where("paymentId", "==", paymentId)
+      .limit(100)
+      .get();
+    return snapshot.docs.map((document) => ({
+      id: document.id,
+      ...document.data(),
+    }));
+  }
+
+  const orderQuery = query(
+    collection(db, "purchases"),
+    where("paymentId", "==", paymentId),
+    limit(100)
+  );
+  const orderSnapshot = await getDocs(orderQuery);
+  return orderSnapshot.docs.map((document) => ({
+    id: document.id,
+    ...document.data(),
+  }));
+}
+
+async function getRuntimeProducts(productIds = []) {
+  const normalizedIds = Array.from(
+    new Set(
+      (Array.isArray(productIds) ? productIds : [])
+        .map((id) => String(id || "").trim())
+        .filter(Boolean)
+    )
+  );
+  if (normalizedIds.length === 0) return [];
+
+  const adminDb = getAdminDb();
+  if (adminDb) {
+    const docs = await Promise.all(
+      normalizedIds.map(async (productId) => {
+        try {
+          const snapshot = await adminDb.collection("products").doc(productId).get();
+          return snapshot.exists ? { id: snapshot.id, ...snapshot.data() } : null;
+        } catch {
+          return null;
+        }
+      })
+    );
+    return docs.filter(Boolean);
+  }
+
+  const docs = await Promise.all(
+    normalizedIds.map(async (productId) => {
+      try {
+        const snapshot = await getDoc(doc(db, "products", productId));
+        return snapshot.exists() ? { id: snapshot.id, ...snapshot.data() } : null;
+      } catch {
+        return null;
+      }
+    })
+  );
+  return docs.filter(Boolean);
+}
+
 export default async function handler(req, res) {
+  if (req.method !== "GET") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
   const paymentId = String(req.query.paymentId || "").trim();
   const email = String(req.query.email || "").trim().toLowerCase();
 
@@ -81,110 +159,104 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "Email required" });
   }
 
-  const orderQuery = query(
-    collection(db, "purchases"),
-    where("paymentId", "==", paymentId)
-  );
-  const orderSnapshot = await getDocs(orderQuery);
+  try {
+    const orderItems = await getOrderItems(paymentId);
 
-  if (orderSnapshot.empty) {
-    return res.status(404).json({ error: "Order not found" });
-  }
-
-  const orderItems = orderSnapshot.docs.map((document) => ({
-    id: document.id,
-    ...document.data(),
-  }));
-  const hasDetailedRows = orderItems.some(
-    (item) => item.paymentId && item.id !== item.paymentId
-  );
-  const normalizedOrderItems = hasDetailedRows
-    ? orderItems.filter((item) => !item.paymentId || item.id !== item.paymentId)
-    : orderItems;
-  const ownsOrder = orderItems.some(
-    (item) => String(item.email || "").trim().toLowerCase() === email
-  );
-
-  if (!ownsOrder) {
-    return res.status(403).json({ error: "Unauthorized invoice request" });
-  }
-
-  const mergedByProduct = new Map();
-  normalizedOrderItems.forEach((item) => {
-    const productId = String(item.productId || "").trim();
-    const quantity =
-      Number.isFinite(Number(item.quantity)) && Number(item.quantity) > 0
-        ? Number(item.quantity)
-        : 1;
-    const existing = mergedByProduct.get(productId) || 0;
-    mergedByProduct.set(productId, existing + quantity);
-  });
-
-  const productIds = Array.from(mergedByProduct.keys()).filter(Boolean);
-  const runtimeProducts = await Promise.all(
-    productIds.map(async (productId) => {
-      try {
-        const snapshot = await getDoc(doc(db, "products", productId));
-        return snapshot.exists() ? { id: snapshot.id, ...snapshot.data() } : null;
-      } catch {
-        return null;
-      }
-    })
-  );
-  const runtimeById = new Map(
-    runtimeProducts.filter(Boolean).map((item) => [String(item.id || "").trim(), item])
-  );
-
-  const lineItems = Array.from(mergedByProduct.entries()).map(
-    ([productId, quantity]) => {
-      const product = runtimeById.get(productId) || products.find((item) => item.id === productId);
-      const amount = Number(product?.price || 0);
-      return {
-        productId,
-        title: product?.title || productId || "Worksheet",
-        quantity,
-        amount,
-        lineTotal: amount * quantity,
-      };
+    if (orderItems.length === 0) {
+      return res.status(404).json({ error: "Order not found" });
     }
-  );
 
-  const subtotal = lineItems.reduce((sum, item) => sum + item.lineTotal, 0);
-  const tax = 0;
-  const total = subtotal + tax;
-  const invoiceNumber = `INV-${paymentId.slice(-8).toUpperCase()}`;
-  const firstItem = normalizedOrderItems[0];
-  const invoiceDate = firstItem?.purchasedAt;
-  const invoiceLines = [
-    "Dear Student Learning Hub - Invoice",
-    "",
-    `Invoice Number: ${invoiceNumber}`,
-    `Order ID: ${paymentId}`,
-    `Order Date & Time: ${formatDateTime(invoiceDate)}`,
-    "",
-    `Bill To: ${email}`,
-    "",
-    "Items:",
-    ...lineItems.map(
-      (item, index) =>
-        `${index + 1}. ${item.title} (x${item.quantity}) - INR ${item.lineTotal}`
-    ),
-    "",
-    `Subtotal: INR ${subtotal}`,
-    `Tax: INR ${tax}`,
-    `Total: INR ${total}`,
-    "",
-    "Payment Status: Paid",
-    `Payment Reference: ${paymentId}`,
-  ];
-  const invoicePdf = buildPdfBuffer(invoiceLines);
+    const normalizedOrderItems = normalizeOrderItems(orderItems);
+    const ownsOrder = orderItems.some(
+      (item) => String(item.email || "").trim().toLowerCase() === email
+    );
 
-  res.setHeader("Content-Type", "application/pdf");
-  res.setHeader(
-    "Content-Disposition",
-    `attachment; filename="invoice-${paymentId}.pdf"`
-  );
-  res.setHeader("Cache-Control", "no-store");
-  res.setHeader("Content-Length", String(invoicePdf.length));
-  return res.status(200).send(invoicePdf);
+    if (!ownsOrder) {
+      return res.status(403).json({ error: "Unauthorized invoice request" });
+    }
+
+    const mergedByProduct = new Map();
+    normalizedOrderItems.forEach((item) => {
+      const productId = String(item.productId || "").trim();
+      const quantity =
+        Number.isFinite(Number(item.quantity)) && Number(item.quantity) > 0
+          ? Number(item.quantity)
+          : 1;
+      const existing = mergedByProduct.get(productId) || 0;
+      mergedByProduct.set(productId, existing + quantity);
+    });
+
+    const productIds = Array.from(mergedByProduct.keys()).filter(Boolean);
+    const runtimeProducts = await getRuntimeProducts(productIds);
+    const runtimeById = new Map(
+      runtimeProducts.filter(Boolean).map((item) => [String(item.id || "").trim(), item])
+    );
+
+    const lineItems = Array.from(mergedByProduct.entries()).map(
+      ([productId, quantity]) => {
+        const runtimeProduct = runtimeById.get(productId);
+        const staticProduct = products.find((item) => item.id === productId);
+        const product = runtimeProduct
+          ? {
+              ...staticProduct,
+              ...runtimeProduct,
+            }
+          : staticProduct;
+        const amount = Number(product?.price || 0);
+        return {
+          productId,
+          title: product?.title || productId || "Worksheet",
+          quantity,
+          amount,
+          lineTotal: amount * quantity,
+        };
+      }
+    );
+
+    const invoiceNumber = `INV-${paymentId.slice(-8).toUpperCase()}`;
+    const firstItem = normalizedOrderItems[0];
+    const invoiceDate = firstItem?.purchasedAt;
+    const subtotal = lineItems.reduce((sum, item) => sum + item.lineTotal, 0);
+    const tax = 0;
+    const storedOrderAmount = Number(firstItem?.orderAmount);
+    const total =
+      Number.isFinite(storedOrderAmount) && storedOrderAmount >= 0
+        ? storedOrderAmount
+        : subtotal + tax;
+    const invoiceLines = [
+      "Dear Student Learning Hub - Invoice",
+      "",
+      `Invoice Number: ${invoiceNumber}`,
+      `Order ID: ${paymentId}`,
+      `Order Date & Time: ${formatDateTime(invoiceDate)}`,
+      "",
+      `Bill To: ${email}`,
+      "",
+      "Items:",
+      ...lineItems.map(
+        (item, index) =>
+          `${index + 1}. ${item.title} (x${item.quantity}) - INR ${item.lineTotal}`
+      ),
+      "",
+      `Subtotal: INR ${subtotal}`,
+      `Tax: INR ${tax}`,
+      `Total: INR ${total}`,
+      "",
+      "Payment Status: Paid",
+      `Payment Reference: ${paymentId}`,
+    ];
+    const invoicePdf = buildPdfBuffer(invoiceLines);
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="invoice-${paymentId}.pdf"`
+    );
+    res.setHeader("Cache-Control", "no-store");
+    res.setHeader("Content-Length", String(invoicePdf.length));
+    return res.status(200).send(invoicePdf);
+  } catch (error) {
+    console.error("Invoice generation failed:", error);
+    return res.status(500).json({ error: "Failed to generate invoice" });
+  }
 }
