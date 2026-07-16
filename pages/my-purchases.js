@@ -256,10 +256,20 @@ export default function MyPurchases() {
     let cancelled = false;
     const loadProducts = async () => {
       try {
-        const response = await fetch(`/api/products?ids=${encodeURIComponent(ids.join(","))}`);
-        if (!response.ok) return;
-        const payload = await response.json().catch(() => ({}));
-        const list = Array.isArray(payload?.products) ? payload.products : [];
+        const chunks = [];
+        for (let index = 0; index < ids.length; index += 40) {
+          chunks.push(ids.slice(index, index + 40));
+        }
+        const payloads = await Promise.all(
+          chunks.map(async (chunk) => {
+            const response = await fetch(`/api/products?ids=${encodeURIComponent(chunk.join(","))}`);
+            if (!response.ok) return null;
+            return response.json().catch(() => ({}));
+          })
+        );
+        const list = payloads.flatMap((payload) =>
+          Array.isArray(payload?.products) ? payload.products : []
+        );
         if (!cancelled) setRuntimeProducts(list);
       } catch {
         // Keep static fallback only.

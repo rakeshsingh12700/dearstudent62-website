@@ -236,7 +236,7 @@ export default async function handler(req, res) {
         .split(",")
         .map((item) => String(item || "").trim())
         .filter(Boolean)
-        .slice(0, 10);
+        .slice(0, 50);
 
       if (ids.length === 0) {
         return res.status(200).json({ products: [] });
