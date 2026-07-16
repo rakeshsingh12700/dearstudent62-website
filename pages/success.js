@@ -30,7 +30,19 @@ export default function Success() {
     if (ids.length === 0 && fallbackProducts.length > 0) {
       return fallbackProducts;
     }
-    const runtimeById = new Map(runtimeProducts.map((item) => [item.id, item]));
+    const runtimeById = new Map(
+      runtimeProducts.map((item) => {
+        const existing = products.find((product) => product.id === item.id) || {};
+        return [
+          item.id,
+          {
+            ...existing,
+            ...item,
+            storageKey: String(item.storageKey || existing.storageKey || "").trim(),
+          },
+        ];
+      })
+    );
     return ids
       .map((id) => runtimeById.get(id) || products.find((item) => item.id === id))
       .filter(Boolean);
