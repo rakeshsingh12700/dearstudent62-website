@@ -65,7 +65,12 @@ export default function OrderDetailsPage() {
     const map = new Map(products.map((product) => [product.id, product]));
     runtimeProducts.forEach((product) => {
       if (!product?.id) return;
-      map.set(product.id, product);
+      const existing = map.get(product.id) || {};
+      map.set(product.id, {
+        ...existing,
+        ...product,
+        storageKey: String(product.storageKey || existing.storageKey || "").trim(),
+      });
     });
     return map;
   }, [runtimeProducts]);
